@@ -85,6 +85,7 @@ CREATE TABLE proveedor (
 CREATE TABLE repue (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
+    precio DECIMAL(10,2) NOT NULL DEFAULT 0,
     subcat_repu_id INT,
     proveedor_id INT,
     FOREIGN KEY (subcat_repu_id) REFERENCES subcat_repu(id),

@@ -1,18 +1,17 @@
 <?php
-require_once 'config/db.php';
+require_once __DIR__ . '/../config/db.php';
 
 class User {
     private $db;
     public function __construct() {
-        $this->db = (new Database())->conn;
+        $this->db = $GLOBALS['db'];
     }
     public function login($usuario, $contrasena) {
         $sql = "SELECT * FROM users WHERE nombre = ? OR correo = ?";
         $stmt = $this->db->prepare($sql);
-        $stmt->bind_param('ss', $usuario, $usuario);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        if ($row = $result->fetch_assoc()) {
+        $stmt->execute([$usuario, $usuario]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
             if (hash('sha256', $contrasena) === $row['contrasena']) {
                 return $row;
             }

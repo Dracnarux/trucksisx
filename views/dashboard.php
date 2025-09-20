@@ -22,7 +22,9 @@ $usuario = $_SESSION['usuario'];
                 <li class="nav-item mb-2"><a class="nav-link text-white" href="#">Gestión de Órdenes</a></li>
                 <li class="nav-item mb-2"><a class="nav-link text-white" href="#">Gestión de Vehículos</a></li>
                 <li class="nav-item mb-2"><a class="nav-link text-white" href="#">Gestión de Conductores</a></li>
-                <li class="nav-item mb-2"><a class="nav-link text-white" href="#">Gestión de Repuestos</a></li>
+                <li class="nav-item mb-2"><a class="nav-link text-white" href="categoriarepu.php">Gestión de Categorías</a></li>
+                <li class="nav-item mb-2"><a class="nav-link text-white" href="subcategoriarepu.php">Gestión de Subcategorías</a></li>
+                <li class="nav-item mb-2"><a class="nav-link text-white" href="repuestos.php">Gestión de Repuestos</a></li>
                 <li class="nav-item mb-2"><a class="nav-link text-white" href="#">Gestión de Proveedores</a></li>
                 <li class="nav-item mb-2"><a class="nav-link text-white" href="#">Gestión de Alertas</a></li>
                 <li class="nav-item mb-2"><a class="nav-link text-white" href="../index.php?logout=1">Cerrar sesión</a></li>
