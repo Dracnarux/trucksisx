@@ -22,7 +22,8 @@ $usuario = $_SESSION['usuario'];
                 <li class="nav-item mb-2"><a class="nav-link text-white" href="#">Gestión de Órdenes</a></li>
                 <li class="nav-item mb-2"><a class="nav-link text-white" href="#">Gestión de Vehículos</a></li>
                 <li class="nav-item mb-2"><a class="nav-link text-white" href="#">Gestión de Conductores</a></li>
-                <li class="nav-item mb-2"><a class="nav-link text-white" href="#">Gestión de Repuestos</a></li>
+                <li class="nav-item mb-2"><a class="nav-link text-white" href="cat_repu.php">Gestión de Categoría de Repuestos</a></li>
+                <li class="nav-item mb-2"><a class="nav-link text-white" href="subcat_repu.php">Gestión de Subcategoría de Repuestos</a></li>
                 <li class="nav-item mb-2"><a class="nav-link text-white" href="#">Gestión de Proveedores</a></li>
                 <li class="nav-item mb-2"><a class="nav-link text-white" href="#">Gestión de Alertas</a></li>
                 <li class="nav-item mb-2"><a class="nav-link text-white" href="../index.php?logout=1">Cerrar sesión</a></li>
@@ -54,7 +55,27 @@ $usuario = $_SESSION['usuario'];
                         <div class="card-body">
                             <h5 class="card-title">Gestiones</h5>
                             <p class="card-text">Acceso a todas las gestiones.</p>
-                            <a href="#" class="btn btn-info">Acceder</a>
+                            <a href="gestiones.php" class="btn btn-info">Acceder</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Tarjeta para Categoría de Repuestos -->
+                <div class="col-md-4 mt-4">
+                    <div class="card text-center border-warning">
+                        <div class="card-body">
+                            <h5 class="card-title text-warning">Categoría de Repuestos</h5>
+                            <p class="card-text">Gestiona las categorías de repuestos.</p>
+                            <a href="cat_repu.php" class="btn btn-warning">Ir</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Tarjeta para Subcategoría de Repuestos -->
+                <div class="col-md-4 mt-4">
+                    <div class="card text-center border-secondary">
+                        <div class="card-body">
+                            <h5 class="card-title text-secondary">Subcategoría de Repuestos</h5>
+                            <p class="card-text">Gestiona las subcategorías de repuestos.</p>
+                            <a href="subcat_repu.php" class="btn btn-secondary">Ir</a>
                         </div>
                     </div>
                 </div>

@@ -4,7 +4,7 @@ require_once 'config/db.php';
 class User {
     private $db;
     public function __construct() {
-        $this->db = (new Database())->conn;
+        $this->db = conectarDB();
     }
     public function login($usuario, $contrasena) {
         $sql = "SELECT * FROM users WHERE nombre = ? OR correo = ?";
