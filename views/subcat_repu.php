@@ -40,6 +40,7 @@ require_once '../controllers/SubCatRepuController.php';
         <thead>
             <tr>
                 <th>ID</th>
+                <th>Tipo de Sub-Repuesto</th>
                 <th>Nombre</th>
                 <th>Características</th>
                 <th>Categoría</th>
@@ -50,6 +51,7 @@ require_once '../controllers/SubCatRepuController.php';
         <?php while ($row = $subcategorias->fetch_assoc()): ?>
             <tr>
                 <td><?= $row['id'] ?></td>
+                <td><?= htmlspecialchars($row['tipo_sub_repuesto'] ?? '') ?></td>
                 <td><?= htmlspecialchars($row['nombre']) ?></td>
                 <td><?= htmlspecialchars($row['caracteristicas'] ?? '') ?></td>
                 <td><?= htmlspecialchars($row['categoria_nombre'] ?? '') ?></td>
@@ -68,6 +70,10 @@ require_once '../controllers/SubCatRepuController.php';
             <h5 class="card-title"><?= isset($subcategoria) ? 'Editar' : 'Agregar' ?> Subcategoría</h5>
             <form method="post">
                 <input type="hidden" name="id" value="<?= $subcategoria['id'] ?? '' ?>">
+                <div class="mb-3">
+                    <label class="form-label">Tipo de Sub-Repuesto</label>
+                    <input type="text" name="tipo_sub_repuesto" class="form-control" value="<?= htmlspecialchars($subcategoria['tipo_sub_repuesto'] ?? '') ?>">
+                </div>
                 <div class="mb-3">
                     <label class="form-label">Nombre</label>
                     <input type="text" name="nombre" class="form-control" required value="<?= htmlspecialchars($subcategoria['nombre'] ?? '') ?>">

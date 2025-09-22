@@ -8,7 +8,7 @@ class SubCatRepu {
         $this->conn = conectarDB();
     }
 
-    public function getAll($filtro_nombre = '', $filtro_caracteristicas = '', $filtro_categoria = '') {
+    public function getAll($filtro_nombre = '', $filtro_caracteristicas = '', $filtro_categoria = '', $filtro_tipo = '') {
         $sql = "SELECT s.*, c.nombre AS categoria_nombre FROM subcat_repu s LEFT JOIN cat_repu c ON s.cat_repu_id = c.id WHERE 1";
         $params = [];
         $types = '';
@@ -27,6 +27,11 @@ class SubCatRepu {
             $params[] = "%$filtro_categoria%";
             $types .= 's';
         }
+        if ($filtro_tipo) {
+            $sql .= " AND s.tipo_sub_repuesto LIKE ?";
+            $params[] = "%$filtro_tipo%";
+            $types .= 's';
+        }
         $stmt = $this->conn->prepare($sql);
         if ($params) {
             $stmt->bind_param($types, ...$params);
@@ -42,13 +47,13 @@ class SubCatRepu {
         return $stmt->get_result()->fetch_assoc();
     }
 
-    public function save($nombre, $caracteristicas, $cat_repu_id, $id = null) {
+    public function save($tipo_sub_repuesto, $nombre, $caracteristicas, $cat_repu_id, $id = null) {
         if ($id) {
-            $stmt = $this->conn->prepare("UPDATE subcat_repu SET nombre=?, caracteristicas=?, cat_repu_id=? WHERE id=?");
-            $stmt->bind_param('ssii', $nombre, $caracteristicas, $cat_repu_id, $id);
+            $stmt = $this->conn->prepare("UPDATE subcat_repu SET tipo_sub_repuesto=?, nombre=?, caracteristicas=?, cat_repu_id=? WHERE id=?");
+            $stmt->bind_param('sssii', $tipo_sub_repuesto, $nombre, $caracteristicas, $cat_repu_id, $id);
         } else {
-            $stmt = $this->conn->prepare("INSERT INTO subcat_repu (nombre, caracteristicas, cat_repu_id) VALUES (?, ?, ?)");
-            $stmt->bind_param('ssi', $nombre, $caracteristicas, $cat_repu_id);
+            $stmt = $this->conn->prepare("INSERT INTO subcat_repu (tipo_sub_repuesto, nombre, caracteristicas, cat_repu_id) VALUES (?, ?, ?, ?)");
+            $stmt->bind_param('sssi', $tipo_sub_repuesto, $nombre, $caracteristicas, $cat_repu_id);
         }
         return $stmt->execute();
     }

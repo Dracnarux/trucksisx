@@ -16,10 +16,11 @@ if (isset($_GET['delete'])) {
 
 // Guardar (alta/edición)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $tipo_repuesto = $_POST['tipo_repuesto'] ?? '';
     $nombre = $_POST['nombre'] ?? '';
     $caracteristicas = $_POST['caracteristicas'] ?? '';
     $id = $_POST['id'] ?? null;
-    $catRepu->save($nombre, $caracteristicas, $id);
+    $catRepu->save($tipo_repuesto, $nombre, $caracteristicas, $id);
     header("Location: cat_repu.php");
     exit();
 }

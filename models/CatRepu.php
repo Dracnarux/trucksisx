@@ -11,10 +11,10 @@ class CatRepu {
     public function getAll($filtro = '') {
         $sql = "SELECT * FROM cat_repu";
         if ($filtro) {
-            $sql .= " WHERE nombre LIKE ? OR caracteristicas LIKE ?";
+            $sql .= " WHERE nombre LIKE ? OR caracteristicas LIKE ? OR tipo_repuesto LIKE ?";
             $stmt = $this->conn->prepare($sql);
             $like = "%$filtro%";
-            $stmt->bind_param('ss', $like, $like);
+            $stmt->bind_param('sss', $like, $like, $like);
         } else {
             $stmt = $this->conn->prepare($sql);
         }
@@ -29,13 +29,13 @@ class CatRepu {
         return $stmt->get_result()->fetch_assoc();
     }
 
-    public function save($nombre, $caracteristicas, $id = null) {
+    public function save($tipo_repuesto, $nombre, $caracteristicas, $id = null) {
         if ($id) {
-            $stmt = $this->conn->prepare("UPDATE cat_repu SET nombre=?, caracteristicas=? WHERE id=?");
-            $stmt->bind_param('ssi', $nombre, $caracteristicas, $id);
+            $stmt = $this->conn->prepare("UPDATE cat_repu SET tipo_repuesto=?, nombre=?, caracteristicas=? WHERE id=?");
+            $stmt->bind_param('sssi', $tipo_repuesto, $nombre, $caracteristicas, $id);
         } else {
-            $stmt = $this->conn->prepare("INSERT INTO cat_repu (nombre, caracteristicas) VALUES (?, ?)");
-            $stmt->bind_param('ss', $nombre, $caracteristicas);
+            $stmt = $this->conn->prepare("INSERT INTO cat_repu (tipo_repuesto, nombre, caracteristicas) VALUES (?, ?, ?)");
+            $stmt->bind_param('sss', $tipo_repuesto, $nombre, $caracteristicas);
         }
         return $stmt->execute();
     }

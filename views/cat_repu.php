@@ -37,17 +37,30 @@ require_once '../controllers/CatRepuController.php';
         <thead>
             <tr>
                 <th>ID</th>
+                <th>Tipo de Repuesto</th>
                 <th>Nombre</th>
                 <th>Características</th>
+                <th>Productos</th>
                 <th class="text-center">Acciones</th>
             </tr>
         </thead>
         <tbody>
-        <?php while ($row = $categorias->fetch_assoc()): ?>
+        <?php 
+        require_once '../models/Repue.php';
+        $repueModel = new Repue();
+        while ($row = $categorias->fetch_assoc()): 
+            $productos = [];
+            $repuestos = $repueModel->getAll(['cat_repu_id' => $row['id']]);
+            while ($rep = $repuestos->fetch_assoc()) {
+                $productos[] = htmlspecialchars($rep['nombre']);
+            }
+        ?>
             <tr>
                 <td><?= $row['id'] ?></td>
+                <td><?= htmlspecialchars($row['tipo_repuesto'] ?? '') ?></td>
                 <td><?= htmlspecialchars($row['nombre']) ?></td>
                 <td><?= htmlspecialchars($row['caracteristicas'] ?? '') ?></td>
+                <td><?= $productos ? implode(', ', $productos) : '' ?></td>
                 <td class="text-center">
                     <a href="cat_repu.php?form=1&id=<?= $row['id'] ?>" class="btn btn-warning mx-1">Editar</a>
                     <a href="cat_repu.php?delete=<?= $row['id'] ?>" class="btn btn-danger mx-1" onclick="return confirm('¿Eliminar categoría?')">Eliminar</a>
@@ -63,6 +76,10 @@ require_once '../controllers/CatRepuController.php';
             <h5 class="card-title"><?= isset($categoria) ? 'Editar' : 'Agregar' ?> Categoría</h5>
             <form method="post">
                 <input type="hidden" name="id" value="<?= $categoria['id'] ?? '' ?>">
+                <div class="mb-3">
+                    <label class="form-label">Tipo de Repuesto</label>
+                    <input type="text" name="tipo_repuesto" class="form-control" value="<?= htmlspecialchars($categoria['tipo_repuesto'] ?? '') ?>">
+                </div>
                 <div class="mb-3">
                     <label class="form-label">Nombre</label>
                     <input type="text" name="nombre" class="form-control" required value="<?= htmlspecialchars($categoria['nombre'] ?? '') ?>">

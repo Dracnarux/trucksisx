@@ -21,11 +21,12 @@ if (isset($_GET['delete'])) {
 
 // Guardar (alta/edición)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $tipo_sub_repuesto = $_POST['tipo_sub_repuesto'] ?? '';
     $nombre = $_POST['nombre'] ?? '';
     $caracteristicas = $_POST['caracteristicas'] ?? '';
     $categoria_id = $_POST['categoria_id'] ?? '';
     $id = $_POST['id'] ?? null;
-    $subCatRepu->save($nombre, $caracteristicas, $categoria_id, $id);
+    $subCatRepu->save($tipo_sub_repuesto, $nombre, $caracteristicas, $categoria_id, $id);
     header("Location: subcat_repu.php");
     exit();
 }

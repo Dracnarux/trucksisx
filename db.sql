@@ -61,43 +61,87 @@ CREATE TABLE cond (
 
 CREATE TABLE repor (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    descripcion TEXT,
-    cond_id INT
+    nombre_reporte VARCHAR(100),
+    tipo_reporte VARCHAR(50),
+    costo_individual_vehiculo DECIMAL(10,2),
+    frecuencia VARCHAR(50),
+    fecha_creacion DATE,
+    activo BOOLEAN
 );
 
 CREATE TABLE cat_repu (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(50) NOT NULL
+    tipo_repuesto VARCHAR(50),
+    nombre VARCHAR(100) NOT NULL,
+    caracteristicas VARCHAR(255)
 );
 
 CREATE TABLE subcat_repu (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(50) NOT NULL,
+    tipo_sub_repuesto VARCHAR(50),
+    nombre VARCHAR(100) NOT NULL,
+    caracteristicas VARCHAR(255),
     cat_repu_id INT,
     FOREIGN KEY (cat_repu_id) REFERENCES cat_repu(id)
 );
 
 CREATE TABLE proveedor (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL
+    nit_num_identi VARCHAR(50),
+    nom_proveedor VARCHAR(100),
+    tel_contacto VARCHAR(30),
+    carg_contacto VARCHAR(50),
+    correo VARCHAR(100),
+    direccion VARCHAR(100),
+    ciudad_depar VARCHAR(50),
+    pais VARCHAR(50),
+    tip_repuesto VARCHAR(50),
+    mar_distribuye VARCHAR(100),
+    tiem_entrega VARCHAR(50),
+    zon_cobertura VARCHAR(100),
+    for_pago VARCHAR(50),
+    cred_disponible VARCHAR(50),
+    cuen_bancaria VARCHAR(50)
 );
 
 CREATE TABLE repue (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
-    subcat_repu_id INT,
+    marca_repuesto VARCHAR(100),
     proveedor_id INT,
+    cat_repu_id INT,
+    subcat_repu_id INT,
+    modelo VARCHAR(100),
+    medidas_espe VARCHAR(100),
+    norma_estan VARCHAR(100),
+    numero_parte VARCHAR(100),
+    des_tecnica TEXT,
+    veh_compatible VARCHAR(100),
+    cantidad INT,
+    estado_repus VARCHAR(50),
+    fecha_ingreso DATE,
+    num_factura VARCHAR(50),
+    ubi_almacen VARCHAR(100),
+    pre_unitario DECIMAL(10,2),
+    costo_total DECIMAL(10,2),
+    garantia VARCHAR(100),
+    res_ingreso VARCHAR(100),
+    cant_stock INT,
+    fecha_venci DATE,
+    dest_area VARCHAR(100),
+    firma_verificacion VARCHAR(100),
+    FOREIGN KEY (cat_repu_id) REFERENCES cat_repu(id),
     FOREIGN KEY (subcat_repu_id) REFERENCES subcat_repu(id),
     FOREIGN KEY (proveedor_id) REFERENCES proveedor(id)
 );
 
 CREATE TABLE alert (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    mensaje TEXT,
-    repue_id INT UNSIGNED,
-    FOREIGN KEY (repue_id) REFERENCES repue(id)
+    fecha_hora DATETIME,
+    prioridad VARCHAR(20),
+    estado VARCHAR(20),
+    descripcion TEXT
 );
-
 CREATE TABLE ord_trabj (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre_trabajo VARCHAR(100) NOT NULL,
@@ -119,7 +163,7 @@ CREATE TABLE sali_repue (
     id INT AUTO_INCREMENT PRIMARY KEY,
     fecha_salida DATE,
     cantidad INT,
-    repue_id INT UNSIGNED,
+    repue_id INT,
     ord_trabj_id INT,
     repor_id INT,
     FOREIGN KEY (repue_id) REFERENCES repue(id),
