@@ -74,6 +74,7 @@ CREATE TABLE cat_repu (
     tipo_repuesto VARCHAR(50),
     nombre VARCHAR(100) NOT NULL,
     caracteristicas VARCHAR(255)
+    
 );
 
 CREATE TABLE subcat_repu (
@@ -101,7 +102,8 @@ CREATE TABLE proveedor (
     zon_cobertura VARCHAR(100),
     for_pago VARCHAR(50),
     cred_disponible VARCHAR(50),
-    cuen_bancaria VARCHAR(50)
+    cuen_bancaria VARCHAR(50),
+    FOREIGN KEY (cat_repu_id) REFERENCES cat_repu(id)
 );
 
 CREATE TABLE repue (
@@ -142,6 +144,7 @@ CREATE TABLE alert (
     estado VARCHAR(20),
     descripcion TEXT
 );
+
 CREATE TABLE ord_trabj (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre_trabajo VARCHAR(100) NOT NULL,

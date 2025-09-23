@@ -57,13 +57,9 @@ $usuario = $_SESSION['usuario'];
         <nav class="sidebar p-3">
             <h4 class="mb-4"><i class="bi bi-list"></i> Menú</h4>
             <ul class="nav flex-column">
-                <li class="nav-item mb-2"><a class="nav-link" href="#"><i class="bi bi-file-earmark-text"></i> Gestión de Órdenes</a></li>
-                <li class="nav-item mb-2"><a class="nav-link" href="#"><i class="bi bi-truck"></i> Gestión de Vehículos</a></li>
-                <li class="nav-item mb-2"><a class="nav-link" href="#"><i class="bi bi-gear"></i> Gestión Vehicular</a></li>
-                <li class="nav-item mb-2"><a class="nav-link" href="#"><i class="bi bi-person-badge"></i> Gestión de Conductores</a></li>
-                <li class="nav-item mb-2"><a class="nav-link" href="#"><i class="bi bi-building"></i> Gestión de Proveedores</a></li>
-                <li class="nav-item mb-2"><a class="nav-link" href="#"><i class="bi bi-exclamation-triangle"></i> Gestión de Alertas</a></li>
-                <li class="nav-item mb-2"><a class="nav-link" href="../index.php?logout=1"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a></li>
+                 <li class="nav-item mb-2"><a class="nav-link" href="cond.php"><i class="bi bi-person-badge"></i> Gestión de Conductores</a></li>
+                 <li class="nav-item mb-2"><a class="nav-link" href="gestiones.php"><i class="bi bi-collection"></i> Gestiones</a></li>
+                 <li class="nav-item mb-2"><a class="nav-link" href="../index.php?logout=1"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a></li>
             </ul>
         </nav>
         <main class="flex-fill p-4">
@@ -93,17 +89,54 @@ $usuario = $_SESSION['usuario'];
                     <div class="card text-center h-100 border-info">
                         <div class="card-body">
                             <h5 class="card-title text-info"><i class="bi bi-collection"></i> Gestiones</h5>
-                            <p class="card-text">Acceso a todas las gestiones.</p>
+                            <p class="card-text">Acceso a todas las gestiones de repuestos.</p>
                             <a href="gestiones.php" class="btn btn-info">Acceder</a>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card text-center h-100 border-success">
+                <div class="col-md-12">
+                    <div class="card h-100 border-success mb-4">
                         <div class="card-body">
                             <h5 class="card-title text-success"><i class="bi bi-truck"></i> Gestión Vehicular</h5>
                             <p class="card-text">Gestiona los vehículos y su información.</p>
-                            <a href="#" class="btn btn-success">Ir</a>
+                            <div class="row g-3 mt-3">
+                                <div class="col-md-3">
+                                    <div class="card h-100 text-center border-primary">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-primary"><i class="bi bi-truck"></i> Categoría de Vehículos</h6>
+                                            <p class="card-text">Gestiona las categorías de vehículos.</p>
+                                            <a href="cat_vehiculo.php" class="btn btn-primary btn-sm"><i class="bi bi-arrow-right-circle"></i> Ir</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card h-100 text-center border-secondary">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-secondary"><i class="bi bi-truck-flatbed"></i> Subcategoría de Vehículo</h6>
+                                            <p class="card-text">Gestiona las subcategorías de vehículos.</p>
+                                        <a href="subcat_vehiculo.php" class="btn btn-secondary btn-sm"><i class="bi bi-arrow-right-circle"></i> Ir</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card h-100 text-center border-info">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-info"><i class="bi bi-journal-plus"></i> Registro de Vehículo</h6>
+                                            <p class="card-text">Registra y gestiona vehículos individuales.</p>
+                                            <a href="regis_vehic.php" class="btn btn-info btn-sm"><i class="bi bi-arrow-right-circle"></i> Ir</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card h-100 text-center border-warning">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-warning"><i class="bi bi-person-badge"></i> Conductor</h6>
+                                            <p class="card-text">Gestiona los conductores y sus datos.</p>
+                                            <a href="cond.php" class="btn btn-warning btn-sm"><i class="bi bi-arrow-right-circle"></i> Ir</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
