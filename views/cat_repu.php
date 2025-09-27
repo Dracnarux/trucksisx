@@ -96,7 +96,7 @@ require_once '../controllers/CatRepuController.php';
     <?php endif; ?>
 
     <div class="mt-5 text-end">
-        <a href="dashboard.php" class="btn btn-outline-secondary">Volver al Dashboard</a>
+        <a href="gestiones.php" class="btn btn-outline-secondary">Volver al panel de Gestiones</a>
     </div>
 </div>
 </body>

@@ -56,10 +56,10 @@ if (!isset($_SESSION['usuario'])) {
             $vehiculos[$vehic['id']] = $vehic['placa'] . ' (' . $vehic['marca_vehiculo'] . ')';
         }
         // Filtros
-        $filtro_cargo = isset($_GET['filtro_cargo']) ? $_GET['filtro_cargo'] : '';
+        $filtro_conductor = isset($_GET['filtro_conductor']) ? $_GET['filtro_conductor'] : '';
         $filtro_vehic = isset($_GET['filtro_vehic']) ? $_GET['filtro_vehic'] : '';
-        $sql = "SELECT c.*, v.placa, v.marca_vehiculo FROM cond c JOIN regis_vehic v ON c.regis_vehic_id = v.id WHERE c.cargo LIKE ?";
-        $params = ["%$filtro_cargo%"];
+        $sql = "SELECT c.*, v.placa, v.marca_vehiculo FROM cond c JOIN regis_vehic v ON c.regis_vehic_id = v.id WHERE c.conductor LIKE ?";
+        $params = ["%$filtro_conductor%"];
         $types = 's';
         if ($filtro_vehic) {
             $sql .= " AND v.id = ?";
@@ -74,7 +74,7 @@ if (!isset($_SESSION['usuario'])) {
         ?>
         <form class="row mb-4" method="get">
             <div class="col-md-4">
-                <input type="text" name="filtro_cargo" class="form-control" placeholder="Buscar por cargo" value="<?= htmlspecialchars($filtro_cargo) ?>">
+                <input type="text" name="filtro_conductor" class="form-control" placeholder="Buscar por conductor" value="<?= htmlspecialchars($filtro_conductor) ?>">
             </div>
             <div class="col-md-4">
                 <select name="filtro_vehic" class="form-select">
@@ -97,7 +97,7 @@ if (!isset($_SESSION['usuario'])) {
                     <thead class="table-light">
                         <tr>
                             <th>ID</th>
-                            <th>Cargo</th>
+                            <th>Conductor</th>
                             <th>Horas Trabajadas</th>
                             <th>Tareas Completadas</th>
                             <th>Eficiencia</th>
@@ -111,7 +111,7 @@ if (!isset($_SESSION['usuario'])) {
                         <?php while ($row = $conductores->fetch_assoc()): ?>
                         <tr>
                             <td><?= $row['id'] ?></td>
-                            <td><?= htmlspecialchars($row['cargo']) ?></td>
+                            <td><?= htmlspecialchars($row['conductor']) ?></td>
                             <td><?= htmlspecialchars($row['horas_trabajadas']) ?></td>
                             <td><?= htmlspecialchars($row['tareas_completadas']) ?></td>
                             <td><?= htmlspecialchars($row['efeciencia']) ?></td>
@@ -151,8 +151,8 @@ if (!isset($_SESSION['usuario'])) {
                     <input type="hidden" name="id" value="<?= $editData['id'] ?? '' ?>">
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <label class="form-label">Cargo</label>
-                            <input type="text" name="cargo" class="form-control" required value="<?= htmlspecialchars($editData['cargo'] ?? '') ?>">
+                            <label class="form-label">Conductor</label>
+                            <input type="text" name="conductor" class="form-control" required value="<?= htmlspecialchars($editData['conductor'] ?? '') ?>">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Horas Trabajadas</label>
@@ -188,23 +188,23 @@ if (!isset($_SESSION['usuario'])) {
         <?php endif; ?>
         <?php
         // Guardar/editar conductor
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cargo'], $_POST['horas_trabajadas'], $_POST['tareas_completadas'], $_POST['efeciencia'], $_POST['regis_vehic_id'])) {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['conductor'], $_POST['horas_trabajadas'], $_POST['tareas_completadas'], $_POST['efeciencia'], $_POST['regis_vehic_id'])) {
             $fields = [
-                'cargo','horas_trabajadas','tareas_completadas','efeciencia','descripcion','regis_vehic_id'
+                'conductor','horas_trabajadas','tareas_completadas','efeciencia','descripcion','regis_vehic_id'
             ];
             $values = [];
             foreach ($fields as $f) {
                 $values[] = $_POST[$f] ?? '';
             }
             if (!empty($_POST['id'])) {
-                $sql = "UPDATE cond SET cargo=?, horas_trabajadas=?, tareas_completadas=?, efeciencia=?, descripcion=?, regis_vehic_id=? WHERE id=?";
+                $sql = "UPDATE cond SET conductor=?, horas_trabajadas=?, tareas_completadas=?, efeciencia=?, descripcion=?, regis_vehic_id=? WHERE id=?";
                 $stmt = $conn->prepare($sql);
                 $values_update = $values;
                 $values_update[] = $_POST['id'];
                 $stmt->bind_param('siidsii', ...$values_update);
                 $stmt->execute();
             } else {
-                $sql = "INSERT INTO cond (cargo, horas_trabajadas, tareas_completadas, efeciencia, descripcion, regis_vehic_id) VALUES (?,?,?,?,?,?)";
+                $sql = "INSERT INTO cond (conductor, horas_trabajadas, tareas_completadas, efeciencia, descripcion, regis_vehic_id) VALUES (?,?,?,?,?,?)";
                 $stmt = $conn->prepare($sql);
                 $stmt->bind_param('siidsi', ...$values);
                 $stmt->execute();
