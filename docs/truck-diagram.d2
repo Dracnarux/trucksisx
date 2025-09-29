@@ -1,0 +1,170 @@
+# Diagrama D2 - Camión Doble Troque
+# Sistema de Alertas de Llantas
+
+title: Sistema de Alertas de Llantas - Camión Doble Troque
+
+# Definir los componentes del camión
+Cabina: Cabina del Conductor {
+  shape: rectangle
+  style: {
+    fill: "#4a90e2"
+    stroke: "#2d5aa0"
+  }
+}
+
+Carroceria: Carrocería Principal {
+  shape: rectangle
+  style: {
+    fill: "#5ba0f2"
+    stroke: "#2d5aa0"
+  }
+}
+
+# Llantas Direccionales (Frontales)
+DIR_I: Dirección Izquierda {
+  shape: circle
+  style: {
+    fill: "#333333"
+    stroke: "#000000"
+  }
+}
+
+DIR_D: Dirección Derecha {
+  shape: circle
+  style: {
+    fill: "#333333"
+    stroke: "#000000"
+  }
+}
+
+# Llantas Tracción Primera (Doble Eje)
+T1_I: Tracción 1 - Izquierda {
+  shape: circle
+  style: {
+    fill: "#333333"
+    stroke: "#000000"
+  }
+}
+
+T1_D: Tracción 1 - Derecha {
+  shape: circle
+  style: {
+    fill: "#333333"
+    stroke: "#000000"
+  }
+}
+
+T1_I2: Tracción 1 - Izquierda 2 {
+  shape: circle
+  style: {
+    fill: "#333333"
+    stroke: "#000000"
+  }
+}
+
+T1_D2: Tracción 1 - Derecha 2 {
+  shape: circle
+  style: {
+    fill: "#333333"
+    stroke: "#000000"
+  }
+}
+
+# Llantas Tracción Segunda
+T2_I: Tracción 2 - Izquierda {
+  shape: circle
+  style: {
+    fill: "#333333"
+    stroke: "#000000"
+  }
+}
+
+T2_D: Tracción 2 - Derecha {
+  shape: circle
+  style: {
+    fill: "#333333"
+    stroke: "#000000"
+  }
+}
+
+# Conexiones estructurales
+Cabina -> Carroceria: "Estructura Principal"
+Carroceria -> DIR_I: "Eje Direccional"
+Carroceria -> DIR_D: "Eje Direccional"
+DIR_I -- DIR_D: "Eje Frontal"
+
+Carroceria -> T1_I: "Eje Tracción 1"
+Carroceria -> T1_D: "Eje Tracción 1"
+Carroceria -> T1_I2: "Eje Tracción 1"
+Carroceria -> T1_D2: "Eje Tracción 1"
+
+T1_I -- T1_D: "Eje Trasero 1"
+T1_I2 -- T1_D2: "Eje Trasero 1B"
+T1_I -- T1_I2: "Lado Izquierdo"
+T1_D -- T1_D2: "Lado Derecho"
+
+Carroceria -> T2_I: "Eje Tracción 2"
+Carroceria -> T2_D: "Eje Tracción 2"
+T2_I -- T2_D: "Eje Trasero 2"
+
+# Sistema de Alertas
+AlertSystem: Sistema de Alertas {
+  shape: rectangle
+  style: {
+    fill: "#ff6b6b"
+    stroke: "#e74c3c"
+  }
+}
+
+WorkOrder: Órdenes de Trabajo {
+  shape: rectangle
+  style: {
+    fill: "#4ecdc4"
+    stroke: "#26a69a"
+  }
+}
+
+Conductor: Conductor {
+  shape: person
+  style: {
+    fill: "#95e1d3"
+    stroke: "#26a69a"
+  }
+}
+
+# Conexiones del sistema
+AlertSystem -> DIR_I: "Monitor"
+AlertSystem -> DIR_D: "Monitor"
+AlertSystem -> T1_I: "Monitor"
+AlertSystem -> T1_D: "Monitor"
+AlertSystem -> T1_I2: "Monitor"
+AlertSystem -> T1_D2: "Monitor"
+AlertSystem -> T2_I: "Monitor"
+AlertSystem -> T2_D: "Monitor"
+
+Conductor -> AlertSystem: "Reporta Alerta"
+AlertSystem -> WorkOrder: "Genera Automáticamente"
+
+# Leyenda de estados
+legend: {
+  Normal: {
+    shape: circle
+    style: {fill: "#333333"}
+  }
+  "Alerta Baja": {
+    shape: circle
+    style: {fill: "#ffff00"}
+  }
+  "Alerta Media": {
+    shape: circle
+    style: {fill: "#ffa500"}
+  }
+  "Alerta Alta/Crítica": {
+    shape: circle
+    style: {fill: "#ff4444"}
+  }
+  Resuelta: {
+    shape: circle
+    style: {fill: "#28a745"}
+  }
+}

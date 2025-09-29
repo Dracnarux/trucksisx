@@ -59,7 +59,10 @@ $usuario = $_SESSION['usuario'];
             <ul class="nav flex-column">
                  <li class="nav-item mb-2"><a class="nav-link" href="cond.php"><i class="bi bi-person-badge"></i> Gestión de Conductores</a></li>
                  <li class="nav-item mb-2"><a class="nav-link" href="gestiones.php"><i class="bi bi-collection"></i> Gestiones</a></li>
+                 <li class="nav-item mb-2"><a class="nav-link" href="crear_usuario.php"><i class="bi bi-people"></i> Gestión de Usuarios</a></li>
+                 <li class="nav-item mb-2"><a class="nav-link" href="truck_alerts.php"><i class="bi bi-exclamation-triangle"></i> Sistema de Alertas</a></li>
                  <li class="nav-item mb-2"><a class="nav-link" href="../index.php?logout=1"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a></li>
+                <!-- Card de Gestión de Usuarios movido abajo -->
             </ul>
         </nav>
         <main class="flex-fill p-4">
@@ -67,30 +70,61 @@ $usuario = $_SESSION['usuario'];
                 <h2 class="fw-bold">Bienvenido, <?= $usuario['nombre'] ?> <span class="badge bg-info text-dark ms-2"> <?= $usuario['rol'] ?> </span></h2>
             </div>
             <div class="row g-4">
-                <div class="col-md-4">
-                    <div class="card text-center h-100 border-primary">
-                        <div class="card-body">
-                            <h5 class="card-title text-primary"><i class="bi bi-file-earmark-text"></i> Órdenes de Trabajo</h5>
-                            <p class="card-text">Acceso rápido a la gestión de órdenes.</p>
-                            <a href="#" class="btn btn-primary">Ir</a>
+                <div class="row g-4 mb-2">
+                    <div class="col-md-4">
+                        <div class="card text-center h-100 border-danger mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title text-danger"><i class="bi bi-exclamation-triangle"></i> Sistema de Alertas</h5>
+                                <p class="card-text">Monitorea y gestiona alertas de camiones doble troque. Acceso al diagrama interactivo y órdenes de trabajo generadas automáticamente.</p>
+                                <a href="truck_alerts.php" class="btn btn-danger"><i class="bi bi-arrow-right-circle"></i> Ir al sistema de alertas</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center h-100 border-primary mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title text-primary"><i class="bi bi-box-arrow-in-right"></i> Salida de Repuestos</h5>
+                                <p class="card-text">Registrar la salida obligatoria y secuencial de repuestos.</p>
+                                <a href="salida_repuesto.php" class="btn btn-primary">Registrar Salida de Repuestos</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center h-100 border-warning mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title text-warning"><i class="bi bi-truck"></i> Salida de Vehículo</h5>
+                                <p class="card-text">Registrar la salida de vehículo solo después de la salida de repuestos.</p>
+                                <a href="salida_vehiculo.php" class="btn btn-warning">Registrar Salida de Vehículo</a>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card text-center h-100 border-success">
-                        <div class="card-body">
-                            <h5 class="card-title text-success"><i class="bi bi-bar-chart-line"></i> Estadísticas</h5>
-                            <p class="card-text">Ver estadísticas de registros.</p>
-                            <a href="#" class="btn btn-success">Ver</a>
+                <div class="row g-4 mb-2">
+                    <div class="col-md-4">
+                        <div class="card text-center h-100 border-dark mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title text-dark"><i class="bi bi-file-earmark-text"></i> Reportes</h5>
+                                <p class="card-text">Ver reporte consolidado de salidas de repuestos y vehículos.</p>
+                                <a href="reporte_salidas.php" class="btn btn-dark">Ver Reportes</a>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card text-center h-100 border-info">
-                        <div class="card-body">
-                            <h5 class="card-title text-info"><i class="bi bi-collection"></i> Gestiones</h5>
-                            <p class="card-text">Acceso a todas las gestiones de repuestos.</p>
-                            <a href="gestiones.php" class="btn btn-info">Acceder</a>
+                    <div class="col-md-4">
+                        <div class="card text-center h-100 border-info">
+                            <div class="card-body">
+                                <h5 class="card-title text-info"><i class="bi bi-collection"></i> Gestiones</h5>
+                                <p class="card-text">Acceso a todas las gestiones de repuestos.</p>
+                                <a href="gestiones.php" class="btn btn-info">Acceder</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center h-100 border-secondary mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title text-secondary"><i class="bi bi-people"></i> Gestión de Usuarios</h5>
+                                <p class="card-text">Crea y administra usuarios, conductores y técnicos del sistema.</p>
+                                <a href="crear_usuario.php" class="btn btn-secondary"><i class="bi bi-arrow-right-circle"></i> Ir a gestión de usuarios</a>
+                            </div>
                         </div>
                     </div>
                 </div>

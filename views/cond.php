@@ -151,8 +151,9 @@ if (!isset($_SESSION['usuario'])) {
                     <input type="hidden" name="id" value="<?= $editData['id'] ?? '' ?>">
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <label class="form-label">Cargo</label>
+                            <label class="form-label">Nombre (debe coincidir con el usuario)</label>
                             <input type="text" name="cargo" class="form-control" required value="<?= htmlspecialchars($editData['cargo'] ?? '') ?>">
+                            <div class="form-text text-danger">Debe ser igual al nombre del usuario registrado en el sistema para que se relacione correctamente.</div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Horas Trabajadas</label>

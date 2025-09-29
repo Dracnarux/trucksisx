@@ -155,14 +155,26 @@ CREATE TABLE ord_trabj (
 -- Alertas
 CREATE TABLE alert (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    fecha_hora DATETIME,
-    prioridad VARCHAR(20),
-    estado VARCHAR(20),
+    fecha_hora DATETIME DEFAULT CURRENT_TIMESTAMP,
+    prioridad ENUM('baja','media','alta','critica') DEFAULT 'media',
+    estado ENUM('activa','en_proceso','resuelta','cancelada') DEFAULT 'activa',
     descripcion TEXT,
+    tipo_alerta ENUM('llanta','motor','frenos','general') DEFAULT 'general',
+    posicion_llanta ENUM(
+        'direccion_izquierda','direccion_derecha',
+        'traccion1_izquierda','traccion1_derecha',
+        'traccion1_izquierda2','traccion1_derecha2',
+        'traccion2_izquierda','traccion2_derecha'
+    ),
+    codigo_conductor VARCHAR(20),
+    observaciones TEXT,
+    imagen_evidencia VARCHAR(255),
     ord_trabj_id INT,
     cond_id INT,
+    regis_vehic_id INT,
     FOREIGN KEY (ord_trabj_id) REFERENCES ord_trabj(id),
-    FOREIGN KEY (cond_id) REFERENCES cond(id)
+    FOREIGN KEY (cond_id) REFERENCES cond(id),
+    FOREIGN KEY (regis_vehic_id) REFERENCES regis_vehic(id)
 );
 
 -- Ahora sí, agregamos la relación circular de alert en ord_trabj
@@ -177,9 +189,13 @@ CREATE TABLE sali_repue (
     repue_id INT,
     ord_trabj_id INT,
     repor_id INT,
+    alerta_id INT,
+    sali_vehi_id INT,
     FOREIGN KEY (repue_id) REFERENCES repue(id),
     FOREIGN KEY (ord_trabj_id) REFERENCES ord_trabj(id)
     -- FOREIGN KEY (repor_id) se agrega después de crear repor
+    -- FOREIGN KEY (alerta_id) se agrega después de crear alert
+    -- FOREIGN KEY (sali_vehi_id) se agrega después de crear sali_vehi
 );
 
 -- Salida de vehículos
@@ -193,8 +209,12 @@ CREATE TABLE sali_vehi (
     gest_conductores VARCHAR(100),
     repor_id INT,
     ord_trabj_id INT,
+    alerta_id INT,
+    sali_repue_id INT,
     FOREIGN KEY (ord_trabj_id) REFERENCES ord_trabj(id)
     -- FOREIGN KEY (repor_id) se agrega después de crear repor
+    -- FOREIGN KEY (alerta_id) se agrega después de crear alert
+    -- FOREIGN KEY (sali_repue_id) se agrega después de crear sali_repue
 );
 
 -- Reportes
@@ -218,6 +238,15 @@ ALTER TABLE sali_repue
 
 ALTER TABLE sali_vehi
     ADD FOREIGN KEY (repor_id) REFERENCES repor(id);
+
+-- Relaciones nuevas para mejoras
+ALTER TABLE sali_repue
+    ADD FOREIGN KEY (alerta_id) REFERENCES alert(id),
+    ADD FOREIGN KEY (sali_vehi_id) REFERENCES sali_vehi(id);
+
+ALTER TABLE sali_vehi
+    ADD FOREIGN KEY (alerta_id) REFERENCES alert(id),
+    ADD FOREIGN KEY (sali_repue_id) REFERENCES sali_repue(id);
 
 -- Usuarios iniciales con contraseñas encriptadas (ejemplo usando SHA2)
 INSERT INTO users (num_documento, tipo_documento, nombre, apellido, num_celular, correo, rol, contrasena) VALUES
