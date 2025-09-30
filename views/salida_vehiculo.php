@@ -5,6 +5,9 @@ require_once '../models/OrdTrabj.php';
 require_once '../models/Alert.php';
 require_once '../models/Repor.php';
 
+// Initialize database connection
+$db = conectarDB();
+
 $sali_repue_id = isset($_GET['sali_repue_id']) ? $_GET['sali_repue_id'] : null;
 $sali_repue = $sali_repue_id ? (new SaliRepue($db))->getById($sali_repue_id) : null;
 $ordenes = (new OrdTrabj($db))->getAll();

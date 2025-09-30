@@ -40,7 +40,7 @@ require_once '../controllers/CatRepuController.php';
                 <th>Tipo de Repuesto</th>
                 <th>Nombre</th>
                 <th>Características</th>
-                <th>Productos</th>
+                <!-- <th>Productos</th> -->
                 <th class="text-center">Acciones</th>
             </tr>
         </thead>
@@ -60,7 +60,7 @@ require_once '../controllers/CatRepuController.php';
                 <td><?= htmlspecialchars($row['tipo_repuesto'] ?? '') ?></td>
                 <td><?= htmlspecialchars($row['nombre']) ?></td>
                 <td><?= htmlspecialchars($row['caracteristicas'] ?? '') ?></td>
-                <td><?= $productos ? implode(', ', $productos) : '' ?></td>
+                <!-- <td><?= $productos ? implode(', ', $productos) : '' ?></td> -->
                 <td class="text-center">
                     <a href="cat_repu.php?form=1&id=<?= $row['id'] ?>" class="btn btn-warning mx-1">Editar</a>
                     <a href="cat_repu.php?delete=<?= $row['id'] ?>" class="btn btn-danger mx-1" onclick="return confirm('¿Eliminar categoría?')">Eliminar</a>
@@ -96,7 +96,7 @@ require_once '../controllers/CatRepuController.php';
     <?php endif; ?>
 
     <div class="mt-5 text-end">
-        <a href="dashboard.php" class="btn btn-outline-secondary">Volver al Dashboard</a>
+        <a href="gestiones.php" class="btn btn-outline-secondary">Volver al Panel de Gestiones</a>
     </div>
 </div>
 </body>

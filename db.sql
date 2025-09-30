@@ -107,7 +107,7 @@ CREATE TABLE repue (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     marca_repuesto VARCHAR(100),
-    proveedor_id INT,
+    proveedor_id INT NULL,
     cat_repu_id INT,
     subcat_repu_id INT,
     modelo VARCHAR(100),
@@ -131,7 +131,7 @@ CREATE TABLE repue (
     firma_verificacion VARCHAR(100),
     FOREIGN KEY (cat_repu_id) REFERENCES cat_repu(id),
     FOREIGN KEY (subcat_repu_id) REFERENCES subcat_repu(id),
-    FOREIGN KEY (proveedor_id) REFERENCES proveedor(id)
+    FOREIGN KEY (proveedor_id) REFERENCES proveedor(id) ON DELETE SET NULL
 );
 
 -- Órdenes de trabajo
@@ -254,4 +254,4 @@ INSERT INTO users (num_documento, tipo_documento, nombre, apellido, num_celular,
 ('1002', 'CC', 'Tecnico', 'Soporte', '3000000001', 'tecnico@trucksisx.com', 'tecnico', SHA2('tecn123',256)),
 ('1003', 'CC', 'Conductor', 'Operador', '3000000002', 'conduc@trucksisx.com', 'conductor', SHA2('conduc123',256));
 
--- Fin de la estructura
+-- Fin de la estructura 

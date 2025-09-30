@@ -1,6 +1,6 @@
 <?php
 require_once '../config/db.php';
-
+$db = conectarDB();
 // Consulta para salidas de repuestos
 $salidas_repue = $db->query("SELECT sr.id, sr.fecha_salida, sr.cantidad, r.nombre AS repuesto, ot.nombre_trabajo, a.descripcion AS alerta, sr.ord_trabj_id, sr.alerta_id
 FROM sali_repue sr
@@ -8,7 +8,6 @@ LEFT JOIN repue r ON sr.repue_id = r.id
 LEFT JOIN ord_trabj ot ON sr.ord_trabj_id = ot.id
 LEFT JOIN alert a ON sr.alerta_id = a.id
 ORDER BY sr.fecha_salida DESC");
-
 // Consulta para salidas de vehículos
 $salidas_vehi = $db->query("SELECT sv.id, sv.id_flotas, sv.segui_monitoreo, sv.control_combustible, sv.cump_regulaciones, sv.protocolo_seguridad, sv.gest_conductores, ot.nombre_trabajo, a.descripcion AS alerta, sv.ord_trabj_id, sv.alerta_id
 FROM sali_vehi sv
@@ -25,6 +24,9 @@ ORDER BY sv.id DESC");
 </head>
 <body>
 <div class='container mt-4'>
+    <div class="mb-3 d-flex justify-content-end">
+        <a href="dashboard.php" class="btn btn-secondary">Volver al dashboard</a>
+    </div>
     <h2>Reporte Consolidado de Salidas</h2>
     <h4 class='mt-4'>Salidas de Repuestos</h4>
     <div class="mb-2 d-flex justify-content-between align-items-center">

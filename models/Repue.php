@@ -39,66 +39,56 @@ class Repue {
         return $stmt->get_result()->fetch_assoc();
     }
     public function save($data) {
-    $types = 'ssiiissssissssddsssisisss'; // 24 parámetros para INSERT
+        // Permitir proveedor_id nulo
+        $proveedor_id = isset($data['proveedor_id']) && $data['proveedor_id'] !== '' ? (int)$data['proveedor_id'] : null;
+        $campos = [
+            'nombre','marca_repuesto','proveedor_id','cat_repu_id','subcat_repu_id','modelo','medidas_espe','norma_estan','numero_parte','des_tecnica','veh_compatible','cantidad','estado_repus','fecha_ingreso','num_factura','ubi_almacen','pre_unitario','costo_total','garantia','res_ingreso','cant_stock','fecha_venci','dest_area','firma_verificacion'
+        ];
         if (!empty($data['id'])) {
-            $stmt = $this->conn->prepare("UPDATE repue SET nombre=?, marca_repuesto=?, proveedor_id=?, cat_repu_id=?, subcat_repu_id=?, modelo=?, medidas_espe=?, norma_estan=?, numero_parte=?, des_tecnica=?, veh_compatible=?, cantidad=?, estado_repus=?, fecha_ingreso=?, num_factura=?, ubi_almacen=?, pre_unitario=?, costo_total=?, garantia=?, res_ingreso=?, cant_stock=?, fecha_venci=?, dest_area=?, firma_verificacion=? WHERE id=?");
-            $nombre = (string)$data['nombre'];
-            $marca_repuesto = (string)$data['marca_repuesto'];
-            $proveedor_id = (int)$data['proveedor_id'];
-            $cat_repu_id = (int)$data['cat_repu_id'];
-            $subcat_repu_id = (int)$data['subcat_repu_id'];
-            $modelo = (string)$data['modelo'];
-            $medidas_espe = (string)$data['medidas_espe'];
-            $norma_estan = (string)$data['norma_estan'];
-            $numero_parte = (string)$data['numero_parte'];
-            $des_tecnica = (string)$data['des_tecnica'];
-            $veh_compatible = (string)$data['veh_compatible'];
-            $cantidad = (int)$data['cantidad'];
-            $estado_repus = (string)$data['estado_repus'];
-            $fecha_ingreso = (string)$data['fecha_ingreso'];
-            $num_factura = (string)$data['num_factura'];
-            $ubi_almacen = (string)$data['ubi_almacen'];
-            $pre_unitario = (float)$data['pre_unitario'];
-            $costo_total = (float)$data['costo_total'];
-            $garantia = (string)$data['garantia'];
-            $res_ingreso = (string)$data['res_ingreso'];
-            $cant_stock = (int)$data['cant_stock'];
-            $fecha_venci = (string)$data['fecha_venci'];
-            $dest_area = (string)$data['dest_area'];
-            $firma_verificacion = (string)$data['firma_verificacion'];
-            $id = (int)$data['id'];
-            $stmt->bind_param('ssiiissssissssddsssisissi',
-                $nombre, $marca_repuesto, $proveedor_id, $cat_repu_id, $subcat_repu_id, $modelo, $medidas_espe, $norma_estan, $numero_parte, $des_tecnica, $veh_compatible, $cantidad, $estado_repus, $fecha_ingreso, $num_factura, $ubi_almacen, $pre_unitario, $costo_total, $garantia, $res_ingreso, $cant_stock, $fecha_venci, $dest_area, $firma_verificacion, $id
-            );
+            $set = implode('=?, ', $campos) . '=?';
+            $sql = "UPDATE repue SET $set WHERE id=?";
+            $stmt = $this->conn->prepare($sql);
+            $params = [];
+            $types = '';
+            foreach ($campos as $c) {
+                if ($c === 'proveedor_id') {
+                    $params[] = $proveedor_id;
+                    $types .= 'i';
+                } elseif (in_array($c, ['cat_repu_id','subcat_repu_id','cantidad','cant_stock'])) {
+                    $params[] = isset($data[$c]) && $data[$c] !== '' ? (int)$data[$c] : null;
+                    $types .= 'i';
+                } elseif (in_array($c, ['pre_unitario','costo_total'])) {
+                    $params[] = isset($data[$c]) && $data[$c] !== '' ? (float)$data[$c] : null;
+                    $types .= 'd';
+                } else {
+                    $params[] = isset($data[$c]) ? $data[$c] : null;
+                    $types .= 's';
+                }
+            }
+            $params[] = (int)$data['id'];
+            $types .= 'i';
+            $stmt->bind_param($types, ...$params);
         } else {
-            $stmt = $this->conn->prepare("INSERT INTO repue (nombre, marca_repuesto, proveedor_id, cat_repu_id, subcat_repu_id, modelo, medidas_espe, norma_estan, numero_parte, des_tecnica, veh_compatible, cantidad, estado_repus, fecha_ingreso, num_factura, ubi_almacen, pre_unitario, costo_total, garantia, res_ingreso, cant_stock, fecha_venci, dest_area, firma_verificacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-            $nombre = (string)$data['nombre'];
-            $marca_repuesto = (string)$data['marca_repuesto'];
-            $proveedor_id = (int)$data['proveedor_id'];
-            $cat_repu_id = (int)$data['cat_repu_id'];
-            $subcat_repu_id = (int)$data['subcat_repu_id'];
-            $modelo = (string)$data['modelo'];
-            $medidas_espe = (string)$data['medidas_espe'];
-            $norma_estan = (string)$data['norma_estan'];
-            $numero_parte = (string)$data['numero_parte'];
-            $des_tecnica = (string)$data['des_tecnica'];
-            $veh_compatible = (string)$data['veh_compatible'];
-            $cantidad = (int)$data['cantidad'];
-            $estado_repus = (string)$data['estado_repus'];
-            $fecha_ingreso = (string)$data['fecha_ingreso'];
-            $num_factura = (string)$data['num_factura'];
-            $ubi_almacen = (string)$data['ubi_almacen'];
-            $pre_unitario = (float)$data['pre_unitario'];
-            $costo_total = (float)$data['costo_total'];
-            $garantia = (string)$data['garantia'];
-            $res_ingreso = (string)$data['res_ingreso'];
-            $cant_stock = (int)$data['cant_stock'];
-            $fecha_venci = (string)$data['fecha_venci'];
-            $dest_area = (string)$data['dest_area'];
-            $firma_verificacion = (string)$data['firma_verificacion'];
-            $stmt->bind_param('ssiiissssissssddsssisissss',
-                $nombre, $marca_repuesto, $proveedor_id, $cat_repu_id, $subcat_repu_id, $modelo, $medidas_espe, $norma_estan, $numero_parte, $des_tecnica, $veh_compatible, $cantidad, $estado_repus, $fecha_ingreso, $num_factura, $ubi_almacen, $pre_unitario, $costo_total, $garantia, $res_ingreso, $cant_stock, $fecha_venci, $dest_area, $firma_verificacion
-            );
+            $sql = "INSERT INTO repue (".implode(',', $campos).") VALUES (".implode(',', array_fill(0, count($campos), '?')).")";
+            $stmt = $this->conn->prepare($sql);
+            $params = [];
+            $types = '';
+            foreach ($campos as $c) {
+                if ($c === 'proveedor_id') {
+                    $params[] = $proveedor_id;
+                    $types .= 'i';
+                } elseif (in_array($c, ['cat_repu_id','subcat_repu_id','cantidad','cant_stock'])) {
+                    $params[] = isset($data[$c]) && $data[$c] !== '' ? (int)$data[$c] : null;
+                    $types .= 'i';
+                } elseif (in_array($c, ['pre_unitario','costo_total'])) {
+                    $params[] = isset($data[$c]) && $data[$c] !== '' ? (float)$data[$c] : null;
+                    $types .= 'd';
+                } else {
+                    $params[] = isset($data[$c]) ? $data[$c] : null;
+                    $types .= 's';
+                }
+            }
+            $stmt->bind_param($types, ...$params);
         }
         return $stmt->execute();
     }

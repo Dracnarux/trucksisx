@@ -210,8 +210,8 @@ $repuestos = $controller->index($filtros);
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Proveedor</label>
-                        <select name="proveedor_id" class="form-control" required>
-                            <option value="">Seleccione un proveedor</option>
+                        <select name="proveedor_id" class="form-control">
+                            <option value="">Sin proveedor</option>
                             <?php $provModel2 = new Proveedor(); $proveedores2 = $provModel2->getAll(); while ($prov = $proveedores2->fetch_assoc()): ?>
                                 <option value="<?= $prov['id'] ?>" <?= (isset($editData['proveedor_id']) && $editData['proveedor_id'] == $prov['id']) ? 'selected' : '' ?>><?= htmlspecialchars($prov['nom_proveedor']) ?></option>
                             <?php endwhile; ?>

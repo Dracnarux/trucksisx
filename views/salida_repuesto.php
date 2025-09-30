@@ -20,6 +20,9 @@ $reportes = (new Repor($db))->getAll();
 </head>
 <body>
 <div class="container mt-4">
+    <div class="mb-3 d-flex justify-content-end">
+        <a href="dashboard.php" class="btn btn-secondary">Volver al dashboard</a>
+    </div>
     <h2>Registrar Salida de Repuestos</h2>
     <form action="../controllers/SaliRepueController.php?action=registrar" method="POST">
         <div class="mb-3">
@@ -112,51 +115,4 @@ $reportes = (new Repor($db))->getAll();
         </tbody>
     </table>
     <hr>
-    <h2>Registrar Salida de Repuestos</h2>
-    <form action="../controllers/SaliRepueController.php?action=registrar" method="POST">
-        <div class="mb-3">
-            <label for="fecha_salida" class="form-label">Fecha de Salida</label>
-            <input type="date" class="form-control" name="fecha_salida" required>
-        </div>
-        <div class="mb-3">
-            <label for="cantidad" class="form-label">Cantidad</label>
-            <input type="number" class="form-control" name="cantidad" min="1" required>
-        </div>
-        <div class="mb-3">
-            <label for="repue_id" class="form-label">Repuesto</label>
-            <select class="form-select" name="repue_id" required>
-                <option value="">Seleccione...</option>
-                <?php foreach ($repues as $r): ?>
-                    <option value="<?= $r['id'] ?>"><?= $r['nombre'] ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="mb-3">
-            <label for="ord_trabj_id" class="form-label">Orden de Trabajo</label>
-            <select class="form-select" name="ord_trabj_id" required>
-                <option value="">Seleccione...</option>
-                <?php foreach ($ordenes as $o): ?>
-                    <option value="<?= $o['id'] ?>"><?= $o['nombre_trabajo'] ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="mb-3">
-            <label for="repor_id" class="form-label">Código de Reporte</label>
-            <select class="form-select" name="repor_id" required>
-                <option value="">Seleccione...</option>
-                <?php foreach ($reportes as $rep): ?>
-                    <option value="<?= $rep['id'] ?>"><?= $rep['nombre_reporte'] ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="mb-3">
-            <label for="alerta_id" class="form-label">Alerta del Sistema</label>
-            <select class="form-select" name="alerta_id" required>
-                <option value="">Seleccione...</option>
-                <?php foreach ($alertas as $a): ?>
-                    <option value="<?= $a['id'] ?>">#<?= $a['id'] ?> - <?= $a['descripcion'] ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <button type="submit" class="btn btn-primary">Registrar Salida</button>
     </form>

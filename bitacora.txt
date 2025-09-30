@@ -97,7 +97,7 @@ Tipo de declaración desconocida. (near "INT" at position 316)
 consulta SQL: Copiar
 CREATE TABLE repue ( id INT AUTO_INCREMENT PRIMARY KEY, nombre VARCHAR(100) NOT NULL, subcat_repu_id INT, proveedor_id INT, FOREIGN KEY (subcat_repu_id) REFERENCES subcat_repu(id), FOREIGN KEY (proveedor_id) REFERENCES proveedor(id) -- Tabla de alertas CREATE TABLE alert ( id INT AUTO_INCREMENT PRIMARY KEY, mensaje TEXT, repue_id INT, FOREIGN KEY (repue_id) REFERENCES repue(id) );
 MySQL ha dicho: Documentación
-#1064 - Algo está equivocado en su sintax cerca 'CREATE TABLE alert (
+#1064 - Algo está equivocado en su sintax cerca 'CREATE TABLE alert )
 id INT AUTO_INCREMENT PRIMARY KEY,
 mensaje TEX...' en la linea 10
 El error #1064 indica que falta una coma o punto y coma al final de la declaración de la tabla repue. En tu SQL, la declaración de la tabla repue no termina con un punto y coma antes de iniciar la siguiente tabla (alert).

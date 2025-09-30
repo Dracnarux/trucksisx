@@ -87,21 +87,22 @@ $proveedores = $controller->index($filtros);
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Nombre</th>
-                <th>Teléfono</th>
+                <th>NIT / Número Identificación</th>
+                <th>Nombre Proveedor</th>
+                <th>Teléfono Contacto</th>
                 <th>Cargo Contacto</th>
                 <th>Correo</th>
                 <th>Dirección</th>
                 <th>Ciudad/Departamento</th>
                 <th>País</th>
-                <th>Categoría de Repuesto</th>
+                <th>Tipo Repuesto</th>
                 <th>Marca que Distribuye</th>
-                <th>Repuestos</th>
                 <th>Tiempo de Entrega</th>
                 <th>Zonas de Cobertura</th>
                 <th>Forma de Pago</th>
                 <th>Crédito Disponible</th>
                 <th>Cuenta Bancaria</th>
+                <th>Categoría de Repuesto</th>
                 <th class="text-center">Acciones</th>
             </tr>
         </thead>
@@ -110,14 +111,11 @@ $proveedores = $controller->index($filtros);
         require_once '../models/Repue.php';
         $repueModel = new Repue();
         while ($row = $proveedores->fetch_assoc()): 
-            $productos = [];
-            $repuestosProveedor = $repueModel->getAll(['proveedor_id' => $row['id']]);
-            while ($rep = $repuestosProveedor->fetch_assoc()) {
-                $productos[] = htmlspecialchars($rep['nombre']);
-            }
+            // ...existing code...
         ?>
             <tr>
                 <td><?= $row['id'] ?></td>
+                <td><?= htmlspecialchars($row['nit_num_identi']) ?></td>
                 <td><?= htmlspecialchars($row['nom_proveedor']) ?></td>
                 <td><?= htmlspecialchars($row['tel_contacto']) ?></td>
                 <td><?= htmlspecialchars($row['carg_contacto']) ?></td>
@@ -127,12 +125,12 @@ $proveedores = $controller->index($filtros);
                 <td><?= htmlspecialchars($row['pais']) ?></td>
                 <td><?= htmlspecialchars($row['tip_repuesto']) ?></td>
                 <td><?= htmlspecialchars($row['mar_distribuye']) ?></td>
-                <td><?= $productos ? implode(', ', $productos) : '' ?></td> <!-- Repuestos -->
                 <td><?= htmlspecialchars($row['tiem_entrega']) ?></td>
                 <td><?= htmlspecialchars($row['zon_cobertura']) ?></td>
                 <td><?= htmlspecialchars($row['for_pago']) ?></td>
                 <td><?= htmlspecialchars($row['cred_disponible']) ?></td>
                 <td><?= htmlspecialchars($row['cuen_bancaria']) ?></td>
+                <td><?= htmlspecialchars($row['cat_repu_id']) ?></td>
                 <td class="text-center">
                     <a href="proveedor.php?form=1&id=<?= $row['id'] ?>" class="btn btn-warning mx-1">Editar</a>
                     <a href="proveedor.php?delete=<?= $row['id'] ?>" class="btn btn-danger mx-1" onclick="return confirm('¿Eliminar proveedor?')">Eliminar</a>
@@ -150,19 +148,23 @@ $proveedores = $controller->index($filtros);
                 <input type="hidden" name="id" value="<?= $editData['id'] ?? '' ?>">
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Nombre</label>
+                        <label class="form-label">NIT / Número Identificación</label>
+                        <input type="text" name="nit_num_identi" class="form-control" required value="<?= htmlspecialchars($editData['nit_num_identi'] ?? '') ?>">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Nombre Proveedor</label>
                         <input type="text" name="nom_proveedor" class="form-control" required value="<?= htmlspecialchars($editData['nom_proveedor'] ?? '') ?>">
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Teléfono de Contacto</label>
+                        <label class="form-label">Teléfono Contacto</label>
                         <input type="text" name="tel_contacto" class="form-control" value="<?= htmlspecialchars($editData['tel_contacto'] ?? '') ?>">
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Cargo del Contacto</label>
+                        <label class="form-label">Cargo Contacto</label>
                         <input type="text" name="carg_contacto" class="form-control" value="<?= htmlspecialchars($editData['carg_contacto'] ?? '') ?>">
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Correo Electrónico</label>
+                        <label class="form-label">Correo</label>
                         <input type="email" name="correo" class="form-control" value="<?= htmlspecialchars($editData['correo'] ?? '') ?>">
                     </div>
                     <div class="col-md-4 mb-3">
@@ -175,10 +177,10 @@ $proveedores = $controller->index($filtros);
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">País</label>
-                            <input type="text" name="pais" class="form-control" value="<?= htmlspecialchars($editData['pais'] ?? '') ?>">
+                        <input type="text" name="pais" class="form-control" value="<?= htmlspecialchars($editData['pais'] ?? '') ?>">
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Categoría de Repuesto</label>
+                        <label class="form-label">Tipo Repuesto</label>
                         <input type="text" name="tip_repuesto" class="form-control" value="<?= htmlspecialchars($editData['tip_repuesto'] ?? '') ?>">
                     </div>
                     <div class="col-md-4 mb-3">
@@ -205,13 +207,9 @@ $proveedores = $controller->index($filtros);
                         <label class="form-label">Cuenta Bancaria</label>
                         <input type="text" name="cuen_bancaria" class="form-control" value="<?= htmlspecialchars($editData['cuen_bancaria'] ?? '') ?>">
                     </div>
-                    <div class="col-md-12 mb-3">
-                        <label class="form-label">Repuestos asociados</label>
-                        <select name="repue_id[]" class="form-control" multiple style="height: 38px; min-height: 38px; max-height: 38px;">
-                            <?php foreach ($repuestos as $rep): ?>
-                                <option value="<?= $rep['id'] ?>" <?= (isset($editData['repue_id']) && in_array($rep['id'], explode(',', $editData['repue_id'])) ? 'selected' : '') ?>><?= htmlspecialchars($rep['nombre']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Categoría de Repuesto</label>
+                        <input type="text" name="cat_repu_id" class="form-control" value="<?= htmlspecialchars($editData['cat_repu_id'] ?? '') ?>">
                     </div>
                 </div>
                 <button type="submit" class="btn btn-success">Guardar</button>
