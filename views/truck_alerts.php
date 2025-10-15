@@ -14,38 +14,62 @@
     
     <style>
         .header-container {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: rgba(13,110,253,0.25);
+            color: #111;
             padding: 20px 0;
             margin-bottom: 30px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 2px solid rgba(13,110,253,0.3);
         }
-        
         .stats-card {
-            background: white;
-            border-radius: 10px;
+            background: rgba(13,110,253,0.15);
+            border-radius: 16px;
             padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
             text-align: center;
             margin-bottom: 20px;
+            color: #111;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(13,110,253,0.2);
         }
-        
         .stats-number {
             font-size: 2.5em;
             font-weight: bold;
-            color: #333;
+            color: #0d6efd;
         }
-        
         .stats-label {
-            color: #666;
+            color: #111;
             margin-top: 10px;
         }
-        
         .control-panel {
-            background: white;
-            border-radius: 10px;
+            background: rgba(13,110,253,0.10);
+            border-radius: 16px;
             padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.10);
             margin-bottom: 30px;
+            color: #111;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(13,110,253,0.15);
+        }
+        .btn-primary, .btn-outline-primary {
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+            color: #fff !important;
+        }
+        .btn-primary:hover, .btn-outline-primary:hover {
+            background-color: #0b5ed7 !important;
+            border-color: #0b5ed7 !important;
+        }
+        .btn-light {
+            background: rgba(13,110,253,0.08) !important;
+            color: #111 !important;
+            border: 1px solid rgba(13,110,253,0.15) !important;
+        }
+        .form-select, .form-label, .text-muted {
+            color: #111 !important;
         }
     </style>
 </head>
@@ -208,6 +232,9 @@
                          aria-labelledby="nav-work-orders-tab">
                         <div class="mt-3">
                             <h4>Órdenes de Trabajo Generadas por Alertas</h4>
+                            <a href="orden_trabajo.php" class="btn btn-primary mb-3">
+                                <i class="fas fa-plus"></i> Ir a Gestión de Órdenes de Trabajo
+                            </a>
                             <div id="work-orders-list">
                                 <!-- Órdenes de trabajo se cargarán dinámicamente -->
                             </div>
@@ -256,10 +283,43 @@
                     document.getElementById('active-alerts').textContent = dashboard.active_alerts;
                     document.getElementById('critical-alerts').textContent = dashboard.critical_alerts;
                     document.getElementById('tire-alerts').textContent = dashboard.tire_alerts;
+                    displayRecentAlerts(dashboard.recent_alerts);
                 }
             } catch (error) {
                 console.error('Error loading dashboard:', error);
             }
+        }
+
+        // Mostrar alertas recientes en el dashboard
+        function displayRecentAlerts(alerts) {
+            const container = document.getElementById('alerts-list');
+            if (!container) return;
+            if (!alerts || alerts.length === 0) {
+                container.innerHTML = '<p>No hay alertas recientes.</p>';
+                return;
+            }
+            const alertsHTML = alerts.map(alert => `
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title">${alert.descripcion}</h5>
+                                <p class="card-text">${alert.observaciones || ''}</p>
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar"></i> ${alert.fecha_hora || ''}
+                                    ${alert.placa ? `| <i class=\"fas fa-truck\"></i> ${alert.placa}` : ''}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-${alert.prioridad === 'alta' || alert.prioridad === 'critica' ? 'danger' : alert.prioridad === 'media' ? 'warning' : 'info'}">${alert.prioridad}</span>
+                                <br>
+                                <span class="badge bg-secondary mt-1">${alert.estado}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            container.innerHTML = alertsHTML;
         }
 
         // Cargar estadísticas por posición

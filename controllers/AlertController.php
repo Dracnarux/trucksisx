@@ -3,6 +3,28 @@ require_once '../models/Alert.php';
 require_once '../models/User.php';
 
 class AlertController {
+    // Obtener lista de conductores para el formulario
+    public function getConductores() {
+        require_once '../config/db.php';
+        $database = new Database();
+        $db = $database->getConnection();
+        $query = "SELECT id, cargo FROM cond ORDER BY cargo ASC";
+        $stmt = $db->prepare($query);
+        $stmt->execute();
+        $conductores = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode(['success' => true, 'conductores' => $conductores]);
+    }
+    // Obtener lista de vehículos para el formulario
+    public function getVehicles() {
+        require_once '../config/db.php';
+        $database = new Database();
+        $db = $database->getConnection();
+        $query = "SELECT id, placa, marca_vehiculo FROM regis_vehic ORDER BY placa";
+        $stmt = $db->prepare($query);
+        $stmt->execute();
+        $vehicles = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode(['success' => true, 'vehicles' => $vehicles]);
+    }
     private $alert;
     private $user;
 
@@ -18,6 +40,29 @@ class AlertController {
             if (!isset($_POST['descripcion']) || !isset($_POST['cond_id']) || 
                 !isset($_POST['posicion_llanta']) || !isset($_POST['regis_vehic_id'])) {
                 echo json_encode(['success' => false, 'message' => 'Faltan datos requeridos']);
+                return;
+            }
+
+            // Validar existencia de conductor y vehículo
+            require_once '../config/db.php';
+            $database = new Database();
+            $db = $database->getConnection();
+            $cond_id = $_POST['cond_id'];
+            $vehic_id = $_POST['regis_vehic_id'];
+            $stmtCond = $db->prepare("SELECT id FROM cond WHERE id = :id");
+            $stmtCond->bindParam(':id', $cond_id);
+            $stmtCond->execute();
+            $condExists = $stmtCond->fetch(PDO::FETCH_ASSOC);
+            $stmtVehic = $db->prepare("SELECT id FROM regis_vehic WHERE id = :id");
+            $stmtVehic->bindParam(':id', $vehic_id);
+            $stmtVehic->execute();
+            $vehicExists = $stmtVehic->fetch(PDO::FETCH_ASSOC);
+            if (!$condExists) {
+                echo json_encode(['success' => false, 'message' => 'El conductor seleccionado no existe.']);
+                return;
+            }
+            if (!$vehicExists) {
+                echo json_encode(['success' => false, 'message' => 'El vehículo seleccionado no existe.']);
                 return;
             }
 
@@ -56,7 +101,7 @@ class AlertController {
                     'work_order_id' => $result['work_order_id']
                 ]);
             } else {
-                echo json_encode(['success' => false, 'message' => 'Error al crear la alerta']);
+                echo json_encode(['success' => false, 'message' => 'Error al crear la alerta. Verifica que el conductor esté vinculado correctamente al vehículo y que ambos existan.']);
             }
         }
     }
@@ -131,6 +176,8 @@ class AlertController {
             ];
 
             $result = $this->alert->update($_POST['id'], $data);
+                // Definir cond_id desde POST
+                $cond_id = $_POST['cond_id'];
             
             if ($result) {
                 echo json_encode(['success' => true, 'message' => 'Alerta actualizada correctamente']);
@@ -152,9 +199,7 @@ class AlertController {
             } else {
                 echo json_encode(['success' => false, 'message' => 'Error al eliminar la alerta']);
             }
-        } else {
-            echo json_encode(['success' => false, 'message' => 'ID requerido']);
-        }
+    }
     }
 
     // Validar código de conductor
@@ -169,7 +214,8 @@ class AlertController {
                         'id' => $conductor['id'],
                         'nombre' => $conductor['nombre'],
                         'apellido' => $conductor['apellido'],
-                        'documento' => $conductor['num_documento']
+                        'documento' => $conductor['num_documento'],
+                        'regis_vehic_id' => $conductor['regis_vehic_id'] ?? null
                     ]
                 ]);
             } else {
@@ -264,10 +310,15 @@ class AlertController {
     // Enrutador principal
     public function handleRequest() {
         $action = $_GET['action'] ?? 'getAll';
-        
         switch ($action) {
             case 'create':
                 $this->create();
+                break;
+            case 'getVehicles':
+                $this->getVehicles();
+                break;
+            case 'getConductores':
+                $this->getConductores();
                 break;
             case 'getAll':
                 $this->getAll();

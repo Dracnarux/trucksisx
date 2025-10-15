@@ -48,20 +48,28 @@ CREATE TABLE regis_vehic (
     cert_matricula VARCHAR(50),
     tarje_propiedad VARCHAR(50),
     subcat_vehic_id INT,
-    FOREIGN KEY (subcat_vehic_id) REFERENCES subcat_vehic(id)
+    cond_id INT,
+    estado ENUM('Sin conductor','Asignado') DEFAULT 'Sin conductor'
 );
 
--- Conductores
-CREATE TABLE cond (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    cargo VARCHAR(50),
-    horas_trabajadas INT,
-    tareas_completadas INT,
-    efeciencia DECIMAL(5,2),
-    descripcion TEXT,
-    regis_vehic_id INT,
-    FOREIGN KEY (regis_vehic_id) REFERENCES regis_vehic(id)
-);
+    -- Conductores
+    CREATE TABLE cond (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        cargo VARCHAR(50),
+        horas_trabajadas INT,
+        tareas_completadas INT,
+        efeciencia DECIMAL(5,2),
+        descripcion TEXT,
+        regis_vehic_id INT
+    );
+
+    -- Agregar claves foráneas después de crear ambas tablas
+    ALTER TABLE regis_vehic
+        ADD FOREIGN KEY (subcat_vehic_id) REFERENCES subcat_vehic(id);
+    ALTER TABLE regis_vehic
+        ADD FOREIGN KEY (cond_id) REFERENCES cond(id);
+    ALTER TABLE cond
+        ADD FOREIGN KEY (regis_vehic_id) REFERENCES regis_vehic(id);
 
 -- Categoría y subcategoría de repuestos
 CREATE TABLE cat_repu (
@@ -83,7 +91,7 @@ CREATE TABLE subcat_repu (
 -- Proveedores
 CREATE TABLE proveedor (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nit_num_identi VARCHAR(50),
+    nit_num_identi DECIMAL(20,0),
     nom_proveedor VARCHAR(100),
     tel_contacto VARCHAR(30),
     carg_contacto VARCHAR(50),
@@ -97,9 +105,7 @@ CREATE TABLE proveedor (
     zon_cobertura VARCHAR(100),
     for_pago VARCHAR(50),
     cred_disponible VARCHAR(50),
-    cuen_bancaria VARCHAR(50),
-    cat_repu_id INT,
-    FOREIGN KEY (cat_repu_id) REFERENCES cat_repu(id)
+    cuen_bancaria VARCHAR(50)
 );
 
 -- Repuestos
@@ -247,6 +253,8 @@ ALTER TABLE sali_repue
 ALTER TABLE sali_vehi
     ADD FOREIGN KEY (alerta_id) REFERENCES alert(id),
     ADD FOREIGN KEY (sali_repue_id) REFERENCES sali_repue(id);
+
+
 
 -- Usuarios iniciales con contraseñas encriptadas (ejemplo usando SHA2)
 INSERT INTO users (num_documento, tipo_documento, nombre, apellido, num_celular, correo, rol, contrasena) VALUES

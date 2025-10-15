@@ -1,16 +1,20 @@
 <?php
 require_once '../controllers/RepueController.php';
 $controller = new RepueController();
+session_start();
+$rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol'] === 'conductor';
 // Manejo de POST y delete antes de cualquier salida
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $controller->store($_POST);
-    header('Location: repue.php');
-    exit;
-}
-if (isset($_GET['delete'])) {
-    $controller->delete($_GET['delete']);
-    header('Location: repue.php');
-    exit;
+if (!$rol_conductor) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $controller->store($_POST);
+        header('Location: repue.php');
+        exit;
+    }
+    if (isset($_GET['delete'])) {
+        $controller->delete($_GET['delete']);
+        header('Location: repue.php');
+        exit;
+    }
 }
 // Filtros
 $filtros = [];
@@ -27,6 +31,54 @@ $repuestos = $controller->index($filtros);
     <meta charset="UTF-8">
     <title>Gestión de Repuestos</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(120deg, #f8fafc 0%, #e3e6ed 100%);
+        }
+        .container {
+            background: rgba(13,110,253,0.10);
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+            padding: 32px 24px;
+            margin-top: 32px;
+            color: #111;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(13,110,253,0.15);
+        }
+        h2 {
+            color: #0d6efd;
+        }
+        .form-label, .form-select, .form-control {
+            color: #111 !important;
+        }
+        .btn-primary, .btn-outline-primary {
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+            color: #fff !important;
+        }
+        .btn-primary:hover, .btn-outline-primary:hover {
+            background-color: #0b5ed7 !important;
+            border-color: #0b5ed7 !important;
+        }
+        .btn-secondary {
+            background-color: rgba(13,110,253,0.15) !important;
+            color: #111 !important;
+            border: 1px solid rgba(13,110,253,0.15) !important;
+        }
+        .btn-success {
+            background-color: #198754 !important;
+            border-color: #198754 !important;
+        }
+        .table-bordered, .table th, .table td {
+            color: #111 !important;
+        }
+        thead tr {
+            background: rgba(13,110,253,0.10) !important;
+            color: #111 !important;
+            border-bottom: 2px solid rgba(13,110,253,0.15);
+        }
+    </style>
 </head>
 <body>
 <div class="container mt-4">
@@ -85,9 +137,11 @@ $repuestos = $controller->index($filtros);
             <a href="repue.php" class="btn btn-secondary w-100">Limpiar</a>
         </div>
     </form>
+    <?php if (!$rol_conductor): ?>
     <div class="mb-3 text-end">
         <a href="repue.php?form=1" class="btn btn-success">Agregar Repuesto</a>
     </div>
+    <?php endif; ?>
     <table class="table table-bordered">
         <thead>
             <tr>
@@ -138,7 +192,19 @@ $repuestos = $controller->index($filtros);
                 <td><?= $cat ? htmlspecialchars($cat['nombre']) : '' ?></td>
                 <td><?= $subcat ? htmlspecialchars($subcat['nombre']) : '' ?></td>
                 <td><?= htmlspecialchars($row['marca_repuesto']) ?></td>
-                <td><?= $prov ? htmlspecialchars($prov['nom_proveedor']) : '' ?></td>
+                <td>
+                    <?php if ($row['proveedor_id']): ?>
+                        <span>ID Proveedor: <b><?= $row['proveedor_id'] ?></b></span><br>
+                        <?php $prov = $provModel->getById($row['proveedor_id']); ?>
+                        <span>Nombre Proveedor: <b><?= $prov ? htmlspecialchars($prov['nom_proveedor']) : 'N/A' ?></b></span><br>
+                        <span class="badge bg-success">Asignado</span>
+                        <?php $estado = 'Asignado'; ?>
+                    <?php else: ?>
+                        <span class="badge bg-warning">Sin proveedor</span>
+                        <?php $estado = 'Sin proveedor'; ?>
+                    <?php endif; ?>
+                </td>
+                <td><?= $estado ?></td>
                 <td><?= htmlspecialchars($row['modelo']) ?></td>
                 <td><?= htmlspecialchars($row['medidas_espe']) ?></td>
                 <td><?= htmlspecialchars($row['norma_estan']) ?></td>
@@ -159,14 +225,16 @@ $repuestos = $controller->index($filtros);
                 <td><?= htmlspecialchars($row['dest_area']) ?></td>
                 <td><?= htmlspecialchars($row['firma_verificacion']) ?></td>
                 <td class="text-center">
+                    <?php if (!$rol_conductor): ?>
                     <a href="repue.php?form=1&id=<?= $row['id'] ?>" class="btn btn-warning mx-1">Editar</a>
                     <a href="repue.php?delete=<?= $row['id'] ?>" class="btn btn-danger mx-1" onclick="return confirm('¿Eliminar repuesto?')">Eliminar</a>
+                    <?php endif; ?>
                 </td>
             </tr>
         <?php endwhile; ?>
         </tbody>
     </table>
-    <?php if (isset($_GET['form'])): ?>
+    <?php if (isset($_GET['form']) && !$rol_conductor): ?>
     <div class="card mt-4">
         <div class="card-body">
             <h5 class="card-title"><?= isset($editData) ? 'Editar' : 'Agregar' ?> Repuesto</h5>

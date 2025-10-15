@@ -51,4 +51,7 @@ class Proveedor {
         $stmt->bind_param('i', $id);
         return $stmt->execute();
     }
+    public function getLastInsertId() {
+        return $this->conn->insert_id;
+    }
 }

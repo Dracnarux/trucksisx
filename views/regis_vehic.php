@@ -4,6 +4,7 @@ if (!isset($_SESSION['usuario'])) {
     header('Location: ../index.php');
     exit();
 }
+$rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol'] === 'conductor';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -17,20 +18,47 @@ if (!isset($_SESSION['usuario'])) {
         body {
             background: linear-gradient(120deg, #f8fafc 0%, #e3e6ed 100%);
         }
-        .card {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-            border-radius: 1rem;
+        .container {
+            background: rgba(13,110,253,0.10);
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+            padding: 32px 24px;
+            color: #111;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(13,110,253,0.15);
         }
-        .card-title {
-            font-weight: 600;
+        h2 {
+            color: #0d6efd;
         }
-        .navbar-brand {
-            font-weight: bold;
-            letter-spacing: 1px;
+        .form-label, .form-select, .form-control {
+            color: #111 !important;
         }
-        .table-responsive {
-            max-height: 500px;
-            overflow-y: auto;
+        .btn-primary, .btn-outline-primary {
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+            color: #fff !important;
+        }
+        .btn-primary:hover, .btn-outline-primary:hover {
+            background-color: #0b5ed7 !important;
+            border-color: #0b5ed7 !important;
+        }
+        .btn-secondary {
+            background-color: rgba(13,110,253,0.15) !important;
+            color: #111 !important;
+            border: 1px solid rgba(13,110,253,0.15) !important;
+        }
+        .btn-success {
+            background-color: #198754 !important;
+            border-color: #198754 !important;
+        }
+        .table-bordered, .table-responsive, .table th, .table td {
+            color: #111 !important;
+        }
+        thead tr {
+            background: rgba(13,110,253,0.10) !important;
+            color: #111 !important;
+            border-bottom: 2px solid rgba(13,110,253,0.15);
         }
     </style>
 </head>
@@ -44,7 +72,9 @@ if (!isset($_SESSION['usuario'])) {
     <div class="container py-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fw-bold mb-0"><i class="bi bi-journal-plus"></i> Registro de Vehículo</h2>
+            <?php if (!$rol_conductor): ?>
             <a href="regis_vehic.php?form=1" class="btn btn-success"><i class="bi bi-plus-circle"></i> Agregar Vehículo</a>
+            <?php endif; ?>
         </div>
         <?php
         require_once '../config/db.php';
@@ -129,6 +159,8 @@ if (!isset($_SESSION['usuario'])) {
                             <th>Cap. Carga</th>
                             <th>Subcategoría</th>
                             <th>Categoría</th>
+                            <th>Estado</th>
+                            <th>Conductor Asignado</th>
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
@@ -145,9 +177,30 @@ if (!isset($_SESSION['usuario'])) {
                             <td><?= htmlspecialchars($row['cap_carga']) ?></td>
                             <td><?= htmlspecialchars($row['subcat_nombre']) ?></td>
                             <td><?= htmlspecialchars($row['cat_nombre']) ?></td>
+                            <td><?= htmlspecialchars($row['estado']) ?></td>
+                            <td>
+                                <?php
+                                if (!empty($row['cond_id'])) {
+                                    $stmtCond = $conn->prepare("SELECT cargo FROM cond WHERE id = ?");
+                                    $stmtCond->bind_param('i', $row['cond_id']);
+                                    $stmtCond->execute();
+                                    $resCond = $stmtCond->get_result();
+                                    if ($resCond && $resCond->num_rows > 0) {
+                                        $conductor = $resCond->fetch_assoc();
+                                        echo htmlspecialchars($conductor['cargo']);
+                                    } else {
+                                        echo '<span class="text-muted">No asignado</span>';
+                                    }
+                                } else {
+                                    echo '<span class="text-muted">No asignado</span>';
+                                }
+                                ?>
+                            </td>
                             <td class="text-center">
+                                <?php if (!$rol_conductor): ?>
                                 <a href="regis_vehic.php?form=1&id=<?= $row['id'] ?>" class="btn btn-warning btn-sm mx-1"><i class="bi bi-pencil-square"></i> Editar</a>
                                 <a href="regis_vehic.php?delete=<?= $row['id'] ?>" class="btn btn-danger btn-sm mx-1" onclick="return confirm('¿Eliminar vehículo?')"><i class="bi bi-trash"></i> Eliminar</a>
+                                <?php endif; ?>
                             </td>
                         </tr>
                         <?php endwhile; ?>
@@ -162,7 +215,7 @@ if (!isset($_SESSION['usuario'])) {
         </div>
         <?php
         // Formulario alta/edición
-        if (isset($_GET['form'])):
+    if (isset($_GET['form']) && !$rol_conductor):
             $editData = [];
             if (isset($_GET['id'])) {
                 $sql = "SELECT * FROM regis_vehic WHERE id = ?";
@@ -264,38 +317,52 @@ if (!isset($_SESSION['usuario'])) {
         <?php endif; ?>
         <?php
         // Guardar/editar vehículo
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['placa'], $_POST['marca_vehiculo'], $_POST['modelo'], $_POST['subcat_vehic_id'])) {
-            $fields = [
-                'num_cha','placa','distru_ejes','marca_vehiculo','modelo','color','cilindraje','cap_carga','linea_marca','tecnomecanica','soat','tipo_unidad','tipo_combustible','RUNT','cert_homologacion','cert_matricula','tarje_propiedad','subcat_vehic_id'
-            ];
-            $values = [];
-            foreach ($fields as $f) {
-                $values[] = $_POST[$f] ?? '';
+        if (!$rol_conductor) {
+            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['placa'], $_POST['marca_vehiculo'], $_POST['modelo'], $_POST['subcat_vehic_id'])) {
+                $fields = [
+                    'num_cha','placa','distru_ejes','marca_vehiculo','modelo','color','cilindraje','cap_carga','linea_marca','tecnomecanica','soat','tipo_unidad','tipo_combustible','RUNT','cert_homologacion','cert_matricula','tarje_propiedad','subcat_vehic_id'
+                ];
+                $values = [];
+                foreach ($fields as $f) {
+                    $values[] = $_POST[$f] ?? '';
+                }
+                if (!empty($_POST['id'])) {
+                     $sql = "UPDATE regis_vehic SET num_cha=?, placa=?, distru_ejes=?, marca_vehiculo=?, modelo=?, color=?, cilindraje=?, cap_carga=?, linea_marca=?, tecnomecanica=?, soat=?, tipo_unidad=?, tipo_combustible=?, RUNT=?, cert_homologacion=?, cert_matricula=?, tarje_propiedad=?, subcat_vehic_id=? WHERE id=?";
+                     $stmt = $conn->prepare($sql);
+                     $values_update = $values;
+                     $values_update[] = $_POST['id'];
+                     $stmt->bind_param('ssssssssssssssssiii', ...$values_update);
+                     $stmt->execute();
+                } else {
+                    $sql = "INSERT INTO regis_vehic (num_cha, placa, distru_ejes, marca_vehiculo, modelo, color, cilindraje, cap_carga, linea_marca, tecnomecanica, soat, tipo_unidad, tipo_combustible, RUNT, cert_homologacion, cert_matricula, tarje_propiedad, subcat_vehic_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param('ssssssssssssssssii', ...$values);
+                    $stmt->execute();
+                }
+                echo '<script>window.location="regis_vehic.php";</script>';
+                exit;
             }
-            if (!empty($_POST['id'])) {
-                 $sql = "UPDATE regis_vehic SET num_cha=?, placa=?, distru_ejes=?, marca_vehiculo=?, modelo=?, color=?, cilindraje=?, cap_carga=?, linea_marca=?, tecnomecanica=?, soat=?, tipo_unidad=?, tipo_combustible=?, RUNT=?, cert_homologacion=?, cert_matricula=?, tarje_propiedad=?, subcat_vehic_id=? WHERE id=?";
-                 $stmt = $conn->prepare($sql);
-                 $values_update = $values;
-                 $values_update[] = $_POST['id'];
-                 $stmt->bind_param('ssssssssssssssssiii', ...$values_update);
-                 $stmt->execute();
-            } else {
-                $sql = "INSERT INTO regis_vehic (num_cha, placa, distru_ejes, marca_vehiculo, modelo, color, cilindraje, cap_carga, linea_marca, tecnomecanica, soat, tipo_unidad, tipo_combustible, RUNT, cert_homologacion, cert_matricula, tarje_propiedad, subcat_vehic_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            // Asignar conductor a vehículo
+            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['asignar_conductor'], $_POST['vehiculo_id'], $_POST['conductor_id'])) {
+                $vehiculo_id = intval($_POST['vehiculo_id']);
+                $conductor_id = intval($_POST['conductor_id']);
+                // Actualizar cond_id y estado
+                $sql = "UPDATE regis_vehic SET cond_id = ?, estado = 'Asignado' WHERE id = ?";
                 $stmt = $conn->prepare($sql);
-                $stmt->bind_param('ssssssssssssssssii', ...$values);
+                $stmt->bind_param('ii', $conductor_id, $vehiculo_id);
                 $stmt->execute();
+                echo '<script>window.location="regis_vehic.php";</script>';
+                exit;
             }
-            echo '<script>window.location="regis_vehic.php";</script>';
-            exit;
-        }
-        // Eliminar vehículo
-        if (isset($_GET['delete'])) {
-            $sql = "DELETE FROM regis_vehic WHERE id = ?";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param('i', $_GET['delete']);
-            $stmt->execute();
-            echo '<script>window.location="regis_vehic.php";</script>';
-            exit;
+            // Eliminar vehículo
+            if (isset($_GET['delete'])) {
+                $sql = "DELETE FROM regis_vehic WHERE id = ?";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param('i', $_GET['delete']);
+                $stmt->execute();
+                echo '<script>window.location="regis_vehic.php";</script>';
+                exit;
+            }
         }
         ?>
         <div class="mt-5 text-end">

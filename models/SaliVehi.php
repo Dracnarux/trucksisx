@@ -18,5 +18,25 @@ class SaliVehi {
         $stmt->execute();
         return $stmt->get_result()->fetch_assoc();
     }
-    // ...otros métodos según necesidad
+    public function getAll() {
+        $result = $this->db->query("SELECT * FROM sali_vehi ORDER BY id DESC");
+        $data = [];
+        while ($row = $result->fetch_assoc()) {
+            $data[] = $row;
+        }
+        return $data;
+    }
+
+    public function crearReporte($data) {
+        $stmt = $this->db->prepare("INSERT INTO repor (nombre_reporte, tipo_reporte, fecha_creacion, activo, sali_vehi_id) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param('sssii', $data['nombre_reporte'], $data['tipo_reporte'], $data['fecha_creacion'], $data['activo'], $data['sali_vehi_id']);
+        if ($stmt->execute()) {
+            $repor_id = $this->db->insert_id;
+            $update = $this->db->prepare("UPDATE sali_vehi SET repor_id = ? WHERE id = ?");
+            $update->bind_param('ii', $repor_id, $data['sali_vehi_id']);
+            $update->execute();
+            return $repor_id;
+        }
+        return false;
+    }
 }

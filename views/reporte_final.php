@@ -3,6 +3,8 @@
 require_once '../config/db.php';
 require_once '../models/SaliRepue.php';
 require_once '../models/SaliVehi.php';
+// Definir la conexión $db
+$db = conectarDB();
 
 $sali_vehi_id = isset($_GET['sali_vehi_id']) ? $_GET['sali_vehi_id'] : null;
 $sali_vehi = $sali_vehi_id ? (new SaliVehi($db))->getById($sali_vehi_id) : null;
@@ -17,7 +19,10 @@ $sali_repue = $sali_vehi && isset($sali_vehi['sali_repue_id']) ? (new SaliRepue(
 </head>
 <body>
 <div class="container mt-4">
-    <h2>Proceso Completado</h2>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Proceso Completado</h2>
+        <a href="salida_repuesto.php" class="btn btn-secondary">Volver a registrar salida de repuesto</a>
+    </div>
     <?php if ($sali_vehi && $sali_repue): ?>
         <div class="alert alert-success">El proceso de salida de repuestos y vehículo se ha completado correctamente.</div>
         <h4>Resumen de la Salida de Repuestos</h4>

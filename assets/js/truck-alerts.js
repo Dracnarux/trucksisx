@@ -1,40 +1,20 @@
+// Aplica la animación a las alertas recientes al agregarlas
+function displayRecentAlerts(alerts) {
+    const alertsList = document.getElementById('alerts-list');
+    alertsList.innerHTML = '';
+    alerts.forEach(alert => {
+        const div = document.createElement('div');
+        div.className = 'alert-recent mb-2 p-2 rounded';
+        div.innerHTML = `
+            <strong>${alert.titulo}</strong> <br>
+            <span>${alert.descripcion}</span> <br>
+            <small>${alert.fecha}</small>
+        `;
+        alertsList.appendChild(div);
+    });
+}
 // Sistema de Alertas de Llantas para Camión Doble Troque
 class TruckAlertSystem {
-    // Cargar conductores y vehículos en el modal
-    async loadConductoresVehiculos() {
-        const select = document.getElementById('conductor-vehiculo-select');
-        if (!select) return;
-        select.innerHTML = '<option value="">Cargando...</option>';
-        try {
-            const response = await fetch('../controllers/ConductorVehiculoController.php');
-            const data = await response.json();
-            if (data.success && Array.isArray(data.conductores)) {
-                if (data.conductores.length === 0) {
-                    select.innerHTML = '<option value="">No hay conductores disponibles</option>';
-                } else {
-                    select.innerHTML = '<option value="">Seleccione un conductor y vehículo...</option>';
-                    data.conductores.forEach(c => {
-                        const label = `${c.nombre} ${c.apellido} - ${c.placa}`;
-                        const option = document.createElement('option');
-                        option.value = `${c.cond_id}|${c.vehiculo_id}`;
-                        option.textContent = label;
-                        select.appendChild(option);
-                    });
-                }
-            } else {
-                select.innerHTML = '<option value="">Error al cargar conductores</option>';
-            }
-        } catch (e) {
-            select.innerHTML = '<option value="">Error de conexión</option>';
-        }
-
-        // Actualizar campos ocultos al seleccionar
-        select.addEventListener('change', function() {
-            const [condId, vehicId] = this.value.split('|');
-            document.getElementById('cond-id').value = condId || '';
-            document.getElementById('vehicle-id').value = vehicId || '';
-        });
-    }
     // Métodos vacíos para evitar errores si no están implementados
     createLegend() {}
     onTireHover() {}
@@ -107,18 +87,19 @@ class TruckAlertSystem {
 
         // Llantas dirección (frontal)
         const tires = [
-            {cx: 70, cy: yDireccion, pos: 'direccion_izquierda', label: 'DIR-I'},
-            {cx: 130, cy: yDireccion, pos: 'direccion_derecha', label: 'DIR-D'},
-            // Tracción 1 (dos llantas separadas al extremo izquierdo, dos separadas al extremo derecho)
-            {cx: 35, cy: yTraccion1, pos: 'traccion1_izquierda', label: 'T1-I'},
-            {cx: 55, cy: yTraccion1, pos: 'traccion1_izquierda2', label: 'T1-I2'},
-            {cx: 145, cy: yTraccion1, pos: 'traccion1_derecha2', label: 'T1-D2'},
-            {cx: 165, cy: yTraccion1, pos: 'traccion1_derecha', label: 'T1-D'},
-            // Tracción 3 (dos llantas separadas al extremo izquierdo, dos separadas al extremo derecho)
-            {cx: 35, cy: yTraccion3, pos: 'traccion3_izquierda', label: 'T3-I'},
-            {cx: 55, cy: yTraccion3, pos: 'traccion3_izquierda2', label: 'T3-I2'},
-            {cx: 145, cy: yTraccion3, pos: 'traccion3_derecha2', label: 'T3-D2'},
-            {cx: 165, cy: yTraccion3, pos: 'traccion3_derecha', label: 'T3-D'}
+            // Llantas direccionales en los extremos de la línea horizontal
+            {cx: 40, cy: yDireccion, pos: 'direccion_izquierda', label: 'DIR-I'},
+            {cx: 160, cy: yDireccion, pos: 'direccion_derecha', label: 'DIR-D'},
+            // Tracción 1 (restaurar posiciones originales)
+            {cx: 40, cy: yTraccion1, pos: 'traccion1_izquierda', label: 'T1-I'},
+            {cx: 70, cy: yTraccion1, pos: 'traccion1_izquierda2', label: 'T1-I2'},
+            {cx: 130, cy: yTraccion1, pos: 'traccion1_derecha2', label: 'T1-D2'},
+            {cx: 160, cy: yTraccion1, pos: 'traccion1_derecha', label: 'T1-D'},
+            // Tracción 3 (llantas en los extremos y separación entre izquierdas y derechas)
+            {cx: 40, cy: yTraccion3, pos: 'traccion3_izquierda', label: 'T3-I'},
+            {cx: 70, cy: yTraccion3, pos: 'traccion3_izquierda2', label: 'T3-I2'},
+            {cx: 130, cy: yTraccion3, pos: 'traccion3_derecha2', label: 'T3-D2'},
+            {cx: 160, cy: yTraccion3, pos: 'traccion3_derecha', label: 'T3-D'},
         ];
 
         // Dibujar llantas y etiquetas
@@ -199,7 +180,7 @@ class TruckAlertSystem {
     const oldModal = document.getElementById('alert-modal');
     if (oldModal) oldModal.remove();
 
-    const modalHTML = `
+        const modalHTML = `
             <div id="alert-modal" class="alert-modal">
                 <div class="alert-modal-content">
                     <div class="alert-modal-header">
@@ -208,61 +189,120 @@ class TruckAlertSystem {
                     </div>
                     <form id="alert-form">
                         <div class="form-group">
-                            <label for="tire-position-display">Posición de la Llanta:</label>
-                            <input type="text" id="tire-position-display" readonly>
-                                        <input type="hidden" id="tire-position" name="posicion_llanta">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="conductor-vehiculo-select">Conductor y Vehículo Asignado *</label>
-                                        <select id="conductor-vehiculo-select" name="conductor_vehiculo" class="form-select" required>
-                                            <option value="">Seleccione un conductor y vehículo...</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="alert-priority">Prioridad:</label>
-                                        <select id="alert-priority" name="prioridad">
-                                            <option value="baja">Baja</option>
-                                            <option value="media" selected>Media</option>
-                                            <option value="alta">Alta</option>
-                                            <option value="critica">Crítica</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="alert-description">Descripción del Problema *:</label>
-                                        <textarea id="alert-description" name="descripcion" required 
-                                                  placeholder="Describa el problema observado en la llanta"></textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="alert-image">Imagen de Evidencia:</label>
-                                        <input type="file" id="alert-image" name="imagen_evidencia" 
-                                               accept="image/*">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="alert-observations">Observaciones Adicionales:</label>
-                                        <textarea id="alert-observations" name="observaciones" 
-                                                  placeholder="Observaciones adicionales o contexto"></textarea>
-                                    </div>
-                                    <input type="hidden" id="cond-id" name="cond_id">
-                                    <input type="hidden" id="vehicle-id" name="regis_vehic_id">
-                                    <div style="text-align: right; margin-top: 20px;">
-                                        <button type="button" class="btn btn-secondary" onclick="truckAlerts.closeModal()">
-                                            Cancelar
-                                        </button>
-                                        <button type="submit" class="btn btn-primary">
-                                            <span class="btn-text">Crear Alerta</span>
-                                            <span class="loading" style="display: none;"></span>
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
+                            <label for="alert-priority">Prioridad:</label>
+                            <select id="alert-priority" name="prioridad">
+                                <option value="baja">Baja</option>
+                                <option value="media" selected>Media</option>
+                                <option value="alta">Alta</option>
+                                <option value="critica">Crítica</option>
+                            </select>
                         </div>
-                    `;
+                        <div class="form-group">
+                            <label for="alert-status">Estado:</label>
+                            <select id="alert-status" name="estado">
+                                <option value="activa" selected>Activa</option>
+                                <option value="en_proceso">En proceso</option>
+                                <option value="resuelta">Resuelta</option>
+                                <option value="cancelada">Cancelada</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="alert-type">Tipo de Alerta:</label>
+                            <select id="alert-type" name="tipo_alerta">
+                                <option value="llanta" selected>Llanta</option>
+                                <option value="motor">Motor</option>
+                                <option value="frenos">Frenos</option>
+                                <option value="transmision">Transmisión</option>
+                                <option value="iluminacion">Iluminación</option>
+                                <option value="suspension">Suspensión</option>
+                                <option value="general">General</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="tire-position">Posición de la Llanta:</label>
+                            <select id="tire-position" name="posicion_llanta">
+                                <option value="direccion_izquierda">Dirección Izquierda</option>
+                                <option value="direccion_derecha">Dirección Derecha</option>
+                                <option value="traccion1_izquierda">Tracción 1 - Izquierda</option>
+                                <option value="traccion1_derecha">Tracción 1 - Derecha</option>
+                                <option value="traccion1_izquierda2">Tracción 1 - Izquierda 2</option>
+                                <option value="traccion1_derecha2">Tracción 1 - Derecha 2</option>
+                                <option value="traccion2_izquierda">Tracción 2 - Izquierda</option>
+                                <option value="traccion2_derecha">Tracción 2 - Derecha</option>
+                                <option value="traccion2_derecha2">Tracción 2 - Derecha 2</option>
+                                <option value="traccion2_izquierda2">Tracción 2 - Izquierda 2</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="cond-id">Conductor vinculado *</label>
+                            <select id="cond-id" name="cond_id" class="form-control" required>
+                                <option value="">Seleccione un conductor</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="vehicle-id">Vehículo vinculado *</label>
+                            <select id="vehicle-id" name="regis_vehic_id" required>
+                                <option value="">Seleccione un vehículo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="alert-description">Descripción del Problema *:</label>
+                            <textarea id="alert-description" name="descripcion" required placeholder="Describa el problema observado"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="alert-image">Imagen de Evidencia:</label>
+                            <input type="file" id="alert-image" name="imagen_evidencia" accept="image/*">
+                        </div>
+                        <div class="form-group">
+                            <label for="alert-observations">Observaciones Adicionales:</label>
+                            <textarea id="alert-observations" name="observaciones" placeholder="Observaciones adicionales o contexto"></textarea>
+                        </div>
+                        <div style="text-align: right; margin-top: 20px;">
+                            <button type="button" class="btn btn-secondary" onclick="truckAlerts.closeModal()">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">
+                                <span class="btn-text">Crear Alerta</span>
+                                <span class="loading" style="display: none;"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
         // Llenar el selector de conductores y vehículos al abrir el modal
-    setTimeout(() => { this.loadConductoresVehiculos(); }, 100);
+    // Eliminada la carga de conductores y vehículos vinculados, solo se usa código de conductor
 
         document.body.insertAdjacentHTML('beforeend', modalHTML);
         this.alertModal = document.getElementById('alert-modal');
         this.setupModalEvents();
+
+        // Llenar el menú desplegable de vehículos con datos desde el backend
+        fetch('../controllers/AlertController.php?action=getVehicles')
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                if (data.success && Array.isArray(data.vehicles)) {
+                    var vehicleSelect = document.getElementById('vehicle-id');
+                    data.vehicles.forEach(function(vehicle) {
+                        var option = document.createElement('option');
+                        option.value = vehicle.id;
+                        option.textContent = vehicle.placa + ' - ' + vehicle.marca_vehiculo;
+                        vehicleSelect.appendChild(option);
+                    });
+                }
+            });
+        // Llenar el menú de conductores desde el backend
+        fetch('../controllers/AlertController.php?action=getConductores')
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                if (data.success && Array.isArray(data.conductores)) {
+                    var condSelect = document.getElementById('cond-id');
+                    data.conductores.forEach(function(cond) {
+                        var option = document.createElement('option');
+                        option.value = cond.id;
+                        option.textContent = cond.cargo + ' (ID: ' + cond.id + ')';
+                        condSelect.appendChild(option);
+                    });
+                }
+            });
     }
 
     // Configurar eventos del modal
@@ -287,23 +327,17 @@ class TruckAlertSystem {
 
     // Mostrar modal de alerta
     showAlertModal() {
-        if (!this.selectedTire) return;
+    if (!this.selectedTire) return;
 
-        // Siempre recargar el selector de conductores y vehículos al abrir el modal
-        this.loadConductoresVehiculos();
+    const positionInput = document.getElementById('tire-position');
+    positionInput.value = this.selectedTire.position;
 
-        const positionDisplay = document.getElementById('tire-position-display');
-        const positionInput = document.getElementById('tire-position');
+    this.alertModal.style.display = 'block';
 
-        positionDisplay.value = this.selectedTire.name;
-        positionInput.value = this.selectedTire.position;
-
-        this.alertModal.style.display = 'block';
-
-        // Focus en el selector de conductor y vehículo
+        // Focus en el campo de código de conductor
         setTimeout(() => {
-            const select = document.getElementById('conductor-vehiculo-select');
-            if (select) select.focus();
+            const input = document.getElementById('conductor-code');
+            if (input) input.focus();
         }, 100);
     }
 
@@ -324,36 +358,8 @@ class TruckAlertSystem {
 
     // Validar código de conductor
     async validateConductor() {
-        const conductorCode = document.getElementById('conductor-code').value.trim();
-        const validation = document.getElementById('conductor-validation');
-        
-        if (!conductorCode) {
-            validation.innerHTML = '';
-            return;
-        }
-
-        try {
-            const response = await fetch('../controllers/AlertController.php?action=validateConductor', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `codigo_conductor=${encodeURIComponent(conductorCode)}`
-            });
-
-            const data = await response.json();
-            
-            if (data.success) {
-                validation.innerHTML = `<span style="color: green;">✓ Conductor válido: ${data.conductor.nombre} ${data.conductor.apellido}</span>`;
-                return true;
-            } else {
-                validation.innerHTML = `<span style="color: red;">✗ ${data.message}</span>`;
-                return false;
-            }
-        } catch (error) {
-            validation.innerHTML = '<span style="color: red;">Error al validar conductor</span>';
-            return false;
-        }
+        // Ya no se valida por código, solo por selección en el select
+        return true;
     }
 
     // Enviar alerta
@@ -373,7 +379,10 @@ class TruckAlertSystem {
 
         // Validar conductor antes de enviar
         const isValidConductor = await this.validateConductor();
-        if (!isValidConductor) {
+        const condIdInput = document.getElementById('cond-id');
+        const vehicleIdInput = document.getElementById('vehicle-id');
+        if (!isValidConductor || !condIdInput.value || !vehicleIdInput.value) {
+            this.showNotification('Debes validar el código de conductor y seleccionar un vehículo antes de crear la alerta.', 'error');
             this.resetSubmitButton(submitBtn, btnText, loading);
             return;
         }
@@ -429,70 +438,6 @@ class TruckAlertSystem {
         }
     }
 
-    // Crear modal para registro de alertas
-    createModal() {
-        const modalHTML = `
-            <div id="alert-modal" class="alert-modal">
-                <div class="alert-modal-content">
-                    <div class="alert-modal-header">
-                        <h3 class="alert-modal-title">Registrar Alerta de Llanta</h3>
-                        <span class="close">&times;</span>
-                    </div>
-                    <form id="alert-form">
-                        <div class="form-group">
-                            <label for="tire-position-display">Posición de la Llanta:</label>
-                            <input type="text" id="tire-position-display" readonly>
-                            <input type="hidden" id="tire-position" name="posicion_llanta">
-                        </div>
-                        <div class="form-group">
-                            <label for="conductor-vehiculo-select">Conductor y Vehículo Asignado *</label>
-                            <select id="conductor-vehiculo-select" name="conductor_vehiculo" class="form-select" required>
-                                <option value="">Seleccione un conductor y vehículo...</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="alert-priority">Prioridad:</label>
-                            <select id="alert-priority" name="prioridad">
-                                <option value="baja">Baja</option>
-                                <option value="media" selected>Media</option>
-                                <option value="alta">Alta</option>
-                                <option value="critica">Crítica</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="alert-description">Descripción del Problema *:</label>
-                            <textarea id="alert-description" name="descripcion" required 
-                                      placeholder="Describa el problema observado en la llanta"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="alert-image">Imagen de Evidencia:</label>
-                            <input type="file" id="alert-image" name="imagen_evidencia" 
-                                   accept="image/*">
-                        </div>
-                        <div class="form-group">
-                            <label for="alert-observations">Observaciones Adicionales:</label>
-                            <textarea id="alert-observations" name="observaciones" 
-                                      placeholder="Observaciones adicionales o contexto"></textarea>
-                        </div>
-                        <input type="hidden" id="cond-id" name="cond_id">
-                        <input type="hidden" id="vehicle-id" name="regis_vehic_id">
-                        <div style="text-align: right; margin-top: 20px;">
-                            <button type="button" class="btn btn-secondary" onclick="truckAlerts.closeModal()">
-                                Cancelar
-                            </button>
-                            <button type="submit" class="btn btn-primary">
-                                <span class="btn-text">Crear Alerta</span>
-                                <span class="loading" style="display: none;"></span>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        `;
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
-        this.alertModal = document.getElementById('alert-modal');
-        this.setupModalEvents();
-    }
 
     // Mostrar notificación
     showNotification(message, type = 'info') {

@@ -11,6 +11,14 @@ class User {
         $this->db = $database->getConnection();
     }
 
+    // Obtener todos los técnicos
+    public function getTecnicos() {
+        $sql = "SELECT * FROM " . $this->table . " WHERE rol = 'tecnico' ORDER BY nombre, apellido";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function login($usuario, $contrasena) {
         $sql = "SELECT * FROM " . $this->table . " WHERE (nombre = :usuario OR correo = :usuario)";
         $stmt = $this->db->prepare($sql);
@@ -29,12 +37,11 @@ class User {
 
     // Obtener usuario por número de documento (para validar conductores)
     public function getByDocumento($documento) {
-        $sql = "SELECT * FROM " . $this->table . " WHERE num_documento = :documento";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindParam(':documento', $documento);
-        $stmt->execute();
-        
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+    $sql = "SELECT u.*, c.regis_vehic_id FROM " . $this->table . " u LEFT JOIN cond c ON c.id = u.id WHERE u.num_documento = :documento";
+    $stmt = $this->db->prepare($sql);
+    $stmt->bindParam(':documento', $documento);
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     // Obtener todos los conductores

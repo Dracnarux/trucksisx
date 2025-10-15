@@ -4,6 +4,7 @@ if (!isset($_SESSION['usuario'])) {
     header('Location: ../index.php');
     exit();
 }
+$rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol'] === 'conductor';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -17,16 +18,47 @@ if (!isset($_SESSION['usuario'])) {
         body {
             background: linear-gradient(120deg, #f8fafc 0%, #e3e6ed 100%);
         }
-        .card {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-            border-radius: 1rem;
+        .container {
+            background: rgba(13,110,253,0.10);
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+            padding: 32px 24px;
+            color: #111;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(13,110,253,0.15);
         }
-        .card-title {
-            font-weight: 600;
+        h2 {
+            color: #0d6efd;
         }
-        .navbar-brand {
-            font-weight: bold;
-            letter-spacing: 1px;
+        .form-label, .form-select, .form-control {
+            color: #111 !important;
+        }
+        .btn-primary, .btn-outline-primary {
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+            color: #fff !important;
+        }
+        .btn-primary:hover, .btn-outline-primary:hover {
+            background-color: #0b5ed7 !important;
+            border-color: #0b5ed7 !important;
+        }
+        .btn-secondary {
+            background-color: rgba(13,110,253,0.15) !important;
+            color: #111 !important;
+            border: 1px solid rgba(13,110,253,0.15) !important;
+        }
+        .btn-success {
+            background-color: #198754 !important;
+            border-color: #198754 !important;
+        }
+        .table-bordered, .table th, .table td {
+            color: #111 !important;
+        }
+        thead tr {
+            background: rgba(13,110,253,0.10) !important;
+            color: #111 !important;
+            border-bottom: 2px solid rgba(13,110,253,0.15);
         }
     </style>
 </head>
@@ -40,7 +72,9 @@ if (!isset($_SESSION['usuario'])) {
     <div class="container py-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fw-bold mb-0"><i class="bi bi-truck"></i> Categoría de Vehículos</h2>
+            <?php if (!$rol_conductor): ?>
             <a href="cat_vehiculo.php?form=1" class="btn btn-success"><i class="bi bi-plus-circle"></i> Agregar Categoría</a>
+            <?php endif; ?>
         </div>
         <?php
         require_once '../config/db.php';
@@ -81,8 +115,10 @@ if (!isset($_SESSION['usuario'])) {
                             <td><?= $row['id'] ?></td>
                             <td><?= htmlspecialchars($row['nombre']) ?></td>
                             <td class="text-center">
+                                <?php if (!$rol_conductor): ?>
                                 <a href="cat_vehiculo.php?form=1&id=<?= $row['id'] ?>" class="btn btn-warning btn-sm mx-1"><i class="bi bi-pencil-square"></i> Editar</a>
                                 <a href="cat_vehiculo.php?delete=<?= $row['id'] ?>" class="btn btn-danger btn-sm mx-1" onclick="return confirm('¿Eliminar categoría?')"><i class="bi bi-trash"></i> Eliminar</a>
+                                <?php endif; ?>
                             </td>
                         </tr>
                         <?php endwhile; ?>
@@ -97,7 +133,7 @@ if (!isset($_SESSION['usuario'])) {
         </div>
         <?php
         // Formulario alta/edición
-        if (isset($_GET['form'])):
+        if (isset($_GET['form']) && !$rol_conductor):
             $editData = [];
             if (isset($_GET['id'])) {
                 $sql = "SELECT * FROM cat_vehic WHERE id = ?";
@@ -124,29 +160,31 @@ if (!isset($_SESSION['usuario'])) {
         <?php endif; ?>
         <?php
         // Guardar/editar categoría
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nombre'])) {
-            if (!empty($_POST['id'])) {
-                $sql = "UPDATE cat_vehic SET nombre = ? WHERE id = ?";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param('si', $_POST['nombre'], $_POST['id']);
-                $stmt->execute();
-            } else {
-                $sql = "INSERT INTO cat_vehic (nombre) VALUES (?)";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param('s', $_POST['nombre']);
-                $stmt->execute();
+        if (!$rol_conductor) {
+            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nombre'])) {
+                if (!empty($_POST['id'])) {
+                    $sql = "UPDATE cat_vehic SET nombre = ? WHERE id = ?";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param('si', $_POST['nombre'], $_POST['id']);
+                    $stmt->execute();
+                } else {
+                    $sql = "INSERT INTO cat_vehic (nombre) VALUES (?)";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param('s', $_POST['nombre']);
+                    $stmt->execute();
+                }
+                echo '<script>window.location="cat_vehiculo.php";</script>';
+                exit;
             }
-            echo '<script>window.location="cat_vehiculo.php";</script>';
-            exit;
-        }
-        // Eliminar categoría
-        if (isset($_GET['delete'])) {
-            $sql = "DELETE FROM cat_vehic WHERE id = ?";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param('i', $_GET['delete']);
-            $stmt->execute();
-            echo '<script>window.location="cat_vehiculo.php";</script>';
-            exit;
+            // Eliminar categoría
+            if (isset($_GET['delete'])) {
+                $sql = "DELETE FROM cat_vehic WHERE id = ?";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param('i', $_GET['delete']);
+                $stmt->execute();
+                echo '<script>window.location="cat_vehiculo.php";</script>';
+                exit;
+            }
         }
         ?>
         <div class="mt-5 text-end">

@@ -61,9 +61,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'update' && isset($_GET['id'])
             if ($data['rol'] === 'conductor') {
                 header('Location: ../views/cond.php');
                 exit;
-            } elseif ($data['rol'] === 'tecnico') {
-                header('Location: ../views/crear_tecnico.php');
-                exit;
             } else {
                 header('Location: ../views/crear_usuario.php?success=1');
                 exit;
@@ -82,25 +79,7 @@ echo 'Acción no válida o no encontrada.';
 if (session_status() === PHP_SESSION_NONE) session_start();
 
 if (isset($_GET['action']) && $_GET['action'] === 'create_tecnico') {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        // Recoger datos del formulario
-        $especialidad = $_POST['especialidad'] ?? '';
-        $nivel_experiencia = $_POST['nivel_experiencia'] ?? '';
-        $categoria = $_POST['categoria'] ?? '';
-
-        // Aquí deberías guardar en la base de datos, por ahora solo mostramos los datos
-        // Puedes adaptar esto para guardar en una tabla de técnicos si la tienes
-        echo '<div style="margin:2em; font-family:Arial;">';
-        echo '<h2>Técnico creado correctamente</h2>';
-        echo '<ul>';
-        echo '<li><b>Especialidad:</b> ' . htmlspecialchars($especialidad) . '</li>';
-        echo '<li><b>Nivel de experiencia:</b> ' . htmlspecialchars($nivel_experiencia) . '</li>';
-        echo '<li><b>Categoría:</b> ' . htmlspecialchars($categoria) . '</li>';
-        echo '</ul>';
-        echo '<a href="../views/dashboard.php">Volver al dashboard</a>';
-        echo '</div>';
-        exit;
-    }
+    // Eliminado: no se debe mostrar ni pedir especialidad para técnico. El flujo es igual al de cualquier usuario.
 } elseif (isset($_GET['action']) && $_GET['action'] === 'create') {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         require_once '../models/User.php';

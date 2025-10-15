@@ -41,6 +41,12 @@ class Repue {
     public function save($data) {
         // Permitir proveedor_id nulo
         $proveedor_id = isset($data['proveedor_id']) && $data['proveedor_id'] !== '' ? (int)$data['proveedor_id'] : null;
+        // Estado automático según proveedor
+        if ($proveedor_id) {
+            $data['estado_repus'] = 'Asignado';
+        } else {
+            $data['estado_repus'] = 'Sin proveedor';
+        }
         $campos = [
             'nombre','marca_repuesto','proveedor_id','cat_repu_id','subcat_repu_id','modelo','medidas_espe','norma_estan','numero_parte','des_tecnica','veh_compatible','cantidad','estado_repus','fecha_ingreso','num_factura','ubi_almacen','pre_unitario','costo_total','garantia','res_ingreso','cant_stock','fecha_venci','dest_area','firma_verificacion'
         ];

@@ -4,6 +4,7 @@ if (!isset($_SESSION['usuario'])) {
     header('Location: ../index.php');
     exit();
 }
+$rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol'] === 'conductor';
 require_once '../controllers/CatRepuController.php';
 ?>
 <!DOCTYPE html>
@@ -12,6 +13,54 @@ require_once '../controllers/CatRepuController.php';
     <meta charset="UTF-8">
     <title>Categoría de Repuestos</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(120deg, #f8fafc 0%, #e3e6ed 100%);
+        }
+        .container {
+            background: rgba(13,110,253,0.10);
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+            padding: 32px 24px;
+            margin-top: 32px;
+            color: #111;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(13,110,253,0.15);
+        }
+        h2 {
+            color: #0d6efd;
+        }
+        .form-label, .form-select, .form-control {
+            color: #111 !important;
+        }
+        .btn-primary, .btn-outline-primary {
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+            color: #fff !important;
+        }
+        .btn-primary:hover, .btn-outline-primary:hover {
+            background-color: #0b5ed7 !important;
+            border-color: #0b5ed7 !important;
+        }
+        .btn-secondary {
+            background-color: rgba(13,110,253,0.15) !important;
+            color: #111 !important;
+            border: 1px solid rgba(13,110,253,0.15) !important;
+        }
+        .btn-success {
+            background-color: #198754 !important;
+            border-color: #198754 !important;
+        }
+        .table-bordered, .table th, .table td {
+            color: #111 !important;
+        }
+        thead tr {
+            background: rgba(13,110,253,0.10) !important;
+            color: #111 !important;
+            border-bottom: 2px solid rgba(13,110,253,0.15);
+        }
+    </style>
 </head>
 <body>
 <div class="container mt-4">
@@ -30,7 +79,9 @@ require_once '../controllers/CatRepuController.php';
             <a href="cat_repu.php" class="btn btn-secondary w-100">Limpiar</a>
         </div>
         <div class="col-md-2 text-end">
+            <?php if (!$rol_conductor): ?>
             <a href="cat_repu.php?form=1" class="btn btn-success w-100">Agregar Categoría</a>
+            <?php endif; ?>
         </div>
     </form>
     <table class="table table-bordered">
@@ -62,15 +113,17 @@ require_once '../controllers/CatRepuController.php';
                 <td><?= htmlspecialchars($row['caracteristicas'] ?? '') ?></td>
                 <!-- <td><?= $productos ? implode(', ', $productos) : '' ?></td> -->
                 <td class="text-center">
+                    <?php if (!$rol_conductor): ?>
                     <a href="cat_repu.php?form=1&id=<?= $row['id'] ?>" class="btn btn-warning mx-1">Editar</a>
                     <a href="cat_repu.php?delete=<?= $row['id'] ?>" class="btn btn-danger mx-1" onclick="return confirm('¿Eliminar categoría?')">Eliminar</a>
+                    <?php endif; ?>
                 </td>
             </tr>
         <?php endwhile; ?>
         </tbody>
     </table>
 
-    <?php if (isset($_GET['form'])): ?>
+    <?php if (isset($_GET['form']) && !$rol_conductor): ?>
     <div class="card mt-4">
         <div class="card-body">
             <h5 class="card-title"><?= isset($categoria) ? 'Editar' : 'Agregar' ?> Categoría</h5>

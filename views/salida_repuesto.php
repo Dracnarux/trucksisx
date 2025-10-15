@@ -10,6 +10,8 @@ $repues = (new Repue($db))->getAll();
 $ordenes = (new OrdTrabj($db))->getAll();
 $alertas = (new Alert($db))->getAll();
 $reportes = (new Repor($db))->getAll();
+session_start();
+$rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol'] === 'conductor';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -17,6 +19,59 @@ $reportes = (new Repor($db))->getAll();
     <meta charset="UTF-8">
     <title>Salida de Repuestos</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(120deg, #f8fafc 0%, #e3e6ed 100%);
+        }
+        .container {
+            background: rgba(13,110,253,0.10);
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+            padding: 32px 24px;
+            margin-top: 32px;
+            color: #111;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(13,110,253,0.15);
+        }
+        h2, h3 {
+            color: #0d6efd;
+        }
+        .form-label, .form-select, .form-control {
+            color: #111 !important;
+        }
+        .btn-primary, .btn-outline-primary {
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+            color: #fff !important;
+        }
+        .btn-primary:hover, .btn-outline-primary:hover {
+            background-color: #0b5ed7 !important;
+            border-color: #0b5ed7 !important;
+        }
+        .btn-secondary {
+            background-color: rgba(13,110,253,0.15) !important;
+            color: #111 !important;
+            border: 1px solid rgba(13,110,253,0.15) !important;
+        }
+        .btn-warning {
+            background-color: #ffc107 !important;
+            border-color: #ffc107 !important;
+            color: #111 !important;
+        }
+        .btn-danger {
+            background-color: #dc3545 !important;
+            border-color: #dc3545 !important;
+        }
+        .table-primary {
+            background: rgba(13,110,253,0.10) !important;
+            color: #111 !important;
+            border-bottom: 2px solid rgba(13,110,253,0.15);
+        }
+        .table-bordered, .table-sm, .table th, .table td {
+            color: #111 !important;
+        }
+    </style>
 </head>
 <body>
 <div class="container mt-4">
@@ -24,6 +79,7 @@ $reportes = (new Repor($db))->getAll();
         <a href="dashboard.php" class="btn btn-secondary">Volver al dashboard</a>
     </div>
     <h2>Registrar Salida de Repuestos</h2>
+    <?php if (!$rol_conductor): ?>
     <form action="../controllers/SaliRepueController.php?action=registrar" method="POST">
         <div class="mb-3">
             <label for="fecha_salida" class="form-label">Fecha de Salida</label>
@@ -52,13 +108,7 @@ $reportes = (new Repor($db))->getAll();
             </select>
         </div>
         <div class="mb-3">
-            <label for="repor_id" class="form-label">Código de Reporte</label>
-            <select class="form-select" name="repor_id" required>
-                <option value="">Seleccione...</option>
-                <?php foreach ($reportes as $rep): ?>
-                    <option value="<?= $rep['id'] ?>"><?= $rep['nombre_reporte'] ?></option>
-                <?php endforeach; ?>
-            </select>
+            <!-- El código de reporte ahora se genera automáticamente, no se selecciona manualmente -->
         </div>
         <div class="mb-3">
             <label for="alerta_id" class="form-label">Alerta del Sistema</label>
@@ -72,6 +122,7 @@ $reportes = (new Repor($db))->getAll();
         <button type="submit" class="btn btn-primary">Registrar Salida</button>
 
     </form>
+    <?php endif; ?>
     <hr>
     <h3 class="mb-4">Salidas de Repuestos Registradas</h3>
     <form class="d-flex mb-2" method="get" action="">
@@ -107,8 +158,10 @@ $reportes = (new Repor($db))->getAll();
                 <td><?= $row['nombre_trabajo'] ?></td>
                 <td><?= $row['alerta'] ?></td>
                 <td>
+                    <?php if (!$rol_conductor): ?>
                     <a href="editar_salida_repuesto.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-warning">Editar</a>
                     <a href="../controllers/SaliRepueController.php?action=eliminar&id=<?= $row['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar esta salida?')">Eliminar</a>
+                    <?php endif; ?>
                 </td>
             </tr>
         <?php endwhile; ?>

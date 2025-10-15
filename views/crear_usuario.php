@@ -4,6 +4,62 @@
     <meta charset="UTF-8">
     <title>Crear Usuario</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(120deg, #f8fafc 0%, #e3e6ed 100%);
+        }
+        .container {
+            background: rgba(13,110,253,0.10);
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+            padding: 32px 24px;
+            color: #111;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(13,110,253,0.15);
+        }
+        h2, h3 {
+            color: #0d6efd;
+        }
+        .form-label, .form-select, .form-control {
+            color: #111 !important;
+        }
+        .btn-primary, .btn-outline-primary {
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+            color: #fff !important;
+        }
+        .btn-primary:hover, .btn-outline-primary:hover {
+            background-color: #0b5ed7 !important;
+            border-color: #0b5ed7 !important;
+        }
+        .btn-secondary {
+            background-color: rgba(13,110,253,0.15) !important;
+            color: #111 !important;
+            border: 1px solid rgba(13,110,253,0.15) !important;
+        }
+        .btn-warning {
+            background-color: #ffc107 !important;
+            border-color: #ffc107 !important;
+            color: #111 !important;
+        }
+        .btn-danger {
+            background-color: #dc3545 !important;
+            border-color: #dc3545 !important;
+        }
+        .btn-success {
+            background-color: #198754 !important;
+            border-color: #198754 !important;
+        }
+        .table-bordered, .table-striped, .table th, .table td {
+            color: #111 !important;
+        }
+        thead.table-dark {
+            background: rgba(13,110,253,0.10) !important;
+            color: #111 !important;
+            border-bottom: 2px solid rgba(13,110,253,0.15);
+        }
+    </style>
 </head>
 <body>
 <?php
@@ -13,6 +69,9 @@ $conn = $db->getConnection();
 $stmt = $conn->prepare("SELECT * FROM users ORDER BY id DESC");
 $stmt->execute();
 $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+session_start();
+$rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol'] === 'conductor';
+$rol_tecnico = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol'] === 'tecnico';
 ?>
 <div class="container mt-5">
     <div class="d-flex justify-content-end mb-3">
@@ -62,8 +121,10 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 echo '<td>' . htmlspecialchars($usuario['correo']) . '</td>';
                 echo '<td>' . htmlspecialchars($usuario['rol']) . '</td>';
                 echo '<td>';
-                echo '<a href="?editar=' . $usuario['id'] . '" class="btn btn-sm btn-warning me-1">Editar</a>';
-                echo '<a href="../controllers/UserController.php?action=delete&id=' . $usuario['id'] . '" class="btn btn-sm btn-danger" onclick="return confirm(\'¿Seguro que deseas eliminar este usuario?\')">Eliminar</a>';
+                if (!$rol_conductor && !$rol_tecnico) {
+                    echo '<a href="?editar=' . $usuario['id'] . '" class="btn btn-sm btn-warning me-1">Editar</a>';
+                    echo '<a href="../controllers/UserController.php?action=delete&id=' . $usuario['id'] . '" class="btn btn-sm btn-danger" onclick="return confirm(\'¿Seguro que deseas eliminar este usuario?\')">Eliminar</a>';
+                }
                 echo '</td>';
                 echo '</tr>';
             }
@@ -71,12 +132,14 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </tbody>
         </table>
     </div>
+    <?php if (!$rol_conductor && !$rol_tecnico): ?>
     <div class="d-flex justify-content-end mb-3">
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCrearUsuario">Crear Usuario</button>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCrearUsuario">Crear Usuario</button>
     </div>
+    <?php endif; ?>
     <?php
     // Mostrar solo uno de los formularios: edición o creación
-    if (isset($_GET['editar'])) {
+    if (isset($_GET['editar']) && !$rol_conductor && !$rol_tecnico) {
         $idEditar = intval($_GET['editar']);
         $usuarioEditar = null;
         foreach ($usuarios as $u) {
@@ -125,6 +188,7 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     ?>
 
+    <?php if (!$rol_conductor && !$rol_tecnico): ?>
     <!-- Modal para crear usuario -->
     <div class="modal fade" id="modalCrearUsuario" tabindex="-1" aria-labelledby="modalCrearUsuarioLabel" aria-hidden="true">
       <div class="modal-dialog">
@@ -175,32 +239,18 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <label for="contrasena_create" class="form-label">Contraseña</label>
                     <input type="password" class="form-control" id="contrasena_create" name="contrasena" required>
                 </div>
+                <!-- Campo especialidad eliminado, no se requiere para técnico -->
                 <button type="submit" class="btn btn-primary">Crear Usuario</button>
             </form>
           </div>
         </div>
       </div>
     </div>
+    <?php endif; ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </script>
 <script src="../assets/js/usuario-rol.js?v=1"></script>
-<script>
-// Lógica para el formulario de edición (igual que crear)
-document.addEventListener('DOMContentLoaded', function() {
-    const rolSelect = document.getElementById('rol_edit');
-    if (!rolSelect) return;
-    rolSelect.addEventListener('change', function() {
-        const selected = this.value;
-        if (selected === 'conductor') {
-            window.location.href = 'cond.php?fromUserEdit=1&id=<?php echo $usuarioEditar['id']; ?>';
-        } else if (selected === 'tecnico') {
-            showEspecialidadModal();
-        } else if (selected === 'admin') {
-            alert('El usuario administrador solo tendrá acceso a la gestión de usuarios.');
-        }
-    });
-});
-</script>
+<!-- Eliminado cualquier lógica JS que pueda mostrar prompt o ventana emergente para técnico -->
 </body>
 </html>

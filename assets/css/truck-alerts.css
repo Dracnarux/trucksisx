@@ -1,10 +1,32 @@
+/* Animación para alertas recientes */
+.alert-recent {
+    animation: fadeSlideUp 0.7s cubic-bezier(0.4,0,0.2,1);
+}
+
+@keyframes fadeSlideUp {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    80% {
+        opacity: 1;
+        transform: translateY(-4px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 /* Estilos para el diagrama del camión y alertas */
 .truck-diagram-container {
-    background: #f5f5f5;
-    border-radius: 10px;
+    background: rgba(13,110,253,0.10);
+    border-radius: 16px;
     padding: 20px;
     margin: 20px 0;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(13,110,253,0.15);
 }
 
 .truck-diagram {
