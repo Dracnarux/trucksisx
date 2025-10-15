@@ -2,6 +2,18 @@
 // Controlador para gestión de usuarios y técnicos
 if (session_status() === PHP_SESSION_NONE) session_start();
 
+// Validar que el usuario esté autenticado
+if (!isset($_SESSION['usuario'])) {
+    header('Location: ../index.php');
+    exit();
+}
+
+// Solo administradores pueden gestionar usuarios
+if ($_SESSION['usuario']['rol'] !== 'admin') {
+    header('Location: ../views/dashboard.php?error=no_permission');
+    exit();
+}
+
 require_once '../models/User.php';
 $userModel = new User();
 

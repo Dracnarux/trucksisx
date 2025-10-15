@@ -1,5 +1,6 @@
 <?php
 require_once '../controllers/ProveedorController.php';
+require_once '../models/Repue.php';
 session_start();
 $controller = new ProveedorController();
 $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol'] === 'conductor';
@@ -16,10 +17,12 @@ if (!$rol_conductor) {
         exit;
     }
 }
-// Filtros
+// Filtros mejorados
 $filtros = [];
 foreach ([
-    'nom_proveedor', 'tip_repuesto', 'mar_distribuye', 'ciudad_depar', 'pais'
+    'nom_proveedor', 'tip_repuesto', 'mar_distribuye', 'ciudad_depar', 'pais',
+    'correo', 'tel_contacto', 'nit_num_identi', 'tiem_entrega', 'for_pago',
+    'tiene_credito', 'estado_repuestos'
 ] as $campo) {
     $filtros[$campo] = $_GET[$campo] ?? '';
 }
@@ -78,6 +81,66 @@ $proveedores = $controller->index($filtros);
             color: #111 !important;
             border-bottom: 2px solid rgba(13,110,253,0.15);
         }
+        
+        /* Estilos mejorados para filtros */
+        .card-header {
+            background: linear-gradient(45deg, rgba(13,110,253,0.1), rgba(13,110,253,0.05)) !important;
+            border-bottom: 1px solid rgba(13,110,253,0.15);
+        }
+        
+        .form-label.fw-bold {
+            color: #0d6efd !important;
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.25);
+        }
+        
+        .badge {
+            font-size: 0.75rem;
+        }
+        
+        .table td {
+            vertical-align: middle;
+            padding: 0.75rem 0.5rem;
+        }
+        
+        .btn-group-sm > .btn, .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        /* Animación para los filtros */
+        .collapse {
+            transition: height 0.35s ease;
+        }
+        
+        /* Tooltip personalizado */
+        .tooltip-inner {
+            background-color: #0d6efd;
+        }
+        
+        /* Estilo para campos vacíos */
+        .form-control:placeholder-shown {
+            border-color: #dee2e6;
+        }
+        
+        /* Hover effects */
+        .btn:hover {
+            transform: translateY(-1px);
+            transition: all 0.2s ease;
+        }
+        
+        /* Responsive table scroll */
+        @media (max-width: 992px) {
+            .table-responsive {
+                border-radius: 0.375rem;
+                box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+            }
+        }
     </style>
 </head>
 <body>
@@ -94,51 +157,159 @@ $proveedores = $controller->index($filtros);
     $subcategorias = $subcatModel->getAll();
     $repuestos = $repueModel->getAll();
     ?>
-    <form class="row mb-4" method="get">
-        <div class="col-md-2 mb-2">
-            <input type="text" name="pais" class="form-control" placeholder="Filtrar por país" value="<?= htmlspecialchars($filtros['pais']) ?>">
+    <!-- Panel de Filtros Mejorado -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">🔍 Filtros de Búsqueda</h5>
+            <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#filtrosAvanzados" aria-expanded="false">
+                <i class="bi bi-funnel"></i> Filtros Avanzados
+            </button>
         </div>
-        <div class="col-md-2 mb-2">
-            <select name="cat_repu_id" class="form-control" aria-label="Filtrar por categoría">
-                <option value="">Filtrar por categoría</option>
-                <?php while ($cat = $categorias->fetch_assoc()): ?>
-                    <option value="<?= $cat['id'] ?>" <?= (isset($_GET['cat_repu_id']) && $_GET['cat_repu_id'] == $cat['id']) ? 'selected' : '' ?>><?= htmlspecialchars($cat['nombre']) ?></option>
-                <?php endwhile; ?>
-            </select>
+        <div class="card-body">
+            <form method="get" id="formFiltros">
+                <!-- Fila 1: Filtros Principales -->
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">🏢 Nombre del Proveedor</label>
+                        <input type="text" name="nom_proveedor" class="form-control" 
+                               placeholder="Buscar por nombre..." 
+                               value="<?= htmlspecialchars($filtros['nom_proveedor']) ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">🏷️ Marca que Distribuye</label>
+                        <input type="text" name="mar_distribuye" class="form-control" 
+                               placeholder="Ej: Toyota, Ford, etc..." 
+                               value="<?= htmlspecialchars($filtros['mar_distribuye']) ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">🔧 Tipo de Repuesto</label>
+                        <input type="text" name="tip_repuesto" class="form-control" 
+                               placeholder="Motor, frenos, etc..." 
+                               value="<?= htmlspecialchars($filtros['tip_repuesto']) ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">🌍 País</label>
+                        <select name="pais" class="form-select">
+                            <option value="">Todos los países</option>
+                            <option value="Colombia" <?= $filtros['pais'] === 'Colombia' ? 'selected' : '' ?>>🇨🇴 Colombia</option>
+                            <option value="México" <?= $filtros['pais'] === 'México' ? 'selected' : '' ?>>🇲🇽 México</option>
+                            <option value="Brasil" <?= $filtros['pais'] === 'Brasil' ? 'selected' : '' ?>>🇧🇷 Brasil</option>
+                            <option value="Argentina" <?= $filtros['pais'] === 'Argentina' ? 'selected' : '' ?>>🇦🇷 Argentina</option>
+                            <option value="Chile" <?= $filtros['pais'] === 'Chile' ? 'selected' : '' ?>>🇨🇱 Chile</option>
+                            <option value="Perú" <?= $filtros['pais'] === 'Perú' ? 'selected' : '' ?>>🇵🇪 Perú</option>
+                            <option value="Ecuador" <?= $filtros['pais'] === 'Ecuador' ? 'selected' : '' ?>>🇪🇨 Ecuador</option>
+                            <option value="Venezuela" <?= $filtros['pais'] === 'Venezuela' ? 'selected' : '' ?>>🇻🇪 Venezuela</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Filtros Avanzados (Colapsables) -->
+                <div class="collapse" id="filtrosAvanzados">
+                    <hr>
+                    <h6 class="text-muted mb-3">📋 Filtros Avanzados</h6>
+                    
+                    <!-- Fila 2: Ubicación y Contacto -->
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">🏙️ Ciudad/Departamento</label>
+                            <input type="text" name="ciudad_depar" class="form-control" 
+                                   placeholder="Bogotá, Medellín, etc..." 
+                                   value="<?= htmlspecialchars($filtros['ciudad_depar']) ?>">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">📧 Correo Electrónico</label>
+                            <input type="text" name="correo" class="form-control" 
+                                   placeholder="proveedor@email.com" 
+                                   value="<?= htmlspecialchars($_GET['correo'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">📞 Teléfono</label>
+                            <input type="text" name="tel_contacto" class="form-control" 
+                                   placeholder="Número de teléfono" 
+                                   value="<?= htmlspecialchars($_GET['tel_contacto'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">🆔 NIT/Identificación</label>
+                            <input type="text" name="nit_num_identi" class="form-control" 
+                                   placeholder="NIT o ID" 
+                                   value="<?= htmlspecialchars($_GET['nit_num_identi'] ?? '') ?>">
+                        </div>
+                    </div>
+
+                    <!-- Fila 3: Condiciones Comerciales -->
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">⏱️ Tiempo de Entrega</label>
+                            <select name="tiem_entrega" class="form-select">
+                                <option value="">Cualquier tiempo</option>
+                                <option value="Inmediato" <?= ($_GET['tiem_entrega'] ?? '') === 'Inmediato' ? 'selected' : '' ?>>⚡ Inmediato</option>
+                                <option value="1-3 días" <?= ($_GET['tiem_entrega'] ?? '') === '1-3 días' ? 'selected' : '' ?>>📅 1-3 días</option>
+                                <option value="1 semana" <?= ($_GET['tiem_entrega'] ?? '') === '1 semana' ? 'selected' : '' ?>>📆 1 semana</option>
+                                <option value="2 semanas" <?= ($_GET['tiem_entrega'] ?? '') === '2 semanas' ? 'selected' : '' ?>>🗓️ 2 semanas</option>
+                                <option value="1 mes" <?= ($_GET['tiem_entrega'] ?? '') === '1 mes' ? 'selected' : '' ?>>📊 1 mes o más</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">💳 Forma de Pago</label>
+                            <select name="for_pago" class="form-select">
+                                <option value="">Cualquier forma</option>
+                                <option value="Contado" <?= ($_GET['for_pago'] ?? '') === 'Contado' ? 'selected' : '' ?>>💰 Contado</option>
+                                <option value="Crédito 30 días" <?= ($_GET['for_pago'] ?? '') === 'Crédito 30 días' ? 'selected' : '' ?>>📋 Crédito 30 días</option>
+                                <option value="Crédito 60 días" <?= ($_GET['for_pago'] ?? '') === 'Crédito 60 días' ? 'selected' : '' ?>>📋 Crédito 60 días</option>
+                                <option value="Crédito 90 días" <?= ($_GET['for_pago'] ?? '') === 'Crédito 90 días' ? 'selected' : '' ?>>📋 Crédito 90 días</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">💰 Con Crédito Disponible</label>
+                            <select name="tiene_credito" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="si" <?= ($_GET['tiene_credito'] ?? '') === 'si' ? 'selected' : '' ?>>✅ Con crédito</option>
+                                <option value="no" <?= ($_GET['tiene_credito'] ?? '') === 'no' ? 'selected' : '' ?>>❌ Sin crédito</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">🔗 Estado de Repuestos</label>
+                            <select name="estado_repuestos" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="con_repuestos" <?= ($_GET['estado_repuestos'] ?? '') === 'con_repuestos' ? 'selected' : '' ?>>✅ Con repuestos vinculados</option>
+                                <option value="sin_repuestos" <?= ($_GET['estado_repuestos'] ?? '') === 'sin_repuestos' ? 'selected' : '' ?>>❌ Sin repuestos vinculados</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search"></i> 🔍 Buscar Proveedores
+                            </button>
+                            <a href="proveedor.php" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> 🧹 Limpiar Filtros
+                            </a>
+                            <button type="button" class="btn btn-info" onclick="exportarResultados()">
+                                <i class="bi bi-download"></i> 📊 Exportar
+                            </button>
+                            <div class="ms-auto">
+                                <small class="text-muted">
+                                    📋 Total de proveedores: <strong><?= $proveedores->num_rows ?></strong>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
-        <div class="col-md-2 mb-2">
-            <select name="subcat_repu_id" class="form-control" aria-label="Filtrar por subcategoría">
-                <option value="">Filtrar por subcategoría</option>
-                <?php while ($subcat = $subcategorias->fetch_assoc()): ?>
-                    <option value="<?= $subcat['id'] ?>" <?= (isset($_GET['subcat_repu_id']) && $_GET['subcat_repu_id'] == $subcat['id']) ? 'selected' : '' ?>><?= htmlspecialchars($subcat['nombre']) ?></option>
-                <?php endwhile; ?>
-            </select>
-        </div>
-        <div class="col-md-2 mb-2">
-            <select name="repue_id" class="form-control" aria-label="Filtrar por repuesto">
-                <option value="">Filtrar por repuesto</option>
-                <?php while ($rep = $repuestos->fetch_assoc()): ?>
-                    <option value="<?= $rep['id'] ?>" <?= (isset($_GET['repue_id']) && $_GET['repue_id'] == $rep['id']) ? 'selected' : '' ?>><?= htmlspecialchars($rep['nombre']) ?></option>
-                <?php endwhile; ?>
-            </select>
-        </div>
-        <div class="col-md-2 mb-2">
-            <input type="text" name="mar_distribuye" class="form-control" placeholder="Filtrar por marca" value="<?= htmlspecialchars($filtros['mar_distribuye']) ?>">
-        </div>
-        <div class="col-md-1 mb-2">
-            <button type="submit" class="btn btn-primary w-100">Filtrar</button>
-        </div>
-        <div class="col-md-1 mb-2">
-            <a href="proveedor.php" class="btn btn-secondary w-100">Limpiar</a>
-        </div>
-    </form>
+    </div>
     <div class="mb-3 text-end">
         <?php if (!$rol_conductor): ?>
         <a href="proveedor.php?form=1" class="btn btn-success">Agregar Proveedor</a>
         <?php endif; ?>
     </div>
-    <table class="table table-bordered">
-        <thead>
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+            <thead>
             <tr>
                 <th>ID</th>
                 <th>NIT / Número Identificación</th>
@@ -156,7 +327,7 @@ $proveedores = $controller->index($filtros);
                 <th>Forma de Pago</th>
                 <th>Crédito Disponible</th>
                 <th>Cuenta Bancaria</th>
-                <th>Categoría de Repuesto</th>
+                <th>Repuestos Vinculados</th>
                 <th class="text-center">Acciones</th>
             </tr>
         </thead>
@@ -184,7 +355,29 @@ $proveedores = $controller->index($filtros);
                 <td><?= htmlspecialchars($row['for_pago']) ?></td>
                 <td><?= htmlspecialchars($row['cred_disponible']) ?></td>
                 <td><?= htmlspecialchars($row['cuen_bancaria']) ?></td>
-                <td><?= isset($row['cat_repu_id']) ? htmlspecialchars($row['cat_repu_id']) : '' ?></td>
+                <td>
+                    <?php 
+                    $totalRepuestos = $row['total_repuestos'] ?? 0;
+                    if ($totalRepuestos > 0) {
+                        echo '<span class="badge bg-success me-1">' . $totalRepuestos . ' repuesto(s)</span>';
+                        
+                        // Obtener nombres de repuestos para mostrar detalles
+                        $repuestosVinculados = $repueModel->getByProveedor($row['id']);
+                        $nombreRepuestos = [];
+                        while ($repuesto = $repuestosVinculados->fetch_assoc()) {
+                            $nombreRepuestos[] = $repuesto['nombre'];
+                        }
+                        if (count($nombreRepuestos) <= 3) {
+                            echo '<br><small class="text-muted">' . implode(', ', $nombreRepuestos) . '</small>';
+                        } else {
+                            echo '<br><small class="text-muted">' . implode(', ', array_slice($nombreRepuestos, 0, 3)) . '...</small>';
+                            echo '<br><small><a href="#" class="text-info" data-bs-toggle="modal" data-bs-target="#repuestosModal' . $row['id'] . '">Ver todos</a></small>';
+                        }
+                    } else {
+                        echo '<span class="badge bg-secondary">Sin repuestos</span>';
+                    }
+                    ?>
+                </td>
                 <td class="text-center">
                     <?php if (!$rol_conductor): ?>
                     <a href="proveedor.php?form=1&id=<?= $row['id'] ?>" class="btn btn-warning mx-1">Editar</a>
@@ -194,7 +387,8 @@ $proveedores = $controller->index($filtros);
             </tr>
         <?php endwhile; ?>
         </tbody>
-    </table>
+        </table>
+    </div>
     <?php if (isset($_GET['form']) && !$rol_conductor): ?>
     <div class="card mt-4">
         <div class="card-body">
@@ -299,5 +493,108 @@ if (isset($_GET['delete'])) {
 }
 ?>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Función para exportar resultados
+function exportarResultados() {
+    // Crear CSV con los datos de la tabla
+    let csv = 'ID,NIT,Nombre,Teléfono,Correo,Ciudad,País,Tipo Repuesto,Marca,Repuestos Vinculados\n';
+    
+    const filas = document.querySelectorAll('tbody tr');
+    filas.forEach(fila => {
+        const celdas = fila.querySelectorAll('td');
+        if (celdas.length > 0) {
+            const datos = [
+                celdas[0].textContent.trim(), // ID
+                celdas[1].textContent.trim(), // NIT
+                celdas[2].textContent.trim(), // Nombre
+                celdas[3].textContent.trim(), // Teléfono
+                celdas[5].textContent.trim(), // Correo
+                celdas[7].textContent.trim(), // Ciudad
+                celdas[8].textContent.trim(), // País
+                celdas[9].textContent.trim(), // Tipo Repuesto
+                celdas[10].textContent.trim(), // Marca
+                celdas[16].textContent.trim().replace(/\n/g, ' ') // Repuestos
+            ];
+            csv += datos.map(dato => `"${dato}"`).join(',') + '\n';
+        }
+    });
+    
+    // Descargar CSV
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'proveedores_' + new Date().toISOString().split('T')[0] + '.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Mostrar notificación
+    const toast = document.createElement('div');
+    toast.className = 'position-fixed top-0 end-0 p-3';
+    toast.style.zIndex = '1050';
+    toast.innerHTML = `
+        <div class="toast show" role="alert">
+            <div class="toast-header">
+                <strong class="me-auto">✅ Exportación</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">
+                Archivo CSV descargado exitosamente
+            </div>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => document.body.removeChild(toast), 3000);
+}
+
+// Filtros automáticos (buscar mientras escribes)
+document.addEventListener('DOMContentLoaded', function() {
+    const filtrosTexto = document.querySelectorAll('input[type="text"]');
+    let timeoutId;
+    
+    filtrosTexto.forEach(input => {
+        input.addEventListener('input', function() {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                if (this.value.length > 2 || this.value.length === 0) {
+                    // Solo buscar automáticamente si hay más de 2 caracteres o está vacío
+                    // document.getElementById('formFiltros').submit();
+                }
+            }, 800); // Esperar 800ms después de que el usuario deje de escribir
+        });
+    });
+    
+    // Contador dinámico de resultados
+    const totalResultados = document.querySelectorAll('tbody tr').length;
+    const contadorElement = document.querySelector('.ms-auto small strong');
+    if (contadorElement) {
+        contadorElement.textContent = totalResultados;
+    }
+});
+
+// Función para limpiar todos los filtros
+function limpiarTodosFiltros() {
+    document.querySelectorAll('#formFiltros input, #formFiltros select').forEach(element => {
+        element.value = '';
+    });
+    document.getElementById('formFiltros').submit();
+}
+
+// Atajos de teclado
+document.addEventListener('keydown', function(e) {
+    // Ctrl + F para enfocar en el primer filtro
+    if (e.ctrlKey && e.key === 'f') {
+        e.preventDefault();
+        document.querySelector('input[name="nom_proveedor"]').focus();
+    }
+    // Ctrl + L para limpiar filtros
+    if (e.ctrlKey && e.key === 'l') {
+        e.preventDefault();
+        limpiarTodosFiltros();
+    }
+});
+</script>
 </body>
 </html>

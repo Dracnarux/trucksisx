@@ -38,6 +38,29 @@ class Repue {
         $stmt->execute();
         return $stmt->get_result()->fetch_assoc();
     }
+    // Nuevo método para actualizar solo el proveedor
+    public function updateProveedor($repuestoId, $proveedorId) {
+        $estado = $proveedorId ? 'Asignado' : 'Sin proveedor';
+        $stmt = $this->conn->prepare("UPDATE repue SET proveedor_id = ?, estado_repus = ? WHERE id = ?");
+        $stmt->bind_param('isi', $proveedorId, $estado, $repuestoId);
+        return $stmt->execute();
+    }
+    
+    // Método para desvincular todos los repuestos de un proveedor
+    public function desvincularDeProveedor($proveedorId) {
+        $stmt = $this->conn->prepare("UPDATE repue SET proveedor_id = NULL, estado_repus = 'Sin proveedor' WHERE proveedor_id = ?");
+        $stmt->bind_param('i', $proveedorId);
+        return $stmt->execute();
+    }
+    
+    // Método para obtener repuestos por proveedor
+    public function getByProveedor($proveedorId) {
+        $stmt = $this->conn->prepare("SELECT * FROM repue WHERE proveedor_id = ?");
+        $stmt->bind_param('i', $proveedorId);
+        $stmt->execute();
+        return $stmt->get_result();
+    }
+    
     public function save($data) {
         // Permitir proveedor_id nulo
         $proveedor_id = isset($data['proveedor_id']) && $data['proveedor_id'] !== '' ? (int)$data['proveedor_id'] : null;
