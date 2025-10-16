@@ -1,5 +1,5 @@
 <?php
-// Controlador para gestión de usuarios y técnicos
+// Controlador para gestión de usuarios - Optimizado para modales
 if (session_status() === PHP_SESSION_NONE) session_start();
 
 // Validar que el usuario esté autenticado
@@ -17,118 +17,124 @@ if ($_SESSION['usuario']['rol'] !== 'admin') {
 require_once '../models/User.php';
 $userModel = new User();
 
-if (isset($_GET['action']) && $_GET['action'] === 'update' && isset($_GET['id'])) {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $id = intval($_GET['id']);
-        $data = [
-            'nombre' => $_POST['nombre'] ?? '',
-            'apellido' => $_POST['apellido'] ?? '',
-            'num_celular' => $_POST['num_celular'] ?? '',
-            'correo' => $_POST['correo'] ?? '',
-            'contrasena' => $_POST['contrasena'] ?? ''
-        ];
-        if (empty($data['contrasena'])) {
-            unset($data['contrasena']);
-        }
-        $userModel->update($id, $data);
-        header('Location: ../views/crear_usuario.php?success=2');
-        exit;
-    }
-} elseif (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])) {
-    $id = intval($_GET['id']);
-    $userModel->delete($id);
-    header('Location: ../views/crear_usuario.php?success=3');
-    exit;
-} elseif (isset($_GET['action']) && $_GET['action'] === 'create_tecnico') {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        // Recoger datos del formulario
-        $especialidad = $_POST['especialidad'] ?? '';
-        $nivel_experiencia = $_POST['nivel_experiencia'] ?? '';
-        $categoria = $_POST['categoria'] ?? '';
-        echo '<div style="margin:2em; font-family:Arial;">';
-        echo '<h2>Técnico creado correctamente</h2>';
-        echo '<ul>';
-        echo '<li><b>Especialidad:</b> ' . htmlspecialchars($especialidad) . '</li>';
-        echo '<li><b>Nivel de experiencia:</b> ' . htmlspecialchars($nivel_experiencia) . '</li>';
-        echo '<li><b>Categoría:</b> ' . htmlspecialchars($categoria) . '</li>';
-        echo '</ul>';
-        echo '<a href="../views/dashboard.php">Volver al dashboard</a>';
-        echo '</div>';
-        exit;
-    }
-} elseif (isset($_GET['action']) && $_GET['action'] === 'create') {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $data = [
-            'num_documento' => $_POST['num_documento'] ?? '',
-            'tipo_documento' => $_POST['tipo_documento'] ?? '',
-            'nombre' => $_POST['nombre'] ?? '',
-            'apellido' => $_POST['apellido'] ?? '',
-            'num_celular' => $_POST['num_celular'] ?? '',
-            'correo' => $_POST['correo'] ?? '',
-            'rol' => $_POST['rol'] ?? '',
-            'contrasena' => $_POST['contrasena'] ?? ''
-        ];
-        $userId = $userModel->create($data);
-        if ($userId) {
-            if ($data['rol'] === 'conductor') {
-                header('Location: ../views/cond.php');
-                exit;
-            } else {
-                header('Location: ../views/crear_usuario.php?success=1');
-                exit;
-            }
-        } else {
-            header('Location: ../views/crear_usuario.php?error=1');
-            exit;
-        }
-    }
+// Función para redireccionar con mensajes
+function redirectWithMessage($success, $message) {
+    $tipo = $success ? 'exito' : 'error';
+    $encodedMessage = urlencode($message);
+    header("Location: ../views/crear_usuario.php?tipo={$tipo}&mensaje={$encodedMessage}");
+    exit();
 }
 
-// Si no hay acción válida, mostrar error
-http_response_code(404);
-echo 'Acción no válida o no encontrada.';
-// Controlador para gestión de usuarios y técnicos
-if (session_status() === PHP_SESSION_NONE) session_start();
+// Manejar acciones
+$action = $_GET['action'] ?? '';
 
-if (isset($_GET['action']) && $_GET['action'] === 'create_tecnico') {
-    // Eliminado: no se debe mostrar ni pedir especialidad para técnico. El flujo es igual al de cualquier usuario.
-} elseif (isset($_GET['action']) && $_GET['action'] === 'create') {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        require_once '../models/User.php';
-        $userModel = new User();
-        $data = [
-            'num_documento' => $_POST['num_documento'] ?? '',
-            'tipo_documento' => $_POST['tipo_documento'] ?? '',
-            'nombre' => $_POST['nombre'] ?? '',
-            'apellido' => $_POST['apellido'] ?? '',
-            'num_celular' => $_POST['num_celular'] ?? '',
-            'correo' => $_POST['correo'] ?? '',
-            'rol' => $_POST['rol'] ?? '',
-            'contrasena' => $_POST['contrasena'] ?? ''
-        ];
-        $userId = $userModel->create($data);
-        if ($userId) {
-            // Redirigir según el rol
-            if ($data['rol'] === 'conductor') {
-                header('Location: ../views/cond.php');
-                exit;
-            } elseif ($data['rol'] === 'tecnico') {
-                header('Location: ../views/crear_tecnico.php');
-                exit;
-            } else {
-                header('Location: ../views/crear_usuario.php?success=1');
-                exit;
+switch ($action) {
+    case 'create':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                // Validar datos requeridos
+                $requiredFields = ['num_documento', 'tipo_documento', 'nombre', 'apellido', 'rol', 'contrasena'];
+                foreach ($requiredFields as $field) {
+                    if (empty($_POST[$field])) {
+                        redirectWithMessage(false, "El campo {$field} es obligatorio");
+                    }
+                }
+                
+                $data = [
+                    'num_documento' => trim($_POST['num_documento']),
+                    'tipo_documento' => $_POST['tipo_documento'],
+                    'nombre' => trim($_POST['nombre']),
+                    'apellido' => trim($_POST['apellido']),
+                    'num_celular' => trim($_POST['num_celular'] ?? ''),
+                    'correo' => trim($_POST['correo'] ?? ''),
+                    'rol' => $_POST['rol'],
+                    'contrasena' => $_POST['contrasena']
+                ];
+                
+                // Validar longitud de contraseña
+                if (strlen($data['contrasena']) < 6) {
+                    redirectWithMessage(false, 'La contraseña debe tener al menos 6 caracteres');
+                }
+                
+                $userId = $userModel->create($data);
+                if ($userId) {
+                    $nombreCompleto = $data['nombre'] . ' ' . $data['apellido'];
+                    redirectWithMessage(true, "Usuario '{$nombreCompleto}' creado exitosamente");
+                } else {
+                    redirectWithMessage(false, 'Error al crear el usuario. Verifique que el documento no esté duplicado');
+                }
+            } catch (Exception $e) {
+                redirectWithMessage(false, 'Error interno: ' . $e->getMessage());
             }
-        } else {
-            header('Location: ../views/crear_usuario.php?error=1');
-            exit;
         }
-    }
+        break;
+        
+    case 'update':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
+            try {
+                $id = intval($_POST['id']);
+                
+                // Validar datos requeridos
+                if (empty($_POST['nombre']) || empty($_POST['apellido']) || empty($_POST['rol'])) {
+                    redirectWithMessage(false, 'Los campos nombre, apellido y rol son obligatorios');
+                }
+                
+                $data = [
+                    'nombre' => trim($_POST['nombre']),
+                    'apellido' => trim($_POST['apellido']),
+                    'num_celular' => trim($_POST['num_celular'] ?? ''),
+                    'correo' => trim($_POST['correo'] ?? ''),
+                    'rol' => $_POST['rol']
+                ];
+                
+                // Solo actualizar contraseña si se proporciona
+                if (!empty($_POST['contrasena'])) {
+                    if (strlen($_POST['contrasena']) < 6) {
+                        redirectWithMessage(false, 'La nueva contraseña debe tener al menos 6 caracteres');
+                    }
+                    $data['contrasena'] = $_POST['contrasena'];
+                }
+                
+                $success = $userModel->update($id, $data);
+                if ($success) {
+                    $nombreCompleto = $data['nombre'] . ' ' . $data['apellido'];
+                    redirectWithMessage(true, "Usuario '{$nombreCompleto}' actualizado exitosamente");
+                } else {
+                    redirectWithMessage(false, 'Error al actualizar el usuario');
+                }
+            } catch (Exception $e) {
+                redirectWithMessage(false, 'Error interno: ' . $e->getMessage());
+            }
+        }
+        break;
+        
+    case 'delete':
+        if (isset($_GET['id'])) {
+            try {
+                $id = intval($_GET['id']);
+                
+                // Obtener datos del usuario antes de eliminarlo
+                $usuario = $userModel->getById($id);
+                if (!$usuario) {
+                    redirectWithMessage(false, 'Usuario no encontrado');
+                }
+                
+                $nombreCompleto = $usuario['nombre'] . ' ' . $usuario['apellido'];
+                
+                $success = $userModel->delete($id);
+                if ($success) {
+                    redirectWithMessage(true, "Usuario '{$nombreCompleto}' eliminado exitosamente");
+                } else {
+                    redirectWithMessage(false, 'Error al eliminar el usuario');
+                }
+            } catch (Exception $e) {
+                redirectWithMessage(false, 'Error interno: ' . $e->getMessage());
+            }
+        }
+        break;
+        
+    default:
+        http_response_code(400);
+        redirectWithMessage(false, 'Acción no válida');
+        break;
 }
-
-// Aquí puedes agregar más acciones para usuarios
-// ...
-
-// Si no hay acción válida, mostrar error
-http_response_code(404);
-echo 'Acción no válida o no encontrada.';

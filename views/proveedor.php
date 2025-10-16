@@ -1,600 +1,751 @@
 <?php
-require_once '../controllers/ProveedorController.php';
-require_once '../models/Repue.php';
 session_start();
-$controller = new ProveedorController();
+if (!isset($_SESSION['usuario'])) {
+    header('Location: ../index.php');
+    exit();
+}
 $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol'] === 'conductor';
-// Manejo de POST y delete antes de cualquier salida
+require_once '../controllers/ProveedorController.php';
+
+// Manejo de acciones POST y DELETE
+$controller = new ProveedorController();
+
 if (!$rol_conductor) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $controller->store($_POST);
-        header('Location: proveedor.php');
-        exit;
+        // El controlador maneja la redirección
     }
     if (isset($_GET['delete'])) {
         $controller->delete($_GET['delete']);
-        header('Location: proveedor.php');
-        exit;
+        // El controlador maneja la redirección
     }
 }
-// Filtros mejorados
-$filtros = [];
-foreach ([
-    'nom_proveedor', 'tip_repuesto', 'mar_distribuye', 'ciudad_depar', 'pais',
-    'correo', 'tel_contacto', 'nit_num_identi', 'tiem_entrega', 'for_pago',
-    'tiene_credito', 'estado_repuestos'
-] as $campo) {
-    $filtros[$campo] = $_GET[$campo] ?? '';
+
+// Mensajes de éxito y error
+$mensaje_success = '';
+$mensaje_error = '';
+
+if (isset($_GET['success'])) {
+    switch ($_GET['success']) {
+        case 'creado':
+            $mensaje_success = 'Proveedor creado exitosamente';
+            break;
+        case 'actualizado':
+            $mensaje_success = 'Proveedor actualizado exitosamente';
+            break;
+        case 'eliminado':
+            $mensaje_success = 'Proveedor eliminado exitosamente';
+            break;
+    }
 }
-$proveedores = $controller->index($filtros);
+
+if (isset($_GET['error'])) {
+    switch ($_GET['error']) {
+        case 'no_eliminar':
+            $mensaje_error = 'No se pudo eliminar el proveedor';
+            break;
+        case 'error_eliminar':
+            $mensaje_error = 'Error al eliminar el proveedor';
+            break;
+        default:
+            $mensaje_error = urldecode($_GET['error']);
+            break;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Gestión de Proveedores</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Proveedores - TruckSISX</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        body {
-            background: linear-gradient(120deg, #f8fafc 0%, #e3e6ed 100%);
+        .main-header {
+            background: linear-gradient(135deg, #64748b, #475569);
+            color: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        .container {
-            background: rgba(13,110,253,0.10);
-            border-radius: 16px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.10);
-            padding: 32px 24px;
-            margin-top: 32px;
-            color: #111;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(13,110,253,0.15);
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        h2 {
-            color: #0d6efd;
+        .btn-primary {
+            background: linear-gradient(135deg, #64748b, #475569);
+            border: none;
+            border-radius: 25px;
+            padding: 0.5rem 1.5rem;
         }
-        .form-label, .form-select, .form-control {
-            color: #111 !important;
+        .btn-outline-primary {
+            border-color: #64748b;
+            color: #64748b;
+            border-radius: 25px;
+            padding: 0.5rem 1.5rem;
         }
-        .btn-primary, .btn-outline-primary {
-            background-color: #0d6efd !important;
-            border-color: #0d6efd !important;
-            color: #fff !important;
+        .btn-outline-primary:hover {
+            background: linear-gradient(135deg, #64748b, #475569);
+            border-color: #64748b;
         }
-        .btn-primary:hover, .btn-outline-primary:hover {
-            background-color: #0b5ed7 !important;
-            border-color: #0b5ed7 !important;
+        .modal-header {
+            background: linear-gradient(135deg, #64748b, #475569);
+            color: white;
+            border-radius: 15px 15px 0 0;
         }
-        .btn-secondary {
-            background-color: rgba(13,110,253,0.15) !important;
-            color: #111 !important;
-            border: 1px solid rgba(13,110,253,0.15) !important;
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
         }
-        .btn-success {
-            background-color: #198754 !important;
-            border-color: #198754 !important;
+        .form-section h6 {
+            color: #495057;
+            margin-bottom: 0.8rem;
+            font-weight: 600;
         }
-        .table-bordered, .table th, .table td {
-            color: #111 !important;
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
         }
-        thead tr {
-            background: rgba(13,110,253,0.10) !important;
-            color: #111 !important;
-            border-bottom: 2px solid rgba(13,110,253,0.15);
+        .table thead {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
         }
-        
-        /* Estilos mejorados para filtros */
-        .card-header {
-            background: linear-gradient(45deg, rgba(13,110,253,0.1), rgba(13,110,253,0.05)) !important;
-            border-bottom: 1px solid rgba(13,110,253,0.15);
+        .table-responsive {
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        
-        .form-label.fw-bold {
-            color: #0d6efd !important;
-            font-size: 0.9rem;
-            margin-bottom: 0.3rem;
-        }
-        
-        .form-control:focus, .form-select:focus {
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.25);
-        }
-        
-        .badge {
+        .provider-status {
             font-size: 0.75rem;
-        }
-        
-        .table td {
-            vertical-align: middle;
-            padding: 0.75rem 0.5rem;
-        }
-        
-        .btn-group-sm > .btn, .btn-sm {
             padding: 0.25rem 0.5rem;
-            font-size: 0.875rem;
-        }
-        
-        /* Animación para los filtros */
-        .collapse {
-            transition: height 0.35s ease;
-        }
-        
-        /* Tooltip personalizado */
-        .tooltip-inner {
-            background-color: #0d6efd;
-        }
-        
-        /* Estilo para campos vacíos */
-        .form-control:placeholder-shown {
-            border-color: #dee2e6;
-        }
-        
-        /* Hover effects */
-        .btn:hover {
-            transform: translateY(-1px);
-            transition: all 0.2s ease;
-        }
-        
-        /* Responsive table scroll */
-        @media (max-width: 992px) {
-            .table-responsive {
-                border-radius: 0.375rem;
-                box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
-            }
+            border-radius: 12px;
         }
     </style>
 </head>
-<body>
-<div class="container mt-4">
-    <h2 class="mb-4">Gestión de Proveedores de Repuestos</h2>
-    <?php 
-    require_once '../models/CatRepu.php';
-    require_once '../models/SubCatRepu.php';
-    require_once '../models/Repue.php';
-    $catModel = new CatRepu();
-    $subcatModel = new SubCatRepu();
-    $repueModel = new Repue();
-    $categorias = $catModel->getAll();
-    $subcategorias = $subcatModel->getAll();
-    $repuestos = $repueModel->getAll();
-    ?>
-    <!-- Panel de Filtros Mejorado -->
-    <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">🔍 Filtros de Búsqueda</h5>
-            <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#filtrosAvanzados" aria-expanded="false">
-                <i class="bi bi-funnel"></i> Filtros Avanzados
+<body class="bg-light">
+
+<div class="container-fluid py-4">
+    <div class="main-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3 mb-1">
+                    <i class="bi bi-truck"></i> Gestión de Proveedores
+                </h1>
+                <p class="mb-0 opacity-75">Administración de proveedores de repuestos y servicios</p>
+            </div>
+            <?php if (!$rol_conductor): ?>
+            <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#createModal">
+                <i class="bi bi-plus-circle"></i> Agregar Proveedor
             </button>
+            <?php endif; ?>
         </div>
+    </div>
+
+    <!-- Mensajes de alerta -->
+    <?php if (!empty($mensaje_success)): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle"></i> <?= htmlspecialchars($mensaje_success) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <?php endif; ?>
+
+    <?php if (!empty($mensaje_error)): ?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle"></i> <?= htmlspecialchars($mensaje_error) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <?php endif; ?>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
         <div class="card-body">
-            <form method="get" id="formFiltros">
-                <!-- Fila 1: Filtros Principales -->
-                <div class="row mb-3">
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">🏢 Nombre del Proveedor</label>
-                        <input type="text" name="nom_proveedor" class="form-control" 
-                               placeholder="Buscar por nombre..." 
-                               value="<?= htmlspecialchars($filtros['nom_proveedor']) ?>">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">🏷️ Marca que Distribuye</label>
-                        <input type="text" name="mar_distribuye" class="form-control" 
-                               placeholder="Ej: Toyota, Ford, etc..." 
-                               value="<?= htmlspecialchars($filtros['mar_distribuye']) ?>">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">🔧 Tipo de Repuesto</label>
-                        <input type="text" name="tip_repuesto" class="form-control" 
-                               placeholder="Motor, frenos, etc..." 
-                               value="<?= htmlspecialchars($filtros['tip_repuesto']) ?>">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">🌍 País</label>
-                        <select name="pais" class="form-select">
-                            <option value="">Todos los países</option>
-                            <option value="Colombia" <?= $filtros['pais'] === 'Colombia' ? 'selected' : '' ?>>🇨🇴 Colombia</option>
-                            <option value="México" <?= $filtros['pais'] === 'México' ? 'selected' : '' ?>>🇲🇽 México</option>
-                            <option value="Brasil" <?= $filtros['pais'] === 'Brasil' ? 'selected' : '' ?>>🇧🇷 Brasil</option>
-                            <option value="Argentina" <?= $filtros['pais'] === 'Argentina' ? 'selected' : '' ?>>🇦🇷 Argentina</option>
-                            <option value="Chile" <?= $filtros['pais'] === 'Chile' ? 'selected' : '' ?>>🇨🇱 Chile</option>
-                            <option value="Perú" <?= $filtros['pais'] === 'Perú' ? 'selected' : '' ?>>🇵🇪 Perú</option>
-                            <option value="Ecuador" <?= $filtros['pais'] === 'Ecuador' ? 'selected' : '' ?>>🇪🇨 Ecuador</option>
-                            <option value="Venezuela" <?= $filtros['pais'] === 'Venezuela' ? 'selected' : '' ?>>🇻🇪 Venezuela</option>
-                        </select>
-                    </div>
+            <h5 class="card-title">
+                <i class="bi bi-funnel"></i> Filtros de Búsqueda
+            </h5>
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Nombre del Proveedor</label>
+                    <input type="text" name="nom_proveedor" class="form-control" value="<?= htmlspecialchars($_GET['nom_proveedor'] ?? '') ?>" placeholder="Buscar por nombre...">
                 </div>
+                <div class="col-md-3">
+                    <label class="form-label">Marca que Distribuye</label>
+                    <input type="text" name="mar_distribuye" class="form-control" value="<?= htmlspecialchars($_GET['mar_distribuye'] ?? '') ?>" placeholder="Toyota, Ford, etc...">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Ciudad/Departamento</label>
+                    <input type="text" name="ciudad_depar" class="form-control" value="<?= htmlspecialchars($_GET['ciudad_depar'] ?? '') ?>" placeholder="Bogotá, Medellín...">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">País</label>
+                    <select name="pais" class="form-select">
+                        <option value="">Todos los países</option>
+                        <option value="Colombia" <?= ($_GET['pais'] ?? '') === 'Colombia' ? 'selected' : '' ?>>Colombia</option>
+                        <option value="México" <?= ($_GET['pais'] ?? '') === 'México' ? 'selected' : '' ?>>México</option>
+                        <option value="Brasil" <?= ($_GET['pais'] ?? '') === 'Brasil' ? 'selected' : '' ?>>Brasil</option>
+                        <option value="Argentina" <?= ($_GET['pais'] ?? '') === 'Argentina' ? 'selected' : '' ?>>Argentina</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-outline-primary me-2">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                    <a href="proveedor.php" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
 
-                <!-- Filtros Avanzados (Colapsables) -->
-                <div class="collapse" id="filtrosAvanzados">
-                    <hr>
-                    <h6 class="text-muted mb-3">📋 Filtros Avanzados</h6>
+    <!-- Tabla simplificada -->
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>NIT</th>
+                            <th>Contacto</th>
+                            <th>Ciudad</th>
+                            <th>País</th>
+                            <th>Tipo Repuesto</th>
+                            <th>Repuestos</th>
+                            <?php if (!$rol_conductor): ?>
+                            <th class="text-center" width="180">Acciones</th>
+                            <?php endif; ?>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php 
+                    $controller = new ProveedorController();
+                    $filtros = [
+                        'nom_proveedor' => $_GET['nom_proveedor'] ?? '',
+                        'mar_distribuye' => $_GET['mar_distribuye'] ?? '',
+                        'ciudad_depar' => $_GET['ciudad_depar'] ?? '',
+                        'pais' => $_GET['pais'] ?? ''
+                    ];
+                    $proveedores = $controller->index($filtros);
+                    while ($row = $proveedores->fetch_assoc()): ?>
+                        <tr>
+                            <td><?= $row['id'] ?></td>
+                            <td>
+                                <strong><?= htmlspecialchars($row['nom_proveedor']) ?></strong>
+                                <?php if (!empty($row['mar_distribuye'])): ?>
+                                <br><small class="text-muted"><?= htmlspecialchars($row['mar_distribuye']) ?></small>
+                                <?php endif; ?>
+                            </td>
+                            <td><?= htmlspecialchars($row['nit_num_identi']) ?></td>
+                            <td>
+                                <?php if (!empty($row['tel_contacto'])): ?>
+                                <i class="bi bi-telephone"></i> <?= htmlspecialchars($row['tel_contacto']) ?><br>
+                                <?php endif; ?>
+                                <?php if (!empty($row['correo'])): ?>
+                                <i class="bi bi-envelope"></i> <?= htmlspecialchars($row['correo']) ?>
+                                <?php endif; ?>
+                            </td>
+                            <td><?= htmlspecialchars($row['ciudad_depar']) ?></td>
+                            <td><?= htmlspecialchars($row['pais']) ?></td>
+                            <td><?= htmlspecialchars($row['tip_repuesto']) ?></td>
+                            <td>
+                                <?php 
+                                $totalRepuestos = $row['total_repuestos'] ?? 0;
+                                if ($totalRepuestos > 0): ?>
+                                    <span class="badge bg-success"><?= $totalRepuestos ?> repuesto(s)</span>
+                                <?php else: ?>
+                                    <span class="badge bg-secondary">Sin repuestos</span>
+                                <?php endif; ?>
+                            </td>
+                            <?php if (!$rol_conductor): ?>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-info btn-sm me-1" onclick="viewProvider(<?= $row['id'] ?>)" title="Ver">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-warning btn-sm me-1" onclick="editProvider(<?= $row['id'] ?>)" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button type="button" class="btn btn-danger btn-sm" onclick="deleteProvider(<?= $row['id'] ?>, '<?= htmlspecialchars($row['nom_proveedor'], ENT_QUOTES) ?>')" title="Eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                            <?php endif; ?>
+                        </tr>
+                    <?php endwhile; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4 text-end">
+        <a href="gestiones.php" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver al Panel de Gestiones
+        </a>
+    </div>
+</div>
+
+<!-- Modal Crear -->
+<div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createModalLabel">
+                    <i class="bi bi-plus-circle"></i> Agregar Nuevo Proveedor
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="createForm" method="post">
+                <div class="modal-body">
+                    <div class="form-section">
+                        <h6><i class="bi bi-building"></i> Información de la Empresa</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">NIT/Identificación <span class="text-danger">*</span></label>
+                                <input type="text" name="nit_num_identi" class="form-control" required placeholder="123456789-0">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Nombre del Proveedor <span class="text-danger">*</span></label>
+                                <input type="text" name="nom_proveedor" class="form-control" required placeholder="Nombre de la empresa">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Tipo de Repuesto</label>
+                                <input type="text" name="tip_repuesto" class="form-control" placeholder="Motor, frenos, transmisión...">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">Marca que Distribuye</label>
+                                <input type="text" name="mar_distribuye" class="form-control" placeholder="Toyota, Ford, Chevrolet...">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Zonas de Cobertura</label>
+                                <input type="text" name="zon_cobertura" class="form-control" placeholder="Nacional, Regional, Local...">
+                            </div>
+                        </div>
+                    </div>
                     
-                    <!-- Fila 2: Ubicación y Contacto -->
-                    <div class="row mb-3">
-                        <div class="col-md-3">
-                            <label class="form-label">🏙️ Ciudad/Departamento</label>
-                            <input type="text" name="ciudad_depar" class="form-control" 
-                                   placeholder="Bogotá, Medellín, etc..." 
-                                   value="<?= htmlspecialchars($filtros['ciudad_depar']) ?>">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">📧 Correo Electrónico</label>
-                            <input type="text" name="correo" class="form-control" 
-                                   placeholder="proveedor@email.com" 
-                                   value="<?= htmlspecialchars($_GET['correo'] ?? '') ?>">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">📞 Teléfono</label>
-                            <input type="text" name="tel_contacto" class="form-control" 
-                                   placeholder="Número de teléfono" 
-                                   value="<?= htmlspecialchars($_GET['tel_contacto'] ?? '') ?>">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">🆔 NIT/Identificación</label>
-                            <input type="text" name="nit_num_identi" class="form-control" 
-                                   placeholder="NIT o ID" 
-                                   value="<?= htmlspecialchars($_GET['nit_num_identi'] ?? '') ?>">
+                    <div class="form-section">
+                        <h6><i class="bi bi-geo-alt"></i> Ubicación</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">Dirección</label>
+                                <input type="text" name="direccion" class="form-control" placeholder="Dirección completa">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Ciudad/Departamento</label>
+                                <input type="text" name="ciudad_depar" class="form-control" placeholder="Bogotá D.C.">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">País</label>
+                                <select name="pais" class="form-select">
+                                    <option value="Colombia">Colombia</option>
+                                    <option value="México">México</option>
+                                    <option value="Brasil">Brasil</option>
+                                    <option value="Argentina">Argentina</option>
+                                    <option value="Chile">Chile</option>
+                                    <option value="Perú">Perú</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
-
-                    <!-- Fila 3: Condiciones Comerciales -->
-                    <div class="row mb-3">
-                        <div class="col-md-3">
-                            <label class="form-label">⏱️ Tiempo de Entrega</label>
-                            <select name="tiem_entrega" class="form-select">
-                                <option value="">Cualquier tiempo</option>
-                                <option value="Inmediato" <?= ($_GET['tiem_entrega'] ?? '') === 'Inmediato' ? 'selected' : '' ?>>⚡ Inmediato</option>
-                                <option value="1-3 días" <?= ($_GET['tiem_entrega'] ?? '') === '1-3 días' ? 'selected' : '' ?>>📅 1-3 días</option>
-                                <option value="1 semana" <?= ($_GET['tiem_entrega'] ?? '') === '1 semana' ? 'selected' : '' ?>>📆 1 semana</option>
-                                <option value="2 semanas" <?= ($_GET['tiem_entrega'] ?? '') === '2 semanas' ? 'selected' : '' ?>>🗓️ 2 semanas</option>
-                                <option value="1 mes" <?= ($_GET['tiem_entrega'] ?? '') === '1 mes' ? 'selected' : '' ?>>📊 1 mes o más</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">💳 Forma de Pago</label>
-                            <select name="for_pago" class="form-select">
-                                <option value="">Cualquier forma</option>
-                                <option value="Contado" <?= ($_GET['for_pago'] ?? '') === 'Contado' ? 'selected' : '' ?>>💰 Contado</option>
-                                <option value="Crédito 30 días" <?= ($_GET['for_pago'] ?? '') === 'Crédito 30 días' ? 'selected' : '' ?>>📋 Crédito 30 días</option>
-                                <option value="Crédito 60 días" <?= ($_GET['for_pago'] ?? '') === 'Crédito 60 días' ? 'selected' : '' ?>>📋 Crédito 60 días</option>
-                                <option value="Crédito 90 días" <?= ($_GET['for_pago'] ?? '') === 'Crédito 90 días' ? 'selected' : '' ?>>📋 Crédito 90 días</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">💰 Con Crédito Disponible</label>
-                            <select name="tiene_credito" class="form-select">
-                                <option value="">Todos</option>
-                                <option value="si" <?= ($_GET['tiene_credito'] ?? '') === 'si' ? 'selected' : '' ?>>✅ Con crédito</option>
-                                <option value="no" <?= ($_GET['tiene_credito'] ?? '') === 'no' ? 'selected' : '' ?>>❌ Sin crédito</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">🔗 Estado de Repuestos</label>
-                            <select name="estado_repuestos" class="form-select">
-                                <option value="">Todos</option>
-                                <option value="con_repuestos" <?= ($_GET['estado_repuestos'] ?? '') === 'con_repuestos' ? 'selected' : '' ?>>✅ Con repuestos vinculados</option>
-                                <option value="sin_repuestos" <?= ($_GET['estado_repuestos'] ?? '') === 'sin_repuestos' ? 'selected' : '' ?>>❌ Sin repuestos vinculados</option>
-                            </select>
+                    
+                    <div class="form-section">
+                        <h6><i class="bi bi-person-badge"></i> Información de Contacto</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">Teléfono de Contacto</label>
+                                <input type="text" name="tel_contacto" class="form-control" placeholder="+57 123 456 7890">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Correo Electrónico</label>
+                                <input type="email" name="correo" class="form-control" placeholder="contacto@proveedor.com">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Cargo del Contacto</label>
+                                <input type="text" name="carg_contacto" class="form-control" placeholder="Gerente de Ventas">
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Botones de Acción -->
-                <div class="row">
-                    <div class="col-12">
-                        <div class="d-flex gap-2 flex-wrap">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-search"></i> 🔍 Buscar Proveedores
-                            </button>
-                            <a href="proveedor.php" class="btn btn-outline-secondary">
-                                <i class="bi bi-x-circle"></i> 🧹 Limpiar Filtros
-                            </a>
-                            <button type="button" class="btn btn-info" onclick="exportarResultados()">
-                                <i class="bi bi-download"></i> 📊 Exportar
-                            </button>
-                            <div class="ms-auto">
-                                <small class="text-muted">
-                                    📋 Total de proveedores: <strong><?= $proveedores->num_rows ?></strong>
-                                </small>
+                    
+                    <div class="form-section">
+                        <h6><i class="bi bi-credit-card"></i> Información Comercial</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">Tiempo de Entrega</label>
+                                <select name="tiem_entrega" class="form-select">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="Inmediato">Inmediato</option>
+                                    <option value="1-3 días">1-3 días</option>
+                                    <option value="1 semana">1 semana</option>
+                                    <option value="2 semanas">2 semanas</option>
+                                    <option value="1 mes">1 mes</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Forma de Pago</label>
+                                <select name="for_pago" class="form-select">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="Contado">Contado</option>
+                                    <option value="Crédito 30 días">Crédito 30 días</option>
+                                    <option value="Crédito 60 días">Crédito 60 días</option>
+                                    <option value="Crédito 90 días">Crédito 90 días</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Crédito Disponible</label>
+                                <input type="text" name="cred_disponible" class="form-control" placeholder="$0.00">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label class="form-label">Cuenta Bancaria</label>
+                                <input type="text" name="cuen_bancaria" class="form-control" placeholder="Banco - Número de cuenta">
                             </div>
                         </div>
                     </div>
                 </div>
-            </form>
-        </div>
-    </div>
-    <div class="mb-3 text-end">
-        <?php if (!$rol_conductor): ?>
-        <a href="proveedor.php?form=1" class="btn btn-success">Agregar Proveedor</a>
-        <?php endif; ?>
-    </div>
-    <div class="table-responsive">
-        <table class="table table-bordered table-hover">
-            <thead>
-            <tr>
-                <th>ID</th>
-                <th>NIT / Número Identificación</th>
-                <th>Nombre Proveedor</th>
-                <th>Teléfono Contacto</th>
-                <th>Cargo Contacto</th>
-                <th>Correo</th>
-                <th>Dirección</th>
-                <th>Ciudad/Departamento</th>
-                <th>País</th>
-                <th>Tipo Repuesto</th>
-                <th>Marca que Distribuye</th>
-                <th>Tiempo de Entrega</th>
-                <th>Zonas de Cobertura</th>
-                <th>Forma de Pago</th>
-                <th>Crédito Disponible</th>
-                <th>Cuenta Bancaria</th>
-                <th>Repuestos Vinculados</th>
-                <th class="text-center">Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-        <?php 
-        require_once '../models/Repue.php';
-        $repueModel = new Repue();
-        while ($row = $proveedores->fetch_assoc()): 
-            // ...existing code...
-        ?>
-            <tr>
-                <td><?= $row['id'] ?></td>
-                <td><?= htmlspecialchars($row['nit_num_identi']) ?></td>
-                <td><?= htmlspecialchars($row['nom_proveedor']) ?></td>
-                <td><?= htmlspecialchars($row['tel_contacto']) ?></td>
-                <td><?= htmlspecialchars($row['carg_contacto']) ?></td>
-                <td><?= htmlspecialchars($row['correo']) ?></td>
-                <td><?= htmlspecialchars($row['direccion']) ?></td>
-                <td><?= htmlspecialchars($row['ciudad_depar']) ?></td>
-                <td><?= htmlspecialchars($row['pais']) ?></td>
-                <td><?= htmlspecialchars($row['tip_repuesto']) ?></td>
-                <td><?= htmlspecialchars($row['mar_distribuye']) ?></td>
-                <td><?= htmlspecialchars($row['tiem_entrega']) ?></td>
-                <td><?= htmlspecialchars($row['zon_cobertura']) ?></td>
-                <td><?= htmlspecialchars($row['for_pago']) ?></td>
-                <td><?= htmlspecialchars($row['cred_disponible']) ?></td>
-                <td><?= htmlspecialchars($row['cuen_bancaria']) ?></td>
-                <td>
-                    <?php 
-                    $totalRepuestos = $row['total_repuestos'] ?? 0;
-                    if ($totalRepuestos > 0) {
-                        echo '<span class="badge bg-success me-1">' . $totalRepuestos . ' repuesto(s)</span>';
-                        
-                        // Obtener nombres de repuestos para mostrar detalles
-                        $repuestosVinculados = $repueModel->getByProveedor($row['id']);
-                        $nombreRepuestos = [];
-                        while ($repuesto = $repuestosVinculados->fetch_assoc()) {
-                            $nombreRepuestos[] = $repuesto['nombre'];
-                        }
-                        if (count($nombreRepuestos) <= 3) {
-                            echo '<br><small class="text-muted">' . implode(', ', $nombreRepuestos) . '</small>';
-                        } else {
-                            echo '<br><small class="text-muted">' . implode(', ', array_slice($nombreRepuestos, 0, 3)) . '...</small>';
-                            echo '<br><small><a href="#" class="text-info" data-bs-toggle="modal" data-bs-target="#repuestosModal' . $row['id'] . '">Ver todos</a></small>';
-                        }
-                    } else {
-                        echo '<span class="badge bg-secondary">Sin repuestos</span>';
-                    }
-                    ?>
-                </td>
-                <td class="text-center">
-                    <?php if (!$rol_conductor): ?>
-                    <a href="proveedor.php?form=1&id=<?= $row['id'] ?>" class="btn btn-warning mx-1">Editar</a>
-                    <a href="proveedor.php?delete=<?= $row['id'] ?>" class="btn btn-danger mx-1" onclick="return confirm('¿Eliminar proveedor?')">Eliminar</a>
-                    <?php endif; ?>
-                </td>
-            </tr>
-        <?php endwhile; ?>
-        </tbody>
-        </table>
-    </div>
-    <?php if (isset($_GET['form']) && !$rol_conductor): ?>
-    <div class="card mt-4">
-        <div class="card-body">
-            <h5 class="card-title"><?= isset($editData) ? 'Editar' : 'Agregar' ?> Proveedor</h5>
-            <?php $editData = isset($_GET['id']) ? $controller->show($_GET['id']) : []; ?>
-            <form method="post">
-                <input type="hidden" name="id" value="<?= $editData['id'] ?? '' ?>">
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">NIT / Número Identificación</label>
-                        <input type="text" name="nit_num_identi" class="form-control" required value="<?= htmlspecialchars($editData['nit_num_identi'] ?? '') ?>">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Nombre Proveedor</label>
-                        <input type="text" name="nom_proveedor" class="form-control" required value="<?= htmlspecialchars($editData['nom_proveedor'] ?? '') ?>">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Teléfono Contacto</label>
-                        <input type="text" name="tel_contacto" class="form-control" value="<?= htmlspecialchars($editData['tel_contacto'] ?? '') ?>">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Cargo Contacto</label>
-                        <input type="text" name="carg_contacto" class="form-control" value="<?= htmlspecialchars($editData['carg_contacto'] ?? '') ?>">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Correo</label>
-                        <input type="email" name="correo" class="form-control" value="<?= htmlspecialchars($editData['correo'] ?? '') ?>">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Dirección</label>
-                        <input type="text" name="direccion" class="form-control" value="<?= htmlspecialchars($editData['direccion'] ?? '') ?>">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Ciudad/Departamento</label>
-                        <input type="text" name="ciudad_depar" class="form-control" value="<?= htmlspecialchars($editData['ciudad_depar'] ?? '') ?>">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">País</label>
-                        <input type="text" name="pais" class="form-control" value="<?= htmlspecialchars($editData['pais'] ?? '') ?>">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Tipo Repuesto</label>
-                        <input type="text" name="tip_repuesto" class="form-control" value="<?= htmlspecialchars($editData['tip_repuesto'] ?? '') ?>">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Marca que Distribuye</label>
-                        <input type="text" name="mar_distribuye" class="form-control" value="<?= htmlspecialchars($editData['mar_distribuye'] ?? '') ?>">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Tiempo de Entrega</label>
-                        <input type="text" name="tiem_entrega" class="form-control" value="<?= htmlspecialchars($editData['tiem_entrega'] ?? '') ?>">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Zonas de Cobertura</label>
-                        <input type="text" name="zon_cobertura" class="form-control" value="<?= htmlspecialchars($editData['zon_cobertura'] ?? '') ?>">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Forma de Pago</label>
-                        <input type="text" name="for_pago" class="form-control" value="<?= htmlspecialchars($editData['for_pago'] ?? '') ?>">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Crédito Disponible</label>
-                        <input type="text" name="cred_disponible" class="form-control" value="<?= htmlspecialchars($editData['cred_disponible'] ?? '') ?>">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Cuenta Bancaria</label>
-                        <input type="text" name="cuen_bancaria" class="form-control" value="<?= htmlspecialchars($editData['cuen_bancaria'] ?? '') ?>">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <!-- Eliminado campo Categoría de Repuesto -->
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Vincular Repuestos Existentes</label>
-                        <select name="repuestos_vinculados[]" class="form-control" multiple>
-                            <?php $repueModel = new Repue(); $repuestos = $repueModel->getAll(); while ($rep = $repuestos->fetch_assoc()): ?>
-                                <option value="<?= $rep['id'] ?>" <?= (isset($editData['id']) && $rep['proveedor_id'] == $editData['id']) ? 'selected' : '' ?>><?= htmlspecialchars($rep['nombre']) ?></option>
-                            <?php endwhile; ?>
-                        </select>
-                        <small class="text-muted">Selecciona los repuestos que deseas vincular a este proveedor.</small>
-                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Guardar Proveedor
+                    </button>
                 </div>
-                <button type="submit" class="btn btn-success">Guardar</button>
-                <a href="proveedor.php" class="btn btn-secondary mx-2">Cancelar</a>
             </form>
         </div>
-    </div>
-    <?php endif; ?>
-    <div class="mt-5 text-end">
-        <a href="gestiones.php" class="btn btn-outline-secondary">Volver al panel de gestiones</a>
     </div>
 </div>
-<?php
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $controller->store($_POST);
-    header('Location: proveedor.php');
-    exit;
-}
-if (isset($_GET['delete'])) {
-    $controller->delete($_GET['delete']);
-    header('Location: proveedor.php');
-    exit;
-}
-?>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-// Función para exportar resultados
-function exportarResultados() {
-    // Crear CSV con los datos de la tabla
-    let csv = 'ID,NIT,Nombre,Teléfono,Correo,Ciudad,País,Tipo Repuesto,Marca,Repuestos Vinculados\n';
-    
-    const filas = document.querySelectorAll('tbody tr');
-    filas.forEach(fila => {
-        const celdas = fila.querySelectorAll('td');
-        if (celdas.length > 0) {
-            const datos = [
-                celdas[0].textContent.trim(), // ID
-                celdas[1].textContent.trim(), // NIT
-                celdas[2].textContent.trim(), // Nombre
-                celdas[3].textContent.trim(), // Teléfono
-                celdas[5].textContent.trim(), // Correo
-                celdas[7].textContent.trim(), // Ciudad
-                celdas[8].textContent.trim(), // País
-                celdas[9].textContent.trim(), // Tipo Repuesto
-                celdas[10].textContent.trim(), // Marca
-                celdas[16].textContent.trim().replace(/\n/g, ' ') // Repuestos
-            ];
-            csv += datos.map(dato => `"${dato}"`).join(',') + '\n';
-        }
-    });
-    
-    // Descargar CSV
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'proveedores_' + new Date().toISOString().split('T')[0] + '.csv');
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    // Mostrar notificación
-    const toast = document.createElement('div');
-    toast.className = 'position-fixed top-0 end-0 p-3';
-    toast.style.zIndex = '1050';
-    toast.innerHTML = `
-        <div class="toast show" role="alert">
-            <div class="toast-header">
-                <strong class="me-auto">✅ Exportación</strong>
-                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+
+<!-- Modal Ver -->
+<div class="modal fade" id="viewModal" tabindex="-1" aria-labelledby="viewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewModalLabel">
+                    <i class="bi bi-eye"></i> Detalles del Proveedor
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="toast-body">
-                Archivo CSV descargado exitosamente
+            <div class="modal-body">
+                <div class="form-section">
+                    <h6><i class="bi bi-building"></i> Información de la Empresa</h6>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <p><strong>ID:</strong> <span id="view-id"></span></p>
+                        </div>
+                        <div class="col-md-3">
+                            <p><strong>NIT:</strong> <span id="view-nit"></span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Nombre:</strong> <span id="view-nombre"></span></p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Tipo de Repuesto:</strong> <span id="view-tipo"></span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Marca que Distribuye:</strong> <span id="view-marca"></span></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h6><i class="bi bi-geo-alt"></i> Ubicación</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Dirección:</strong> <span id="view-direccion"></span></p>
+                        </div>
+                        <div class="col-md-3">
+                            <p><strong>Ciudad:</strong> <span id="view-ciudad"></span></p>
+                        </div>
+                        <div class="col-md-3">
+                            <p><strong>País:</strong> <span id="view-pais"></span></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h6><i class="bi bi-person-badge"></i> Contacto</h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p><strong>Teléfono:</strong> <span id="view-telefono"></span></p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Email:</strong> <span id="view-email"></span></p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Cargo:</strong> <span id="view-cargo"></span></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h6><i class="bi bi-credit-card"></i> Información Comercial</h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p><strong>Tiempo Entrega:</strong> <span id="view-tiempo"></span></p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Forma de Pago:</strong> <span id="view-pago"></span></p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Crédito:</strong> <span id="view-credito"></span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cerrar
+                </button>
             </div>
         </div>
-    `;
-    document.body.appendChild(toast);
-    setTimeout(() => document.body.removeChild(toast), 3000);
+    </div>
+</div>
+
+<!-- Modal Editar -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">
+                    <i class="bi bi-pencil"></i> Editar Proveedor
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editForm" method="post">
+                <input type="hidden" name="id" id="edit-id">
+                <div class="modal-body">
+                    <div class="form-section">
+                        <h6><i class="bi bi-building"></i> Información de la Empresa</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">NIT/Identificación <span class="text-danger">*</span></label>
+                                <input type="text" name="nit_num_identi" id="edit-nit" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Nombre del Proveedor <span class="text-danger">*</span></label>
+                                <input type="text" name="nom_proveedor" id="edit-nombre" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Tipo de Repuesto</label>
+                                <input type="text" name="tip_repuesto" id="edit-tipo" class="form-control">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">Marca que Distribuye</label>
+                                <input type="text" name="mar_distribuye" id="edit-marca" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Zonas de Cobertura</label>
+                                <input type="text" name="zon_cobertura" id="edit-zona" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h6><i class="bi bi-geo-alt"></i> Ubicación</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">Dirección</label>
+                                <input type="text" name="direccion" id="edit-direccion" class="form-control">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Ciudad/Departamento</label>
+                                <input type="text" name="ciudad_depar" id="edit-ciudad" class="form-control">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">País</label>
+                                <select name="pais" id="edit-pais" class="form-select">
+                                    <option value="Colombia">Colombia</option>
+                                    <option value="México">México</option>
+                                    <option value="Brasil">Brasil</option>
+                                    <option value="Argentina">Argentina</option>
+                                    <option value="Chile">Chile</option>
+                                    <option value="Perú">Perú</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h6><i class="bi bi-person-badge"></i> Información de Contacto</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">Teléfono de Contacto</label>
+                                <input type="text" name="tel_contacto" id="edit-telefono" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Correo Electrónico</label>
+                                <input type="email" name="correo" id="edit-email" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Cargo del Contacto</label>
+                                <input type="text" name="carg_contacto" id="edit-cargo" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h6><i class="bi bi-credit-card"></i> Información Comercial</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">Tiempo de Entrega</label>
+                                <select name="tiem_entrega" id="edit-tiempo" class="form-select">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="Inmediato">Inmediato</option>
+                                    <option value="1-3 días">1-3 días</option>
+                                    <option value="1 semana">1 semana</option>
+                                    <option value="2 semanas">2 semanas</option>
+                                    <option value="1 mes">1 mes</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Forma de Pago</label>
+                                <select name="for_pago" id="edit-pago" class="form-select">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="Contado">Contado</option>
+                                    <option value="Crédito 30 días">Crédito 30 días</option>
+                                    <option value="Crédito 60 días">Crédito 60 días</option>
+                                    <option value="Crédito 90 días">Crédito 90 días</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Crédito Disponible</label>
+                                <input type="text" name="cred_disponible" id="edit-credito" class="form-control">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label class="form-label">Cuenta Bancaria</label>
+                                <input type="text" name="cuen_bancaria" id="edit-cuenta" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-check-circle"></i> Actualizar Proveedor
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Función para ver proveedor
+function viewProvider(id) {
+    fetch(`proveedor.php?ajax=get&id=${id}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('view-id').textContent = data.id || '';
+            document.getElementById('view-nit').textContent = data.nit_num_identi || '';
+            document.getElementById('view-nombre').textContent = data.nom_proveedor || '';
+            document.getElementById('view-tipo').textContent = data.tip_repuesto || 'N/A';
+            document.getElementById('view-marca').textContent = data.mar_distribuye || 'N/A';
+            document.getElementById('view-direccion').textContent = data.direccion || 'N/A';
+            document.getElementById('view-ciudad').textContent = data.ciudad_depar || 'N/A';
+            document.getElementById('view-pais').textContent = data.pais || 'N/A';
+            document.getElementById('view-telefono').textContent = data.tel_contacto || 'N/A';
+            document.getElementById('view-email').textContent = data.correo || 'N/A';
+            document.getElementById('view-cargo').textContent = data.carg_contacto || 'N/A';
+            document.getElementById('view-tiempo').textContent = data.tiem_entrega || 'N/A';
+            document.getElementById('view-pago').textContent = data.for_pago || 'N/A';
+            document.getElementById('view-credito').textContent = data.cred_disponible || 'N/A';
+            
+            new bootstrap.Modal(document.getElementById('viewModal')).show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cargar los datos');
+        });
 }
 
-// Filtros automáticos (buscar mientras escribes)
-document.addEventListener('DOMContentLoaded', function() {
-    const filtrosTexto = document.querySelectorAll('input[type="text"]');
-    let timeoutId;
-    
-    filtrosTexto.forEach(input => {
-        input.addEventListener('input', function() {
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => {
-                if (this.value.length > 2 || this.value.length === 0) {
-                    // Solo buscar automáticamente si hay más de 2 caracteres o está vacío
-                    // document.getElementById('formFiltros').submit();
-                }
-            }, 800); // Esperar 800ms después de que el usuario deje de escribir
+// Función para editar proveedor
+function editProvider(id) {
+    fetch(`proveedor.php?ajax=get&id=${id}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('edit-id').value = data.id || '';
+            document.getElementById('edit-nit').value = data.nit_num_identi || '';
+            document.getElementById('edit-nombre').value = data.nom_proveedor || '';
+            document.getElementById('edit-tipo').value = data.tip_repuesto || '';
+            document.getElementById('edit-marca').value = data.mar_distribuye || '';
+            document.getElementById('edit-zona').value = data.zon_cobertura || '';
+            document.getElementById('edit-direccion').value = data.direccion || '';
+            document.getElementById('edit-ciudad').value = data.ciudad_depar || '';
+            document.getElementById('edit-pais').value = data.pais || '';
+            document.getElementById('edit-telefono').value = data.tel_contacto || '';
+            document.getElementById('edit-email').value = data.correo || '';
+            document.getElementById('edit-cargo').value = data.carg_contacto || '';
+            document.getElementById('edit-tiempo').value = data.tiem_entrega || '';
+            document.getElementById('edit-pago').value = data.for_pago || '';
+            document.getElementById('edit-credito').value = data.cred_disponible || '';
+            document.getElementById('edit-cuenta').value = data.cuen_bancaria || '';
+            
+            new bootstrap.Modal(document.getElementById('editModal')).show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cargar los datos');
         });
-    });
+}
+
+// Función para eliminar proveedor
+function deleteProvider(id, nombre) {
+    if (confirm(`¿Está seguro de eliminar el proveedor "${nombre}"?`)) {
+        window.location.href = `proveedor.php?delete=${id}`;
+    }
+}
+
+// Validación del formulario de crear
+document.getElementById('createForm').addEventListener('submit', function(e) {
+    const nit = this.querySelector('[name="nit_num_identi"]').value.trim();
+    const nombre = this.querySelector('[name="nom_proveedor"]').value.trim();
     
-    // Contador dinámico de resultados
-    const totalResultados = document.querySelectorAll('tbody tr').length;
-    const contadorElement = document.querySelector('.ms-auto small strong');
-    if (contadorElement) {
-        contadorElement.textContent = totalResultados;
+    if (!nit) {
+        e.preventDefault();
+        alert('El NIT/Identificación es obligatorio');
+        return false;
+    }
+    
+    if (!nombre) {
+        e.preventDefault();
+        alert('El nombre del proveedor es obligatorio');
+        return false;
     }
 });
 
-// Función para limpiar todos los filtros
-function limpiarTodosFiltros() {
-    document.querySelectorAll('#formFiltros input, #formFiltros select').forEach(element => {
-        element.value = '';
-    });
-    document.getElementById('formFiltros').submit();
-}
-
-// Atajos de teclado
-document.addEventListener('keydown', function(e) {
-    // Ctrl + F para enfocar en el primer filtro
-    if (e.ctrlKey && e.key === 'f') {
+// Validación del formulario de editar
+document.getElementById('editForm').addEventListener('submit', function(e) {
+    const nit = this.querySelector('[name="nit_num_identi"]').value.trim();
+    const nombre = this.querySelector('[name="nom_proveedor"]').value.trim();
+    
+    if (!nit) {
         e.preventDefault();
-        document.querySelector('input[name="nom_proveedor"]').focus();
+        alert('El NIT/Identificación es obligatorio');
+        return false;
     }
-    // Ctrl + L para limpiar filtros
-    if (e.ctrlKey && e.key === 'l') {
+    
+    if (!nombre) {
         e.preventDefault();
-        limpiarTodosFiltros();
+        alert('El nombre del proveedor es obligatorio');
+        return false;
     }
 });
 </script>
+
 </body>
 </html>

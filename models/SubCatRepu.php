@@ -41,10 +41,17 @@ class SubCatRepu {
     }
 
     public function getById($id) {
-        $stmt = $this->conn->prepare("SELECT * FROM subcat_repu WHERE id=?");
+        $stmt = $this->conn->prepare("SELECT s.*, c.nombre AS categoria_nombre FROM subcat_repu s LEFT JOIN cat_repu c ON s.cat_repu_id = c.id WHERE s.id = ?");
         $stmt->bind_param('i', $id);
         $stmt->execute();
-        return $stmt->get_result()->fetch_assoc();
+        $result = $stmt->get_result()->fetch_assoc();
+        
+        // Asegurarse de que category_id tenga el valor correcto para el JavaScript
+        if ($result) {
+            $result['categoria_id'] = $result['cat_repu_id'];
+        }
+        
+        return $result;
     }
 
     public function save($tipo_sub_repuesto, $nombre, $caracteristicas, $cat_repu_id, $id = null) {
