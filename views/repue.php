@@ -187,6 +187,217 @@ $repuestos = $controller->index($filtros);
             color: #111 !important;
             border-bottom: 2px solid rgba(13,110,253,0.15);
         }
+
+        /* Mejoras para móviles */
+        @media (max-width: 768px) {
+            .main-container {
+                margin-top: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .header-section {
+                padding: 1.5rem;
+            }
+            
+            .header-section .d-flex {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .content-section {
+                padding: 1rem;
+            }
+            
+            /* Filtros responsivos - Stack en móvil */
+            .row.mb-4 form .col-md-2 {
+                flex: 0 0 100%;
+                max-width: 100%;
+                margin-bottom: 0.75rem;
+            }
+            
+            /* Tabla responsiva mejorada */
+            .table-responsive {
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                margin-top: 1rem;
+            }
+            
+            .table {
+                font-size: 0.8rem;
+                margin-bottom: 0;
+            }
+            
+            .table th,
+            .table td {
+                padding: 0.5rem 0.25rem;
+                vertical-align: middle;
+            }
+            
+            /* Ocultar columnas menos importantes en tablet */
+            .table th:nth-child(1),
+            .table td:nth-child(1),
+            .table th:nth-child(5),
+            .table td:nth-child(5),
+            .table th:nth-child(9),
+            .table td:nth-child(9) {
+                display: none;
+            }
+            
+            /* Botones de acción más compactos */
+            .btn-group-sm .btn {
+                padding: 0.25rem 0.4rem;
+                font-size: 0.75rem;
+            }
+            
+            /* Modales responsivos */
+            .modal-dialog.modal-xl {
+                max-width: 95%;
+                margin: 0.5rem auto;
+            }
+            
+            .modal-body {
+                padding: 1rem;
+            }
+            
+            .modal-body .row .col-md-6,
+            .modal-body .row .col-md-4,
+            .modal-body .row .col-md-3 {
+                margin-bottom: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header-section h2 {
+                font-size: 1.25rem;
+            }
+            
+            .header-section p {
+                font-size: 0.875rem;
+            }
+            
+            /* En móviles pequeños, convertir tabla a tarjetas */
+            .table-responsive {
+                overflow-x: visible;
+            }
+            
+            .table thead {
+                display: none;
+            }
+            
+            .table tbody tr {
+                display: block;
+                border: 1px solid #dee2e6;
+                border-radius: 12px;
+                margin-bottom: 1rem;
+                padding: 1rem;
+                background: white;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                position: relative;
+            }
+            
+            .table tbody tr:hover {
+                background: #f8f9fa;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                transition: all 0.3s ease;
+            }
+            
+            .table tbody td {
+                display: block;
+                text-align: left !important;
+                border: none;
+                padding: 0.5rem 0;
+                white-space: normal;
+                max-width: none;
+            }
+            
+            .table tbody td:before {
+                content: attr(data-label) ": ";
+                font-weight: bold;
+                color: #64748b;
+                display: inline-block;
+                min-width: 120px;
+            }
+            
+            .table tbody td:nth-child(1):before { content: "ID: "; }
+            .table tbody td:nth-child(2):before { content: "Nombre: "; }
+            .table tbody td:nth-child(3):before { content: "Categoría: "; }
+            .table tbody td:nth-child(4):before { content: "Marca/Modelo: "; }
+            .table tbody td:nth-child(5):before { content: "Proveedor: "; }
+            .table tbody td:nth-child(6):before { content: "Stock: "; }
+            .table tbody td:nth-child(7):before { content: "Estado: "; }
+            .table tbody td:nth-child(8):before { content: "Precio: "; }
+            .table tbody td:nth-child(9):before { content: "Ubicación: "; }
+            .table tbody td:nth-child(10):before { content: "Acciones: "; }
+            
+            /* Restaurar columnas ocultas en vista de tarjeta */
+            .table tbody td {
+                display: block !important;
+            }
+            
+            /* Estilo especial para badges en tarjetas */
+            .table tbody td .badge {
+                margin-top: 0.25rem;
+            }
+            
+            /* Botones de acción centrados en tarjetas */
+            .table tbody td:last-child {
+                text-align: center !important;
+                margin-top: 1rem;
+                padding-top: 1rem;
+                border-top: 1px solid #dee2e6;
+            }
+            
+            .table tbody td:last-child:before {
+                display: none;
+            }
+            
+            /* Botón crear repuesto responsive */
+            .btn-lg {
+                width: 100%;
+                margin-bottom: 1rem;
+            }
+            
+            /* Filtros en acordeón para móvil */
+            .filtros-mobile {
+                background: #f8f9fa;
+                border-radius: 10px;
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .filtros-mobile .form-control,
+            .filtros-mobile .form-select {
+                margin-bottom: 0.75rem;
+                font-size: 0.9rem;
+            }
+            
+            .filtros-mobile .btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+        }
+        
+        @media (max-width: 320px) {
+            .content-section {
+                padding: 0.5rem;
+            }
+            
+            .table tbody tr {
+                padding: 0.75rem;
+            }
+            
+            .table tbody td {
+                padding: 0.25rem 0;
+                font-size: 0.85rem;
+            }
+            
+            .table tbody td:before {
+                min-width: 100px;
+                font-size: 0.8rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -231,44 +442,108 @@ $repuestos = $controller->index($filtros);
     $proveedores = $provModel->getAll();
     ?>
     <form class="row mb-4" method="get">
-        <div class="col-md-2 mb-2">
-            <input type="text" name="nombre" class="form-control" placeholder="Buscar por nombre" value="<?= htmlspecialchars($filtros['nombre']) ?>">
+        <!-- Filtros Desktop -->
+        <div class="d-none d-md-block col-12">
+            <div class="row">
+                <div class="col-md-2 mb-2">
+                    <input type="text" name="nombre" class="form-control" placeholder="Buscar por nombre" value="<?= htmlspecialchars($filtros['nombre']) ?>">
+                </div>
+                <div class="col-md-2 mb-2">
+                    <input type="text" name="modelo" class="form-control" placeholder="Buscar por modelo" value="<?= htmlspecialchars($filtros['modelo']) ?>">
+                </div>
+                <div class="col-md-2 mb-2">
+                    <input type="text" name="estado_repus" class="form-control" placeholder="Buscar por estado" value="<?= htmlspecialchars($filtros['estado_repus']) ?>">
+                </div>
+                <div class="col-md-2 mb-2">
+                    <select name="cat_repu_id" class="form-control" aria-label="Filtrar por categoría">
+                        <option value="">Filtrar por categoría</option>
+                        <?php $catModel2 = new CatRepu(); $categorias2 = $catModel2->getAll(); while ($cat = $categorias2->fetch_assoc()): ?>
+                            <option value="<?= $cat['id'] ?>" <?= (isset($_GET['cat_repu_id']) && $_GET['cat_repu_id'] == $cat['id']) ? 'selected' : '' ?>><?= htmlspecialchars($cat['nombre']) ?></option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <select name="subcat_repu_id" class="form-control" aria-label="Filtrar por subcategoría">
+                        <option value="">Filtrar por subcategoría</option>
+                        <?php $subcatModel2 = new SubCatRepu(); $subcategorias2 = $subcatModel2->getAll(); while ($subcat = $subcategorias2->fetch_assoc()): ?>
+                            <option value="<?= $subcat['id'] ?>" <?= (isset($_GET['subcat_repu_id']) && $_GET['subcat_repu_id'] == $subcat['id']) ? 'selected' : '' ?>><?= htmlspecialchars($subcat['nombre']) ?></option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <select name="proveedor_id" class="form-control" aria-label="Filtrar por proveedor">
+                        <option value="">Filtrar por proveedor</option>
+                        <?php $proveedores->data_seek(0); while ($prov = $proveedores->fetch_assoc()): ?>
+                            <option value="<?= $prov['id'] ?>" <?= (isset($_GET['proveedor_id']) && $_GET['proveedor_id'] == $prov['id']) ? 'selected' : '' ?>><?= htmlspecialchars($prov['nom_proveedor']) ?></option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Filtrar
+                    </button>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <a href="repue.php" class="btn btn-secondary w-100">
+                        <i class="bi bi-x"></i> Limpiar
+                    </a>
+                </div>
+            </div>
         </div>
-        <div class="col-md-2 mb-2">
-            <input type="text" name="modelo" class="form-control" placeholder="Buscar por modelo" value="<?= htmlspecialchars($filtros['modelo']) ?>">
+        
+        <!-- Filtros Mobile -->
+        <div class="d-md-none col-12">
+            <div class="filtros-mobile">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0"><i class="bi bi-funnel"></i> Filtros</h6>
+                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filtrosMobile" aria-expanded="false">
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                </div>
+                
+                <div class="collapse" id="filtrosMobile">
+                    <input type="text" name="nombre" class="form-control" placeholder="🔍 Buscar por nombre" value="<?= htmlspecialchars($filtros['nombre']) ?>">
+                    
+                    <input type="text" name="modelo" class="form-control" placeholder="🔍 Buscar por modelo" value="<?= htmlspecialchars($filtros['modelo']) ?>">
+                    
+                    <input type="text" name="estado_repus" class="form-control" placeholder="🔍 Buscar por estado" value="<?= htmlspecialchars($filtros['estado_repus']) ?>">
+                    
+                    <select name="cat_repu_id" class="form-select" aria-label="Filtrar por categoría">
+                        <option value="">📁 Todas las categorías</option>
+                        <?php $catModel3 = new CatRepu(); $categorias3 = $catModel3->getAll(); while ($cat = $categorias3->fetch_assoc()): ?>
+                            <option value="<?= $cat['id'] ?>" <?= (isset($_GET['cat_repu_id']) && $_GET['cat_repu_id'] == $cat['id']) ? 'selected' : '' ?>><?= htmlspecialchars($cat['nombre']) ?></option>
+                        <?php endwhile; ?>
+                    </select>
+                    
+                    <select name="subcat_repu_id" class="form-select" aria-label="Filtrar por subcategoría">
+                        <option value="">📂 Todas las subcategorías</option>
+                        <?php $subcatModel3 = new SubCatRepu(); $subcategorias3 = $subcatModel3->getAll(); while ($subcat = $subcategorias3->fetch_assoc()): ?>
+                            <option value="<?= $subcat['id'] ?>" <?= (isset($_GET['subcat_repu_id']) && $_GET['subcat_repu_id'] == $subcat['id']) ? 'selected' : '' ?>><?= htmlspecialchars($subcat['nombre']) ?></option>
+                        <?php endwhile; ?>
+                    </select>
+                    
+                    <select name="proveedor_id" class="form-select" aria-label="Filtrar por proveedor">
+                        <option value="">🏢 Todos los proveedores</option>
+                        <?php $provModel2 = new Proveedor(); $proveedores2 = $provModel2->getAll(); while ($prov = $proveedores2->fetch_assoc()): ?>
+                            <option value="<?= $prov['id'] ?>" <?= (isset($_GET['proveedor_id']) && $_GET['proveedor_id'] == $prov['id']) ? 'selected' : '' ?>><?= htmlspecialchars($prov['nom_proveedor']) ?></option>
+                        <?php endwhile; ?>
+                    </select>
+                    
+                    <div class="row">
+                        <div class="col-6">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search"></i> Buscar
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <a href="repue.php" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-clockwise"></i> Limpiar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="col-md-2 mb-2">
-            <input type="text" name="estado_repus" class="form-control" placeholder="Buscar por estado" value="<?= htmlspecialchars($filtros['estado_repus']) ?>">
-        </div>
-        <div class="col-md-2 mb-2">
-            <select name="cat_repu_id" class="form-control" aria-label="Filtrar por categoría">
-                <option value="">Filtrar por categoría</option>
-                <?php $catModel2 = new CatRepu(); $categorias2 = $catModel2->getAll(); while ($cat = $categorias2->fetch_assoc()): ?>
-                    <option value="<?= $cat['id'] ?>" <?= (isset($_GET['cat_repu_id']) && $_GET['cat_repu_id'] == $cat['id']) ? 'selected' : '' ?>><?= htmlspecialchars($cat['nombre']) ?></option>
-                <?php endwhile; ?>
-            </select>
-        </div>
-        <div class="col-md-2 mb-2">
-            <select name="subcat_repu_id" class="form-control" aria-label="Filtrar por subcategoría">
-                <option value="">Filtrar por subcategoría</option>
-                <?php $subcatModel2 = new SubCatRepu(); $subcategorias2 = $subcatModel2->getAll(); while ($subcat = $subcategorias2->fetch_assoc()): ?>
-                    <option value="<?= $subcat['id'] ?>" <?= (isset($_GET['subcat_repu_id']) && $_GET['subcat_repu_id'] == $subcat['id']) ? 'selected' : '' ?>><?= htmlspecialchars($subcat['nombre']) ?></option>
-                <?php endwhile; ?>
-            </select>
-        </div>
-        <div class="col-md-2 mb-2">
-            <select name="proveedor_id" class="form-control" aria-label="Filtrar por proveedor">
-                <option value="">Filtrar por proveedor</option>
-                <?php while ($prov = $proveedores->fetch_assoc()): ?>
-                    <option value="<?= $prov['id'] ?>" <?= (isset($_GET['proveedor_id']) && $_GET['proveedor_id'] == $prov['id']) ? 'selected' : '' ?>><?= htmlspecialchars($prov['nom_proveedor']) ?></option>
-                <?php endwhile; ?>
-            </select>
-        </div>
-        <div class="col-md-2 mb-2">
-            <button type="submit" class="btn btn-primary w-100">Filtrar</button>
-        </div>
-        <div class="col-md-2 mb-2">
-            <a href="repue.php" class="btn btn-secondary w-100">Limpiar</a>
         </div>
     </form>
     
@@ -856,6 +1131,29 @@ $repuestos = $controller->index($filtros);
     <?php endif; ?>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+// Mejorar UX de filtros en móvil
+document.addEventListener('DOMContentLoaded', function() {
+    // Cambiar icono del colapso
+    const toggleBtn = document.querySelector('[data-bs-target="#filtrosMobile"]');
+    const collapse = document.getElementById('filtrosMobile');
+    
+    if (collapse && toggleBtn) {
+        collapse.addEventListener('show.bs.collapse', function () {
+            toggleBtn.querySelector('i').className = 'bi bi-chevron-up';
+        });
+        
+        collapse.addEventListener('hide.bs.collapse', function () {
+            toggleBtn.querySelector('i').className = 'bi bi-chevron-down';
+        });
+    }
+    
+    // Auto-expandir filtros si hay filtros activos
+    const hasActiveFilters = <?= (!empty($filtros['nombre']) || !empty($filtros['modelo']) || !empty($filtros['estado_repus']) || !empty($filtros['cat_repu_id']) || !empty($filtros['subcat_repu_id']) || !empty($filtros['proveedor_id'])) ? 'true' : 'false' ?>;
+    
+    if (hasActiveFilters && collapse) {
+        const bsCollapse = new bootstrap.Collapse(collapse, { show: true });
+    }
+});
     let repuestoIdEliminar = null;
     
     // Función para abrir modales

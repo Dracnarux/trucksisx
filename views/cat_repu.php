@@ -59,7 +59,7 @@ require_once '../controllers/CatRepuController.php';
         thead tr {
             background: rgba(100,116,139,0.10) !important;
             color: #111 !important;
-            border-bottom: 2px solid rgba(13,110,253,0.15);
+            border-bottom: 2px solid rgba(100,116,139,0.15);
         }
         .main-container {
             background: rgba(255, 255, 255, 0.95);
@@ -72,7 +72,7 @@ require_once '../controllers/CatRepuController.php';
             margin-bottom: 2rem;
         }
         .header-section {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
             color: white !important;
             padding: 2rem;
             border-radius: 20px 20px 0 0;
@@ -86,13 +86,13 @@ require_once '../controllers/CatRepuController.php';
         }
         .header-section .btn-light {
             background: white !important;
-            color: #0d6efd !important;
+            color: #64748b !important;
             border: none;
             font-weight: 600;
         }
         .header-section .btn-light:hover {
             background: rgba(255, 255, 255, 0.9) !important;
-            color: #0b5ed7 !important;
+            color: #475569 !important;
         }
         .content-section {
             padding: 2rem;
@@ -112,8 +112,8 @@ require_once '../controllers/CatRepuController.php';
             transition: all 0.3s ease;
         }
         .form-control:focus, .form-select:focus {
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+            border-color: #64748b;
+            box-shadow: 0 0 0 0.2rem rgba(100, 116, 139, 0.25);
         }
         /* Asegurar visibilidad del texto en header */
         .header-section * {
@@ -121,6 +121,184 @@ require_once '../controllers/CatRepuController.php';
         }
         .header-section .bi {
             color: white !important;
+        }
+
+        /* Mejoras para móviles */
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+                margin-top: 16px;
+            }
+            
+            .main-container {
+                margin-top: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .header-section {
+                padding: 1.5rem;
+            }
+            
+            .header-section .d-flex {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .content-section {
+                padding: 1rem;
+            }
+            
+            /* Filtros responsivos */
+            .row.mb-4 .col-md-8 {
+                margin-bottom: 1rem;
+            }
+            
+            .row.mb-4 .col-md-4 {
+                text-align: center;
+            }
+            
+            .row.g-2 .col-md-4,
+            .row.g-2 .col-md-2 {
+                margin-bottom: 0.5rem;
+            }
+            
+            /* Tabla responsiva mejorada */
+            .table-responsive {
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
+            
+            .table {
+                font-size: 0.85rem;
+            }
+            
+            .table th,
+            .table td {
+                padding: 0.5rem 0.25rem;
+                white-space: nowrap;
+            }
+            
+            .table th:nth-child(4),
+            .table td:nth-child(4) {
+                max-width: 120px;
+                white-space: normal;
+                word-break: break-word;
+            }
+            
+            /* Ocultar algunas columnas en móvil */
+            .table th:nth-child(1),
+            .table td:nth-child(1) {
+                display: none;
+            }
+            
+            .table th:nth-child(5),
+            .table td:nth-child(5) {
+                display: none;
+            }
+            
+            /* Botones de acción más pequeños en móvil */
+            .btn-group-sm .btn {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
+            }
+            
+            .btn-group-sm .btn i {
+                font-size: 0.75rem;
+            }
+            
+            /* Modales en móvil */
+            .modal-dialog {
+                margin: 0.5rem;
+            }
+            
+            .modal-dialog.modal-lg {
+                max-width: none;
+                margin: 0.5rem;
+            }
+            
+            .modal-body {
+                padding: 1rem;
+            }
+            
+            .modal-body .row .col-md-6 {
+                margin-bottom: 1rem;
+            }
+            
+            /* Cards en modales más compactas */
+            .modal-body .card {
+                margin-bottom: 1rem;
+            }
+            
+            .modal-body .card .card-body {
+                padding: 0.75rem;
+            }
+            
+            /* Botones de modal apilados */
+            .modal-footer {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .modal-footer .btn {
+                width: 100%;
+                margin: 0;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header-section h2 {
+                font-size: 1.25rem;
+            }
+            
+            .header-section p {
+                font-size: 0.875rem;
+            }
+            
+            .table {
+                font-size: 0.75rem;
+            }
+            
+            /* En móviles muy pequeños, mostrar como tarjetas */
+            .table thead {
+                display: none;
+            }
+            
+            .table tbody tr {
+                display: block;
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                margin-bottom: 1rem;
+                padding: 1rem;
+                background: white;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            
+            .table tbody td {
+                display: block;
+                text-align: left !important;
+                border: none;
+                padding: 0.25rem 0;
+                white-space: normal;
+            }
+            
+            .table tbody td:before {
+                content: attr(data-label) ": ";
+                font-weight: bold;
+                color: #64748b;
+            }
+            
+            .table tbody td:nth-child(1):before { content: "ID: "; }
+            .table tbody td:nth-child(2):before { content: "Tipo: "; }
+            .table tbody td:nth-child(3):before { content: "Nombre: "; }
+            .table tbody td:nth-child(4):before { content: "Características: "; }
+            .table tbody td:nth-child(5):before { content: "Repuestos: "; }
+            .table tbody td:nth-child(6):before { content: "Acciones: "; }
+            
+            .table tbody td:nth-child(1),
+            .table tbody td:nth-child(5) {
+                display: block;
+            }
         }
     </style>
 </head>
@@ -244,7 +422,7 @@ require_once '../controllers/CatRepuController.php';
                                 <td><strong>#<?= $row['id'] ?></strong></td>
                                 <td>
                                     <?php if (!empty($row['tipo_repuesto'])): ?>
-                                        <span class="badge bg-primary"><?= htmlspecialchars($row['tipo_repuesto']) ?></span>
+                                        <span class="badge" style="background-color: #64748b;"><?= htmlspecialchars($row['tipo_repuesto']) ?></span>
                                     <?php else: ?>
                                         <small class="text-muted">Sin especificar</small>
                                     <?php endif; ?>
@@ -524,7 +702,7 @@ function verCategoria(categoria) {
     document.getElementById('ver_id').textContent = '#' + categoria.id;
     document.getElementById('ver_nombre').textContent = categoria.nombre;
     document.getElementById('ver_tipo').innerHTML = categoria.tipo_repuesto 
-        ? '<span class="badge bg-primary">' + categoria.tipo_repuesto + '</span>'
+        ? '<span class="badge" style="background-color: #64748b;">' + categoria.tipo_repuesto + '</span>'
         : '<span class="text-muted">Sin especificar</span>';
     document.getElementById('ver_caracteristicas').textContent = categoria.caracteristicas || 'Sin características especificadas';
 }
@@ -604,6 +782,17 @@ window.addEventListener('DOMContentLoaded', function() {
         // Remover parámetros de la URL
         const newUrl = window.location.pathname;
         window.history.replaceState({}, document.title, newUrl);
+    }
+    
+    // Mejorar UX en móvil - colapsar modales automáticamente
+    if (window.innerWidth <= 768) {
+        // Hacer que los modales se adapten mejor en móvil
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            modal.addEventListener('show.bs.modal', function() {
+                document.body.style.paddingRight = '0';
+            });
+        });
     }
 });
 </script>

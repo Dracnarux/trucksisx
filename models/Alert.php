@@ -110,10 +110,13 @@ class Alert {
 
     // Obtener alertas por vehículo
     public function getByVehicle($vehicleId) {
-        $query = "SELECT a.*, c.cargo as conductor_cargo, r.placa as vehiculo_placa
+        $query = "SELECT a.*, c.cargo as conductor_cargo, r.placa as vehiculo_placa,
+                         u.nombre as tecnico_nombre, ot.nombre_trabajo as orden_trabajo
                   FROM " . $this->table . " a 
                   LEFT JOIN cond c ON a.cond_id = c.id
                   LEFT JOIN regis_vehic r ON a.regis_vehic_id = r.id
+                  LEFT JOIN ord_trabj ot ON a.ord_trabj_id = ot.id
+                  LEFT JOIN users u ON ot.users_id = u.id
                   WHERE a.regis_vehic_id = :vehicle_id 
                   ORDER BY a.fecha_hora DESC";
 
@@ -185,7 +188,53 @@ class Alert {
         $stmt->bindParam(':estado', $status);
         $stmt->bindParam(':id', $id);
         
-        return $stmt->execute();
+        if ($stmt->execute()) {
+            // También actualizar la orden de trabajo asociada si existe
+            $this->updateRelatedWorkOrder($id, $status);
+            return true;
+        }
+        
+        return false;
+    }
+    
+    // Actualizar orden de trabajo relacionada cuando cambia el estado de la alerta
+    private function updateRelatedWorkOrder($alertId, $alertStatus) {
+        // Buscar órdenes de trabajo asociadas a esta alerta
+        $query = "SELECT id FROM ord_trabj WHERE alert_id = :alert_id";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':alert_id', $alertId);
+        $stmt->execute();
+        $workOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        if (!empty($workOrders)) {
+            // Mapear estados de alerta a estados de orden de trabajo
+            $workOrderStatus = '';
+            switch ($alertStatus) {
+                case 'resuelta':
+                    $workOrderStatus = 'completada';
+                    break;
+                case 'en_proceso':
+                    $workOrderStatus = 'en_progreso';
+                    break;
+                case 'activa':
+                    $workOrderStatus = 'pendiente';
+                    break;
+                case 'cancelada':
+                    $workOrderStatus = 'cancelada';
+                    break;
+                default:
+                    $workOrderStatus = 'pendiente';
+            }
+            
+            // Actualizar todas las órdenes de trabajo relacionadas
+            foreach ($workOrders as $workOrder) {
+                $updateQuery = "UPDATE ord_trabj SET estado = :estado WHERE id = :id";
+                $updateStmt = $this->db->prepare($updateQuery);
+                $updateStmt->bindParam(':estado', $workOrderStatus);
+                $updateStmt->bindParam(':id', $workOrder['id']);
+                $updateStmt->execute();
+            }
+        }
     }
 
     // Actualizar alerta completa
@@ -217,22 +266,57 @@ class Alert {
 
     // Obtener estadísticas de alertas por posición de llanta
     public function getTirePositionStats($vehicleId = null) {
-        $whereClause = $vehicleId ? "AND regis_vehic_id = :vehicle_id" : "";
+        // Obtener todas las posiciones posibles
+        $positions = $this->getTirePositions();
         
-        $query = "SELECT posicion_llanta, COUNT(*) as total_alertas,
-                         SUM(CASE WHEN estado = 'activa' THEN 1 ELSE 0 END) as alertas_activas,
-                         SUM(CASE WHEN prioridad = 'alta' OR prioridad = 'critica' THEN 1 ELSE 0 END) as alertas_criticas
-                  FROM " . $this->table . " 
-                  WHERE tipo_alerta = 'llanta' AND posicion_llanta IS NOT NULL 
-                  $whereClause
-                  GROUP BY posicion_llanta";
+        // Crear consulta con todas las posiciones usando UNION ALL
+        $whereClause = $vehicleId ? "AND a.regis_vehic_id = :vehicle_id" : "";
+        
+        $query = "
+            SELECT 
+                p.posicion_llanta,
+                COALESCE(COUNT(a.id), 0) as total_alertas,
+                COALESCE(SUM(CASE WHEN a.estado = 'activa' THEN 1 ELSE 0 END), 0) as alertas_activas,
+                COALESCE(SUM(CASE WHEN a.prioridad = 'critica' THEN 1 ELSE 0 END), 0) as alertas_criticas,
+                COALESCE(SUM(CASE WHEN a.prioridad = 'alta' THEN 1 ELSE 0 END), 0) as alertas_altas,
+                COALESCE(SUM(CASE WHEN a.prioridad = 'media' THEN 1 ELSE 0 END), 0) as alertas_medias,
+                COALESCE(SUM(CASE WHEN a.prioridad = 'baja' THEN 1 ELSE 0 END), 0) as alertas_bajas
+            FROM (";
+        
+        // Agregar cada posición como una fila en la subconsulta
+        $positionQueries = [];
+        foreach ($positions as $position_key => $position_name) {
+            $positionQueries[] = "SELECT '$position_key' as posicion_llanta";
+        }
+        
+        $query .= implode(" UNION ALL ", $positionQueries);
+        
+        $query .= ") p
+            LEFT JOIN " . $this->table . " a ON p.posicion_llanta = a.posicion_llanta 
+                AND a.tipo_alerta = 'llanta' $whereClause
+            GROUP BY p.posicion_llanta
+            ORDER BY p.posicion_llanta";
 
         $stmt = $this->db->prepare($query);
         if ($vehicleId) {
             $stmt->bindParam(':vehicle_id', $vehicleId);
         }
         $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Convertir todos los valores a enteros
+        foreach ($result as &$row) {
+            foreach ($row as $key => $value) {
+                if ($key !== 'posicion_llanta') {
+                    $row[$key] = (int)$value;
+                }
+            }
+        }
+        
+        // Debug: verificar cuántas posiciones se están devolviendo
+        error_log("Total de posiciones en estadísticas: " . count($result));
+        
+        return $result;
     }
 
     // Obtener posiciones de llantas disponibles
@@ -245,7 +329,9 @@ class Alert {
             'traccion1_izquierda2' => 'Tracción 1 - Izquierda 2',
             'traccion1_derecha2' => 'Tracción 1 - Derecha 2',
             'traccion2_izquierda' => 'Tracción 2 - Izquierda',
-            'traccion2_derecha' => 'Tracción 2 - Derecha'
+            'traccion2_derecha' => 'Tracción 2 - Derecha',
+            'traccion2_izquierda2' => 'Tracción 2 - Izquierda 2',
+            'traccion2_derecha2' => 'Tracción 2 - Derecha 2'
         ];
     }
 }

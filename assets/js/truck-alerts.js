@@ -53,7 +53,9 @@ class TruckAlertSystem {
             'traccion1_izquierda2': 'Tracción 1 - Izquierda 2',
             'traccion1_derecha2': 'Tracción 1 - Derecha 2',
             'traccion2_izquierda': 'Tracción 2 - Izquierda',
-            'traccion2_derecha': 'Tracción 2 - Derecha'
+            'traccion2_derecha': 'Tracción 2 - Derecha',
+            'traccion2_izquierda2': 'Tracción 2 - Izquierda 2',
+            'traccion2_derecha2': 'Tracción 2 - Derecha 2'
         };
         
         this.init();

@@ -153,12 +153,64 @@ class AlertController {
     // Actualizar estado de alerta
     public function updateStatus() {
         if ($_POST && isset($_POST['id']) && isset($_POST['estado'])) {
-            $result = $this->alert->updateStatus($_POST['id'], $_POST['estado']);
+            $alertId = $_POST['id'];
+            $nuevoEstado = $_POST['estado'];
             
-            if ($result) {
-                echo json_encode(['success' => true, 'message' => 'Estado actualizado correctamente']);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Error al actualizar el estado']);
+            require_once '../config/db.php';
+            $database = new Database();
+            $db = $database->getConnection();
+            
+            try {
+                // Iniciar transacción
+                $db->beginTransaction();
+                
+                // Actualizar estado de la alerta
+                $result = $this->alert->updateStatus($alertId, $nuevoEstado);
+                
+                if ($result) {
+                    // Actualizar órdenes de trabajo relacionadas
+                    $estadoOrden = '';
+                    switch ($nuevoEstado) {
+                        case 'resuelta':
+                            $estadoOrden = 'completada';
+                            break;
+                        case 'en_proceso':
+                            $estadoOrden = 'en_proceso';
+                            break;
+                        case 'activa':
+                            $estadoOrden = 'pendiente';
+                            break;
+                        case 'cancelada':
+                            $estadoOrden = 'cancelada';
+                            break;
+                        default:
+                            $estadoOrden = 'pendiente';
+                    }
+                    
+                    // Actualizar órdenes de trabajo que tienen esta alerta asociada
+                    $updateOrdenQuery = "UPDATE ord_trabj SET estado = :estado WHERE alert_id = :alert_id";
+                    $updateStmt = $db->prepare($updateOrdenQuery);
+                    $updateStmt->bindParam(':estado', $estadoOrden, PDO::PARAM_STR);
+                    $updateStmt->bindParam(':alert_id', $alertId, PDO::PARAM_INT);
+                    $updateStmt->execute();
+                    
+                    $ordenesCambiadas = $updateStmt->rowCount();
+                    
+                    $db->commit();
+                    
+                    $mensaje = 'Estado actualizado correctamente';
+                    if ($ordenesCambiadas > 0) {
+                        $mensaje .= ". Se actualizaron $ordenesCambiadas orden(es) de trabajo relacionada(s)";
+                    }
+                    
+                    echo json_encode(['success' => true, 'message' => $mensaje]);
+                } else {
+                    $db->rollback();
+                    echo json_encode(['success' => false, 'message' => 'Error al actualizar el estado']);
+                }
+            } catch (Exception $e) {
+                $db->rollback();
+                echo json_encode(['success' => false, 'message' => 'Error en la base de datos: ' . $e->getMessage()]);
             }
         } else {
             echo json_encode(['success' => false, 'message' => 'Datos insuficientes']);
@@ -192,14 +244,43 @@ class AlertController {
     // Eliminar alerta
     public function delete() {
         if ($_POST && isset($_POST['id'])) {
-            $result = $this->alert->delete($_POST['id']);
+            $alertId = $_POST['id'];
             
-            if ($result) {
-                echo json_encode(['success' => true, 'message' => 'Alerta eliminada correctamente']);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Error al eliminar la alerta']);
+            // Antes de eliminar, actualizar órdenes de trabajo relacionadas
+            require_once '../config/db.php';
+            $database = new Database();
+            $db = $database->getConnection();
+            
+            try {
+                // Iniciar transacción
+                $db->beginTransaction();
+                
+                // Actualizar órdenes de trabajo que referencian esta alerta
+                $updateOrdenQuery = "UPDATE ord_trabj SET alert_id = NULL WHERE alert_id = :alert_id";
+                $updateStmt = $db->prepare($updateOrdenQuery);
+                $updateStmt->bindParam(':alert_id', $alertId, PDO::PARAM_INT);
+                $updateStmt->execute();
+                
+                // Eliminar la alerta
+                $result = $this->alert->delete($alertId);
+                
+                if ($result) {
+                    $db->commit();
+                    echo json_encode([
+                        'success' => true, 
+                        'message' => 'Alerta eliminada correctamente. Las órdenes de trabajo relacionadas han sido actualizadas.'
+                    ]);
+                } else {
+                    $db->rollback();
+                    echo json_encode(['success' => false, 'message' => 'Error al eliminar la alerta']);
+                }
+            } catch (Exception $e) {
+                $db->rollback();
+                echo json_encode(['success' => false, 'message' => 'Error en la base de datos: ' . $e->getMessage()]);
             }
-    }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'ID de alerta no proporcionado']);
+        }
     }
 
     // Validar código de conductor
@@ -230,7 +311,8 @@ class AlertController {
     public function getDashboard() {
         $vehicleId = $_GET['vehicle_id'] ?? null;
         
-        $allAlerts = $this->alert->getAll();
+        // Obtener alertas filtradas por vehículo si se especifica
+        $allAlerts = $vehicleId ? $this->alert->getByVehicle($vehicleId) : $this->alert->getAll();
         $tireAlerts = $this->alert->getTireAlerts($vehicleId);
         $stats = $this->alert->getTirePositionStats($vehicleId);
         

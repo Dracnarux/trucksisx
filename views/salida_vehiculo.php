@@ -113,9 +113,20 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
             </select>
         </div>
         <div class="mb-3">
-        <div class="mb-3">
-            <label for="id_flotas" class="form-label">ID Flota</label>
-            <input type="number" class="form-control" name="id_flotas" required>
+            <label for="id_flotas" class="form-label">Vehículo de la Flota</label>
+            <select class="form-select" name="id_flotas" required>
+                <option value="">Seleccione un vehículo...</option>
+                <?php 
+                // Obtener vehículos registrados
+                $query_vehiculos = "SELECT id, placa, marca_vehiculo, modelo, num_cha FROM regis_vehic ORDER BY placa";
+                $stmt_vehiculos = mysqli_query($db, $query_vehiculos);
+                while ($vehiculo = mysqli_fetch_assoc($stmt_vehiculos)): 
+                ?>
+                    <option value="<?= $vehiculo['id'] ?>">
+                        <?= htmlspecialchars($vehiculo['placa']) ?> - <?= htmlspecialchars($vehiculo['marca_vehiculo']) ?> <?= htmlspecialchars($vehiculo['modelo']) ?> (ID: <?= $vehiculo['id'] ?>)
+                    </option>
+                <?php endwhile; ?>
+            </select>
         </div>
         <div class="mb-3">
             <label for="segui_monitoreo" class="form-label">Seguimiento y Monitoreo</label>
@@ -142,26 +153,47 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
     <?php endif; ?>
     <hr>
     <form class="row g-3 mb-3" method="get" action="">
-        <div class="col-md-3">
-            <input type="number" name="filtro_id" class="form-control" placeholder="ID Salida Vehículo" value="<?= isset($_GET['filtro_id']) ? htmlspecialchars($_GET['filtro_id']) : '' ?>">
+        <div class="col-md-2">
+            <input type="number" name="filtro_id" class="form-control" placeholder="ID Salida" value="<?= isset($_GET['filtro_id']) ? htmlspecialchars($_GET['filtro_id']) : '' ?>">
         </div>
-        <div class="col-md-3">
-            <input type="number" name="filtro_orden" class="form-control" placeholder="ID Orden de Trabajo" value="<?= isset($_GET['filtro_orden']) ? htmlspecialchars($_GET['filtro_orden']) : '' ?>">
+        <div class="col-md-2">
+            <input type="text" name="filtro_placa" class="form-control" placeholder="Placa Vehículo" value="<?= isset($_GET['filtro_placa']) ? htmlspecialchars($_GET['filtro_placa']) : '' ?>">
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
+            <input type="number" name="filtro_orden" class="form-control" placeholder="ID Orden" value="<?= isset($_GET['filtro_orden']) ? htmlspecialchars($_GET['filtro_orden']) : '' ?>">
+        </div>
+        <div class="col-md-2">
             <input type="number" name="filtro_alerta" class="form-control" placeholder="ID Alerta" value="<?= isset($_GET['filtro_alerta']) ? htmlspecialchars($_GET['filtro_alerta']) : '' ?>">
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+        </div>
+        <div class="col-md-2">
+            <a href="salida_vehiculo.php" class="btn btn-secondary w-100">Limpiar</a>
         </div>
     </form>
     <h4 class="mt-4">Salidas de Vehículos Registradas</h4>
     <?php
-    $salidas_vehiculo = (new SaliVehi($db))->getAll();
-    // Filtro por ID, orden de trabajo y alerta
+    // Obtener salidas de vehículo con información del vehículo relacionado
+    $query_salidas = "SELECT sv.*, rv.placa, rv.marca_vehiculo, rv.modelo 
+                      FROM sali_vehi sv 
+                      LEFT JOIN regis_vehic rv ON sv.id_flotas = rv.id 
+                      ORDER BY sv.id DESC";
+    $result_salidas = mysqli_query($db, $query_salidas);
+    $salidas_vehiculo = [];
+    while ($row = mysqli_fetch_assoc($result_salidas)) {
+        $salidas_vehiculo[] = $row;
+    }
+    
+    // Filtros
     if (isset($_GET['filtro_id']) && $_GET['filtro_id'] !== '') {
         $salidas_vehiculo = array_filter($salidas_vehiculo, function($sv) {
             return $sv['id'] == $_GET['filtro_id'];
+        });
+    }
+    if (isset($_GET['filtro_placa']) && $_GET['filtro_placa'] !== '') {
+        $salidas_vehiculo = array_filter($salidas_vehiculo, function($sv) {
+            return stripos($sv['placa'], $_GET['filtro_placa']) !== false;
         });
     }
     if (isset($_GET['filtro_orden']) && $_GET['filtro_orden'] !== '') {
@@ -180,7 +212,7 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>ID Flota</th>
+                    <th>Vehículo</th>
                     <th>Monitoreo</th>
                     <th>Combustible</th>
                     <th>Regulaciones</th>
@@ -197,7 +229,15 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
             <?php foreach ($salidas_vehiculo as $sv): ?>
                 <tr>
                     <td><?= $sv['id'] ?></td>
-                    <td><?= $sv['id_flotas'] ?></td>
+                    <td>
+                        <?php if ($sv['placa']): ?>
+                            <strong><?= htmlspecialchars($sv['placa']) ?></strong><br>
+                            <small class="text-muted"><?= htmlspecialchars($sv['marca_vehiculo']) ?> <?= htmlspecialchars($sv['modelo']) ?></small><br>
+                            <small class="text-muted">ID: <?= $sv['id_flotas'] ?></small>
+                        <?php else: ?>
+                            <span class="text-danger">Vehículo no encontrado (ID: <?= $sv['id_flotas'] ?>)</span>
+                        <?php endif; ?>
+                    </td>
                     <td><?= htmlspecialchars($sv['segui_monitoreo']) ?></td>
                     <td><?= htmlspecialchars($sv['control_combustible']) ?></td>
                     <td><?= htmlspecialchars($sv['cump_regulaciones']) ?></td>

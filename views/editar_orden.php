@@ -1,10 +1,22 @@
 
 
 <?php
+session_start();
+if (!isset($_SESSION['usuario'])) {
+    header('Location: ../index.php');
+    exit();
+}
+// Verificar que no sea conductor
+if (isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol'] === 'conductor') {
+    header('Location: orden_trabajo.php');
+    exit();
+}
+
 require_once '../config/db.php';
 $conn = conectarDB();
 require_once '../models/User.php';
 $userModel = new User();
+$conductores = $userModel->getConductoresCond();
 $tecnicos = $userModel->getTecnicos();
 require_once '../models/Alert.php';
 $alertModel = new Alert();
@@ -12,32 +24,111 @@ $alertas = $alertModel->getAll();
 require_once '../models/Repue.php';
 $repueModel = new Repue();
 $repues = $repueModel->getAll();
-$id = $_GET['id'] ?? null;
-if (!$id) { header('Location: orden_trabajo.php'); exit; }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Debug: Log de datos recibidos
+    error_log("POST data recibida: " . print_r($_POST, true));
+    
+    $id = $_POST['id'] ?? null;
+    if (!$id) { 
+        error_log("Error: ID no encontrado en POST data");
+        header('Location: orden_trabajo.php?mensaje=' . urlencode('Error: ID de orden no encontrado') . '&tipo=error'); 
+        exit; 
+    }
+    
+    error_log("Actualizando orden ID: " . $id);
+    
     $nombre_trabajo = $_POST['nombre_trabajo'];
     $descripcion = $_POST['descripcion'];
     $nombre_repuesto = $_POST['nombre_repuesto'] ?? '';
     $fecha_estimada = $_POST['fecha_estimada'];
     $estado = $_POST['estado'];
     $prioridad = $_POST['prioridad'];
-    $cond_id = $_POST['cond_id'];
+    $cond_id = !empty($_POST['cond_id']) ? $_POST['cond_id'] : null;
     $users_id = $_POST['users_id'];
-    $alert_id = $_POST['alert_id'] ?? null;
+    $alert_id = !empty($_POST['alert_id']) ? $_POST['alert_id'] : null;
+    
+    error_log("Datos a actualizar - Estado: $estado, Prioridad: $prioridad");
+    
+    // Validar que el conductor existe
+    if (!empty($cond_id)) {
+        $check_stmt = $conn->prepare("SELECT id FROM cond WHERE id = ?");
+        $check_stmt->bind_param('i', $cond_id);
+        $check_stmt->execute();
+        $check_result = $check_stmt->get_result();
+        if ($check_result->num_rows == 0) {
+            $cond_id = null; // Si no existe, lo ponemos como null
+        }
+        $check_stmt->close();
+    } else {
+        $cond_id = null;
+    }
+    
     $stmt = $conn->prepare("UPDATE ord_trabj SET nombre_trabajo=?, descripcion=?, nombre_repuesto=?, fecha_estimada=?, estado=?, prioridad=?, cond_id=?, users_id=?, alert_id=? WHERE id=?");
-    $stmt->bind_param('sssssssiii', $nombre_trabajo, $descripcion, $nombre_repuesto, $fecha_estimada, $estado, $prioridad, $cond_id, $users_id, $alert_id, $id);
-    $stmt->execute();
-    $stmt->close();
-    header('Location: orden_trabajo.php');
-    exit;
+    $stmt->bind_param('ssssssiiii', $nombre_trabajo, $descripcion, $nombre_repuesto, $fecha_estimada, $estado, $prioridad, $cond_id, $users_id, $alert_id, $id);
+    
+    if ($stmt->execute()) {
+        // Si hay una alerta asociada, actualizar su estado según el estado de la orden
+        if ($alert_id && !empty($alert_id)) {
+            $alert_estado = '';
+            switch ($estado) {
+                case 'completada':
+                    $alert_estado = 'resuelta';
+                    break;
+                case 'en_progreso':
+                    $alert_estado = 'en_proceso';
+                    break;
+                case 'pendiente':
+                    $alert_estado = 'activa';
+                    break;
+                case 'cancelada':
+                    $alert_estado = 'cancelada';
+                    break;
+                default:
+                    $alert_estado = 'activa';
+            }
+            
+            $alert_stmt = $conn->prepare("UPDATE alert SET estado=? WHERE id=?");
+            $alert_stmt->bind_param('si', $alert_estado, $alert_id);
+            $alert_stmt->execute();
+            $alert_stmt->close();
+        }
+        
+        $stmt->close();
+        
+        // Redireccionar con mensaje de éxito
+        $mensaje = urlencode("La orden de trabajo '$nombre_trabajo' ha sido actualizada exitosamente.");
+        header("Location: orden_trabajo.php?mensaje=$mensaje&tipo=exito");
+        exit;
+    } else {
+        $stmt->close();
+        
+        // Redireccionar con mensaje de error
+        $mensaje = urlencode("Error al actualizar la orden de trabajo. Por favor, inténtelo nuevamente.");
+        header("Location: orden_trabajo.php?mensaje=$mensaje&tipo=error");
+        exit;
+    }
+} else {
+    // Si es GET, obtener ID de la URL para mostrar el formulario
+    $id = $_GET['id'] ?? null;
+    if (!$id) { 
+        header('Location: orden_trabajo.php'); 
+        exit; 
+    }
 }
+
 // Obtener datos actuales
 $stmt = $conn->prepare("SELECT * FROM ord_trabj WHERE id=?");
 $stmt->bind_param('i', $id);
 $stmt->execute();
 $result = $stmt->get_result();
 $orden = $result->fetch_assoc();
+
+if (!$orden) {
+    header('Location: orden_trabajo.php?mensaje=' . urlencode('Orden de trabajo no encontrada') . '&tipo=error');
+    exit;
+}
+
 $stmt->close();
 ?>
 
@@ -68,9 +159,7 @@ $stmt->close();
     </div>
     <div class="container">
     <?php
-    // Obtener conductores antes del HTML para que no se muestre en la plataforma
-    $conductores = $userModel->getConductores();
-    // No imprimir ni mostrar la variable, solo usarla en el selector
+    // Los conductores ya fueron cargados al inicio del archivo
     ?>
         <div class="card mt-4">
             <div class="card-header bg-warning text-dark">
@@ -107,6 +196,7 @@ $stmt->close();
                             <option value="pendiente" <?= $orden['estado']=='pendiente'?'selected':'' ?>>Pendiente</option>
                             <option value="en_proceso" <?= $orden['estado']=='en_proceso'?'selected':'' ?>>En Proceso</option>
                             <option value="completada" <?= $orden['estado']=='completada'?'selected':'' ?>>Completada</option>
+                            <option value="cancelada" <?= $orden['estado']=='cancelada'?'selected':'' ?>>Cancelada</option>
                         </select>
                     </div>
                     <div class="col-md-4">
@@ -120,11 +210,11 @@ $stmt->close();
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Conductor</label>
-                        <select name="cond_id" class="form-select" required>
-                            <option value="">Seleccione...</option>
+                        <select name="cond_id" class="form-select">
+                            <option value="" <?= empty($orden['cond_id'])?'selected':'' ?>>Sin asignar</option>
                             <?php foreach($conductores as $conductor): ?>
                                 <option value="<?= $conductor['id'] ?>" <?= $orden['cond_id']==$conductor['id']?'selected':'' ?>>
-                                    <?= htmlspecialchars($conductor['nombre'] . ' ' . $conductor['apellido'] . ' (' . $conductor['num_documento'] . ')') ?>
+                                    <?= htmlspecialchars($conductor['nombre']) ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>

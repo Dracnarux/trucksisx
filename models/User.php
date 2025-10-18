@@ -44,9 +44,18 @@ class User {
     return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    // Obtener todos los conductores
+    // Obtener todos los conductores de la tabla users
     public function getConductores() {
         $sql = "SELECT * FROM " . $this->table . " WHERE rol = 'conductor' ORDER BY nombre, apellido";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    // Obtener todos los conductores de la tabla cond (para órdenes de trabajo)
+    public function getConductoresCond() {
+        $sql = "SELECT id, cargo as nombre, descripcion FROM cond ORDER BY cargo";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         
