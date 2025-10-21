@@ -13,54 +13,117 @@ if (!isset($_SESSION['usuario'])) {
     <title>Gestión de Repuestos | TruckSISX</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
+            color: #374151;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
             min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
-        .main-container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            margin: 2rem auto;
-            overflow: hidden;
+        h2, h3, h4, h5, h6 {
+            color: #1E3A8A;
+            font-weight: 600;
         }
-
-        .header-section {
-            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
-            color: white;
-            padding: 3rem 2rem;
+        .container-fluid {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .main-header {
+            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(30, 58, 138, 0.2);
+            color: #FFFFFF;
+            margin-bottom: 2rem;
+            padding: 2rem;
             position: relative;
             overflow: hidden;
         }
-
-        .header-section::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-            animation: float 20s ease-in-out infinite;
+        .main-header h1 {
+            color: #fff;
+            margin-bottom: 0.5rem;
         }
-
-        @keyframes float {
-            0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
-            33% { transform: translate(30px, -30px) rotate(120deg); }
-            66% { transform: translate(-20px, 20px) rotate(240deg); }
+        .main-header .lead {
+            font-size: 1.1rem;
+            opacity: 0.9;
         }
-
-        .content-section {
-            padding: 3rem 2rem;
+        .card {
+            background: #FFFFFF;
+            border: 1px solid rgba(209, 213, 219, 0.3);
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
         }
-
+        .card-header {
+            background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+            border-bottom: 1px solid #D1D5DB;
+            color: #1E3A8A;
+            font-weight: 600;
+            padding: 1.25rem;
+        }
+        .card-body {
+            padding: 1.5rem;
+        }
+        .btn {
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            min-height: 44px;
+            padding: 0.75rem 1.5rem;
+            position: relative;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+            color: #1E3A8A !important;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+            color: #1E3A8A !important;
+            transform: translateY(-2px);
+        }
+        .btn-outline-primary, .btn-secondary {
+            background: #FFFFFF;
+            border: 2px solid #1E3A8A;
+            color: #1E3A8A !important;
+        }
+        .btn-outline-primary:hover, .btn-secondary:hover {
+            background: #1E3A8A;
+            color: #FFFFFF !important;
+            transform: translateY(-2px);
+        }
+        .form-control, .form-select {
+            background: #FFFFFF;
+            border: 2px solid #D1D5DB;
+            border-radius: 8px;
+            color: #374151;
+            font-size: 16px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #1E3A8A;
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+            outline: none;
+        }
+        .form-label {
+            color: #1E3A8A;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
         .module-card {
             border: 1px solid #e2e8f0;
             border-radius: 12px;
@@ -71,13 +134,11 @@ if (!isset($_SESSION['usuario'])) {
             background: white;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
-
         .module-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-            border-color: var(--card-color);
+            border-color: #1E3A8A;
         }
-
         .module-card::before {
             content: '';
             position: absolute;
@@ -85,16 +146,14 @@ if (!isset($_SESSION['usuario'])) {
             left: 0;
             right: 0;
             height: 3px;
-            background: var(--card-color);
+            background: #1E3A8A;
             border-radius: 12px 12px 0 0;
         }
-
         .card-body {
             padding: 2rem;
             text-align: center;
             position: relative;
         }
-
         .module-icon {
             width: 60px;
             height: 60px;
@@ -104,27 +163,24 @@ if (!isset($_SESSION['usuario'])) {
             align-items: center;
             justify-content: center;
             font-size: 1.5rem;
-            color: var(--card-color);
-            background: rgba(100, 116, 139, 0.1);
-            border: 1px solid rgba(100, 116, 139, 0.2);
+            color: #1E3A8A;
+            background: rgba(30, 58, 138, 0.08);
+            border: 1px solid rgba(30, 58, 138, 0.15);
         }
-
         .module-title {
             font-size: 1.4rem;
             font-weight: 700;
             margin-bottom: 1rem;
-            color: #1f2937;
+            color: #1E3A8A;
         }
-
         .module-description {
             color: #6b7280;
             line-height: 1.6;
             margin-bottom: 2rem;
             font-size: 0.95rem;
         }
-
         .module-btn {
-            background: var(--card-color);
+            background: #1E3A8A;
             border: none;
             color: white;
             padding: 0.75rem 1.5rem;
@@ -137,138 +193,64 @@ if (!isset($_SESSION['usuario'])) {
             transition: all 0.2s ease;
             font-size: 0.9rem;
         }
-
         .module-btn:hover {
-            background: color-mix(in srgb, var(--card-color) 85%, black);
+            background: #3B82F6;
             color: white;
         }
-
-        .categories { --card-color: #64748b; }
-        .subcategories { --card-color: #475569; }
-        .parts { --card-color: #334155; }
-        .providers { --card-color: #1e293b; }
-
-        .stats-section {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            border-radius: 20px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-item {
-            text-align: center;
-            padding: 1rem;
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: #64748b;
-            display: block;
-        }
-
-        .stat-label {
-            color: #6b7280;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        .breadcrumb-custom {
-            background: transparent;
-            padding: 0;
-            margin-bottom: 2rem;
-        }
-
-        .breadcrumb-custom .breadcrumb-item a {
-            color: #94a3b8;
-            text-decoration: none;
-        }
-
-        .welcome-text {
-            position: relative;
-            z-index: 1;
-        }
-
-        .user-info {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 1rem 1.5rem;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
         @media (max-width: 768px) {
-            .header-section {
-                padding: 2rem 1rem;
+            .main-header {
+                padding: 1.5rem;
+                text-align: center;
             }
-            .content-section {
-                padding: 2rem 1rem;
+            .card-body {
+                padding: 1rem;
             }
-            .module-icon {
-                width: 60px;
-                height: 60px;
+            .btn {
+                font-size: 16px;
+                min-height: 44px;
+                width: 100%;
+            }
+            .btn + .btn {
+                margin-top: 0.5rem;
+            }
+        }
+        @media (max-width: 576px) {
+            .container-fluid {
+                padding: 0.5rem;
+            }
+            h2 {
                 font-size: 1.5rem;
+            }
+            .main-header {
+                padding: 1rem;
             }
         }
     </style>
 </head>
 <body>
-<div class="container-fluid">
-    <div class="main-container">
-        <!-- Header Section -->
-        <div class="header-section">
-            <div class="welcome-text">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <nav aria-label="breadcrumb" class="breadcrumb-custom">
-                            <ol class="breadcrumb">
-                                <li class="breadcrumb-item">
-                                    <a href="dashboard.php" class="text-white-50">
-                                        <i class="bi bi-house-door me-1"></i>Dashboard
-                                    </a>
-                                </li>
-                                <li class="breadcrumb-item active text-white" aria-current="page">
-                                    Gestión de Repuestos
-                                </li>
-                            </ol>
-                        </nav>
-                        <h1 class="display-4 fw-bold mb-2">
-                            <i class="bi bi-gear-wide-connected me-3"></i>Gestión de Repuestos
-                        </h1>
-                        <p class="lead mb-0 text-white-50">
-                            Centro de control para la administración completa del inventario de repuestos y proveedores
-                        </p>
-                    </div>
-                    <div class="col-md-4 text-end">
-                        <div class="user-info">
-                            <div class="d-flex align-items-center justify-content-end">
-                                <i class="bi bi-person-circle me-2 fs-4"></i>
-                                <div class="text-start">
-                                    <small class="d-block text-white-50">Bienvenido/a</small>
-                                    <strong class="text-white">
-                                        <?= htmlspecialchars($_SESSION['usuario']['usuario'] ?? $_SESSION['usuario']['nombre'] ?? 'Usuario') ?>
-                                    </strong>
-                                    <?php if (isset($_SESSION['usuario']['rol'])): ?>
-                                    <small class="d-block text-white-50" style="font-size: 0.75rem;">
-                                        <?= ucfirst(htmlspecialchars($_SESSION['usuario']['rol'])) ?>
-                                    </small>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+<div class="container-fluid py-4">
+    <div class="main-header animate-fade-in mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h1 class="h3 mb-1"><i class="fas fa-cogs text-accent"></i> Gestión de Repuestos</h1>
+                <p class="mb-0 opacity-75">Centro de control para la administración completa del inventario de repuestos y proveedores</p>
+            </div>
+            <div class="d-flex gap-2 mt-3 mt-md-0">
+                <a href="dashboard.php" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left"></i> Volver al Dashboard
+                </a>
             </div>
         </div>
-
-        <!-- Content Section -->
-        <div class="content-section">
-            
-            <!-- Módulos de Gestión -->
-            <div class="row g-4 mb-5">
+    </div>
+    <div class="card animate-slide-up shadow-corporate mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-gear-wide-connected text-accent"></i> Módulos de Gestión</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-4 mb-2">
                 <!-- Categorías de Repuestos -->
                 <div class="col-lg-4 col-md-6">
-                    <div class="module-card categories">
+                    <div class="module-card">
                         <div class="card-body">
                             <div class="module-icon">
                                 <i class="bi bi-collection"></i>
@@ -285,10 +267,9 @@ if (!isset($_SESSION['usuario'])) {
                         </div>
                     </div>
                 </div>
-
                 <!-- Subcategorías de Repuestos -->
                 <div class="col-lg-4 col-md-6">
-                    <div class="module-card subcategories">
+                    <div class="module-card">
                         <div class="card-body">
                             <div class="module-icon">
                                 <i class="bi bi-diagram-3"></i>
@@ -305,10 +286,9 @@ if (!isset($_SESSION['usuario'])) {
                         </div>
                     </div>
                 </div>
-
                 <!-- Repuestos -->
                 <div class="col-lg-4 col-md-6">
-                    <div class="module-card parts">
+                    <div class="module-card">
                         <div class="card-body">
                             <div class="module-icon">
                                 <i class="bi bi-gear-wide-connected"></i>
@@ -325,10 +305,9 @@ if (!isset($_SESSION['usuario'])) {
                         </div>
                     </div>
                 </div>
-
                 <!-- Proveedores -->
                 <div class="col-lg-4 col-md-6">
-                    <div class="module-card providers">
+                    <div class="module-card">
                         <div class="card-body">
                             <div class="module-icon">
                                 <i class="bi bi-building"></i>
@@ -344,17 +323,6 @@ if (!isset($_SESSION['usuario'])) {
                             </a>
                         </div>
                     </div>
-                </div>
-
-
-            </div>
-
-            <!-- Navegación -->
-            <div class="row">
-                <div class="col-12 text-center">
-                    <a href="dashboard.php" class="btn btn-outline-secondary btn-lg">
-                        <i class="bi bi-arrow-left me-2"></i>Volver al Dashboard
-                    </a>
                 </div>
             </div>
         </div>

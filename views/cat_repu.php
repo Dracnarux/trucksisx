@@ -12,90 +12,189 @@ require_once '../controllers/CatRepuController.php';
 <head>
     <meta charset="UTF-8">
     <title>Categoría de Repuestos</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(120deg, #f8fafc 0%, #e3e6ed 100%);
+            background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
+            color: #374151;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        h2, h3, h4, h5, h6 {
+            color: #1E3A8A;
+            font-weight: 600;
         }
         .container {
-            background: rgba(100,116,139,0.10);
-            border-radius: 16px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.10);
-            padding: 32px 24px;
-            margin-top: 32px;
-            color: #111;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(100,116,139,0.15);
-        }
-        h2 {
-            color: #64748b;
-        }
-        .form-label, .form-select, .form-control {
-            color: #111 !important;
-        }
-        .btn-primary, .btn-outline-primary {
-            background-color: #64748b !important;
-            border-color: #64748b !important;
-            color: #fff !important;
-        }
-        .btn-primary:hover, .btn-outline-primary:hover {
-            background-color: #475569 !important;
-            border-color: #475569 !important;
-        }
-        .btn-secondary {
-            background-color: rgba(100,116,139,0.15) !important;
-            color: #111 !important;
-            border: 1px solid rgba(100,116,139,0.15) !important;
-        }
-        .btn-success {
-            background-color: #198754 !important;
-            border-color: #198754 !important;
-        }
-        .table-bordered, .table th, .table td {
-            color: #111 !important;
-        }
-        thead tr {
-            background: rgba(100,116,139,0.10) !important;
-            color: #111 !important;
-            border-bottom: 2px solid rgba(100,116,139,0.15);
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem;
         }
         .main-container {
-            background: rgba(255, 255, 255, 0.95);
+            background: #FFFFFF;
             border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.10);
             margin-top: 2rem;
             margin-bottom: 2rem;
         }
         .header-section {
-            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
-            color: white !important;
-            padding: 2rem;
+            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            color: #fff !important;
             border-radius: 20px 20px 0 0;
+            box-shadow: 0 10px 25px rgba(30, 58, 138, 0.2);
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
         }
         .header-section h2 {
-            color: white !important;
+            color: #fff !important;
             font-weight: 700;
         }
         .header-section p {
             color: rgba(255, 255, 255, 0.9) !important;
         }
         .header-section .btn-light {
-            background: white !important;
-            color: #64748b !important;
+            background: #fff !important;
+            color: #1E3A8A !important;
             border: none;
             font-weight: 600;
         }
         .header-section .btn-light:hover {
-            background: rgba(255, 255, 255, 0.9) !important;
-            color: #475569 !important;
+            background: #F3F4F6 !important;
+            color: #3B82F6 !important;
         }
         .content-section {
             padding: 2rem;
+        }
+        .card, .main-container {
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            border: 1px solid rgba(209, 213, 219, 0.3);
+            background: #fff;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+            border-bottom: 1px solid #D1D5DB;
+            color: #1E3A8A;
+            font-weight: 600;
+            padding: 1.25rem;
+        }
+        .card-body {
+            padding: 1.5rem;
+        }
+        .btn {
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            min-height: 44px;
+            padding: 0.75rem 1.5rem;
+            position: relative;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+            color: #1E3A8A !important;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+            color: #1E3A8A !important;
+            transform: translateY(-2px);
+        }
+        .btn-outline-primary, .btn-secondary {
+            background: #FFFFFF;
+            border: 2px solid #1E3A8A;
+            color: #1E3A8A !important;
+        }
+        .btn-outline-primary:hover, .btn-secondary:hover {
+            background: #1E3A8A;
+            color: #FFFFFF !important;
+            transform: translateY(-2px);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: #FFFFFF !important;
+        }
+        .btn-success:hover {
+            background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+            color: #fff !important;
+        }
+        .btn-warning {
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+            color: #1E3A8A !important;
+        }
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            color: #1E3A8A !important;
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            color: #FFFFFF !important;
+        }
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+            color: #fff !important;
+        }
+        .table-responsive {
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        .table {
+            margin-bottom: 0;
+            font-size: 13px;
+        }
+        .table thead th {
+            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            border: none;
+            color: #FFFFFF;
+            font-weight: 700;
+            padding: 0.7rem 0.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .table tbody td {
+            border-bottom: 1px solid #E5E7EB;
+            color: #374151;
+            padding: 0.6rem 0.5rem;
+            vertical-align: middle;
+        }
+        .table-hover tbody tr:hover {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(30, 58, 138, 0.08) 100%);
+        }
+        .table td.text-center .btn {
+            font-size: 12px;
+            padding: 0.3rem 0.6rem;
+            margin: 0 2px;
+        }
+        .badge {
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+        }
+        .badge.bg-success {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+        }
+        .badge.bg-warning {
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%) !important;
+            color: #1E3A8A !important;
+        }
+        .badge.bg-danger {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
+        }
+        .badge.bg-info {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
         }
         .modal-content {
             border-radius: 20px;
@@ -104,6 +203,24 @@ require_once '../controllers/CatRepuController.php';
         }
         .modal-header {
             border-radius: 20px 20px 0 0;
+            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            color: #fff;
+        }
+        .modal-header.bg-success {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+            color: #fff !important;
+        }
+        .modal-header.bg-warning {
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%) !important;
+            color: #1E3A8A !important;
+        }
+        .modal-header.bg-danger {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
+            color: #fff !important;
+        }
+        .modal-header.bg-info {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
+            color: #fff !important;
         }
         .form-control, .form-select {
             border-radius: 10px;
@@ -112,16 +229,27 @@ require_once '../controllers/CatRepuController.php';
             transition: all 0.3s ease;
         }
         .form-control:focus, .form-select:focus {
-            border-color: #64748b;
-            box-shadow: 0 0 0 0.2rem rgba(100, 116, 139, 0.25);
+            border-color: #1E3A8A;
+            box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.15);
         }
-        /* Asegurar visibilidad del texto en header */
-        .header-section * {
-            color: inherit !important;
+        .form-label {
+            color: #1E3A8A;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
         }
-        .header-section .bi {
-            color: white !important;
+        /* Animaciones */
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
+        .animate-slide-up { animation: slideInUp 0.6s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
+        /* Responsive y utilidades igual que antes... */
+        /* ...existing code... */
 
         /* Mejoras para móviles */
         @media (max-width: 768px) {

@@ -54,154 +54,482 @@ foreach($tecnicos as $t) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        .main-header {
-            background: linear-gradient(135deg, #64748b, #475569);
-            color: white;
-            border-radius: 10px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        /* ========== RESET Y BASE ========== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
-        .card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 1.5rem;
+
+        /* ========== TIPOGRAFÍA ========== */
+        body {
+            background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
+            color: #374151;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            min-height: 100vh;
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #64748b, #475569);
-            border: none;
-            border-radius: 25px;
-            padding: 0.5rem 1.5rem;
-            transition: all 0.3s ease;
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        .btn-outline-primary {
-            border-color: #64748b;
-            color: #64748b;
-            border-radius: 25px;
-            padding: 0.5rem 1.5rem;
-            transition: all 0.3s ease;
-        }
-        .btn-outline-primary:hover {
-            background: linear-gradient(135deg, #64748b, #475569);
-            border-color: #64748b;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        .btn-success {
-            background: linear-gradient(135deg, #198754, #146c43);
-            border: none;
-            border-radius: 25px;
-            transition: all 0.3s ease;
-        }
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        .btn-warning {
-            background: linear-gradient(135deg, #ffc107, #f0ad4e);
-            border: none;
-            border-radius: 25px;
-            color: #000;
-            transition: all 0.3s ease;
-        }
-        .btn-warning:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        .btn-danger {
-            background: linear-gradient(135deg, #dc3545, #c82333);
-            border: none;
-            border-radius: 25px;
-            transition: all 0.3s ease;
-        }
-        .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        .modal-header {
-            background: linear-gradient(135deg, #64748b, #475569);
-            color: white;
-            border-radius: 15px 15px 0 0;
-        }
-        .modal-content {
-            border-radius: 15px;
-            border: none;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        .form-section {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 1rem;
+
+        h1, h2, h3, h4, h5, h6 {
+            color: #1E3A8A;
+            font-weight: 600;
+            line-height: 1.3;
             margin-bottom: 1rem;
         }
-        .form-section h6 {
-            color: #495057;
-            margin-bottom: 0.8rem;
-            font-weight: 600;
+
+        h1 {
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 700;
         }
-        .table {
-            border-radius: 10px;
+
+        h2 {
+            font-size: clamp(1.5rem, 3vw, 2rem);
+        }
+
+        h3 {
+            font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+        }
+
+        /* ========== LAYOUT PRINCIPAL ========== */
+        .container-fluid {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .main-header {
+            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(30, 58, 138, 0.2);
+            color: #FFFFFF;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            position: relative;
             overflow: hidden;
         }
-        .table thead {
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+
+        .main-header::before {
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2"/></svg>');
+            content: '';
+            height: 200px;
+            opacity: 0.1;
+            position: absolute;
+            right: -50px;
+            top: -50px;
+            width: 200px;
         }
-        .table-responsive {
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+
+        .main-header h1 {
+            color: #FFFFFF;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 2;
         }
-        .form-control, .form-select {
-            border-radius: 8px;
-            border: 1px solid #dee2e6;
+
+        .main-header .lead {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ========== COMPONENTES - CARDS ========== */
+        .card {
+            background: #FFFFFF;
+            border: 1px solid rgba(209, 213, 219, 0.3);
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
             transition: all 0.3s ease;
         }
-        .form-control:focus, .form-select:focus {
-            border-color: #64748b;
-            box-shadow: 0 0 0 0.2rem rgba(100, 116, 139, 0.25);
+
+        .card:hover {
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            transform: translateY(-2px);
         }
+
+        .card-header {
+            background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+            border-bottom: 1px solid #D1D5DB;
+            color: #1E3A8A;
+            font-weight: 600;
+            padding: 1.25rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* ========== COMPONENTES - BOTONES ========== */
+        .btn {
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            min-height: 44px;
+            padding: 0.75rem 1.5rem;
+            position: relative;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn:focus {
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.3);
+            outline: none;
+        }
+
+        /* Botón Principal */
+        .btn-primary {
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+            color: #1E3A8A !important;
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+            color: #1E3A8A !important;
+            transform: translateY(-2px);
+        }
+
+        /* Botón Secundario */
+        .btn-outline-primary, .btn-secondary {
+            background: #FFFFFF;
+            border: 2px solid #1E3A8A;
+            color: #1E3A8A !important;
+        }
+
+        .btn-outline-primary:hover, .btn-secondary:hover {
+            background: #1E3A8A;
+            color: #FFFFFF !important;
+            transform: translateY(-2px);
+        }
+
+        /* Botones de Estado */
+        .btn-success {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: #FFFFFF !important;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+            color: #1E3A8A !important;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            color: #FFFFFF !important;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            color: #FFFFFF !important;
+        }
+
+        .btn:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        /* ========== COMPONENTES - FORMULARIOS ========== */
+        .form-control, .form-select {
+            background: #FFFFFF;
+            border: 2px solid #D1D5DB;
+            border-radius: 8px;
+            color: #374151;
+            font-size: 16px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #1E3A8A;
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+            outline: none;
+        }
+
+        .form-label {
+            color: #1E3A8A;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-section {
+            background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+        }
+
+        .form-section h6 {
+            border-bottom: 2px solid #FBBF24;
+            color: #1E3A8A;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+        }
+
+        /* ========== COMPONENTES - TABLAS ========== */
+
+        .table-responsive {
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .table {
+            margin-bottom: 0;
+            font-size: 13px;
+        }
+
+        .table thead th {
+            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            border: none;
+            color: #FFFFFF;
+            font-weight: 700;
+            padding: 0.7rem 0.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .table tbody td {
+            border-bottom: 1px solid #E5E7EB;
+            color: #374151;
+            padding: 0.6rem 0.5rem;
+            vertical-align: middle;
+        }
+
+        .table-hover tbody tr:hover {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(30, 58, 138, 0.08) 100%);
+        }
+
+        /* Botones de acción en la tabla */
+        .table td.text-center .btn {
+            font-size: 12px;
+            padding: 0.3rem 0.6rem;
+            margin: 0 2px;
+        }
+        .table td.text-center .btn-info {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            color: #fff !important;
+        }
+        .table td.text-center .btn-warning {
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+            color: #1E3A8A !important;
+        }
+        .table td.text-center .btn-danger {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            color: #fff !important;
+        }
+
+        /* ========== COMPONENTES - BADGES ========== */
         .badge {
             border-radius: 20px;
-            padding: 0.5rem 1rem;
             font-size: 0.8rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
         }
-        .badge-success {
-            background: linear-gradient(135deg, #198754, #146c43);
+
+        .badge.bg-success {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
         }
-        .badge-warning {
-            background: linear-gradient(135deg, #ffc107, #f0ad4e);
-            color: #000;
+
+        .badge.bg-warning {
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%) !important;
+            color: #1E3A8A !important;
         }
-        .badge-danger {
-            background: linear-gradient(135deg, #dc3545, #c82333);
+
+        .badge.bg-danger {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
         }
-        .badge-info {
-            background: linear-gradient(135deg, #0dcaf0, #31d2f2);
-            color: #000;
+
+        .badge.bg-info {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
         }
-        .alert {
-            border-radius: 10px;
+
+        /* ========== COMPONENTES - MODALES ========== */
+        .modal-content {
             border: none;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
         }
-        .table-hover tbody tr:hover {
-            background-color: rgba(100, 116, 139, 0.1);
+
+        .modal-header {
+            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            border-radius: 12px 12px 0 0;
+            color: #FFFFFF;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #E5E7EB;
+            padding: 1.5rem 2rem;
+        }
+
+        /* ========== COMPONENTES - ALERTAS ========== */
+        .alert {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+            color: #059669;
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
+            color: #D97706;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%);
+            color: #DC2626;
+        }
+
+        /* ========== RESPONSIVIDAD ========== */
+        @media (max-width: 768px) {
+            .container-fluid {
+                padding: 1rem;
+            }
+
+            .main-header {
+                padding: 1.5rem;
+                text-align: center;
+            }
+
+            .card-body {
+                padding: 1rem;
+            }
+
+            .btn {
+                font-size: 16px;
+                min-height: 44px;
+                width: 100%;
+            }
+
+            .btn + .btn {
+                margin-top: 0.5rem;
+            }
+
+            .table-responsive {
+                font-size: 14px;
+            }
+
+            .form-section {
+                padding: 1rem;
+            }
+
+            .modal-body {
+                padding: 1rem;
+            }
+
+            .d-flex.gap-2 {
+                flex-direction: column;
+            }
+
+            .d-flex.gap-2 > * {
+                margin-bottom: 0.5rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .container-fluid {
+                padding: 0.5rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .main-header {
+                padding: 1rem;
+            }
+
+            .table thead th,
+            .table tbody td {
+                font-size: 12px;
+                padding: 0.5rem;
+            }
+
+            .btn {
+                padding: 0.75rem 1rem;
+            }
+        }
+
+        /* ========== UTILIDADES ========== */
+        .gradient-bg {
+            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+        }
+
+        .text-corporate {
+            color: #1E3A8A !important;
+        }
+
+        .text-accent {
+            color: #FBBF24 !important;
+        }
+
+        .border-corporate {
+            border-color: #1E3A8A !important;
+        }
+
+        .shadow-corporate {
+            box-shadow: 0 4px 16px rgba(30, 58, 138, 0.15) !important;
+        }
+
+        /* ========== ANIMACIONES ========== */
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-slide-up {
+            animation: slideInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out;
         }
     </style>
 </head>
 <body class="bg-light">
 
 <div class="container-fluid py-4">
-    <div class="main-header">
+    <div class="main-header animate-fade-in">
         <div class="d-flex justify-content-between align-items-center">
             <div>
                 <h1 class="h3 mb-1">
-                    <i class="fas fa-clipboard-list"></i> Órdenes de Trabajo
+                    <i class="fas fa-clipboard-list text-accent"></i> Órdenes de Trabajo
                     <?php if ($rol_conductor): ?><small class="opacity-75"> (Solo lectura)</small><?php endif; ?>
                 </h1>
                 <p class="mb-0 opacity-75">
@@ -214,11 +542,11 @@ foreach($tecnicos as $t) {
             </div>
             <div class="d-flex gap-2">
                 <?php if (!$rol_conductor): ?>
-                <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#modalCrearOrden">
+                <button type="button" class="btn btn-primary shadow-corporate" data-bs-toggle="modal" data-bs-target="#modalCrearOrden">
                     <i class="bi bi-plus-circle"></i> Nueva Orden
                 </button>
                 <?php endif; ?>
-                <a href="truck_alerts.php" class="btn btn-light">
+                <a href="truck_alerts.php" class="btn btn-outline-primary">
                     <i class="fas fa-arrow-left"></i> Volver a Alertas
                 </a>
             </div>
@@ -226,37 +554,42 @@ foreach($tecnicos as $t) {
     </div>
 
     <!-- Filtros -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">
-                <i class="bi bi-funnel"></i> Filtros de Búsqueda
+    <div class="card mb-4 animate-slide-up shadow-corporate">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="bi bi-funnel text-accent"></i> Filtros de Búsqueda
             </h5>
+        </div>
+        <div class="card-body">
             <form method="get" class="row g-3">
                 <div class="col-md-4">
-                    <label class="form-label">Estado</label>
+                    <label class="form-label">
+                        <i class="bi bi-flag text-corporate"></i> Estado
+                    </label>
                     <select name="estado" class="form-select">
                         <option value="">Todos los estados</option>
-                        <option value="pendiente" <?= $estado === 'pendiente' ? 'selected' : '' ?>>Pendiente</option>
-                        <option value="en_proceso" <?= $estado === 'en_proceso' ? 'selected' : '' ?>>En Proceso</option>
-                        <option value="completada" <?= $estado === 'completada' ? 'selected' : '' ?>>Completada</option>
-                    
+                        <option value="pendiente" <?= $estado === 'pendiente' ? 'selected' : '' ?>>⏳ Pendiente</option>
+                        <option value="en_proceso" <?= $estado === 'en_proceso' ? 'selected' : '' ?>>🔄 En Proceso</option>
+                        <option value="completada" <?= $estado === 'completada' ? 'selected' : '' ?>>✅ Completada</option>
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label">Prioridad</label>
+                    <label class="form-label">
+                        <i class="bi bi-exclamation-triangle text-corporate"></i> Prioridad
+                    </label>
                     <select name="prioridad" class="form-select">
                         <option value="">Todas las prioridades</option>
-                        <option value="baja" <?= $prioridad === 'baja' ? 'selected' : '' ?>>Baja</option>
-                        <option value="media" <?= $prioridad === 'media' ? 'selected' : '' ?>>Media</option>
-                        <option value="alta" <?= $prioridad === 'alta' ? 'selected' : '' ?>>Alta</option>
-                        <option value="critica" <?= $prioridad === 'critica' ? 'selected' : '' ?>>Crítica</option>
+                        <option value="baja" <?= $prioridad === 'baja' ? 'selected' : '' ?>>🟢 Baja</option>
+                        <option value="media" <?= $prioridad === 'media' ? 'selected' : '' ?>>🟡 Media</option>
+                        <option value="alta" <?= $prioridad === 'alta' ? 'selected' : '' ?>>🟠 Alta</option>
+                        <option value="critica" <?= $prioridad === 'critica' ? 'selected' : '' ?>>🔴 Crítica</option>
                     </select>
                 </div>
-                <div class="col-md-4 d-flex align-items-end">
-                    <button type="submit" class="btn btn-outline-primary me-2">
+                <div class="col-md-4 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary flex-fill">
                         <i class="bi bi-search"></i> Buscar
                     </button>
-                    <a href="orden_trabajo.php" class="btn btn-outline-secondary">
+                    <a href="orden_trabajo.php" class="btn btn-outline-primary">
                         <i class="bi bi-arrow-clockwise"></i>
                     </a>
                 </div>
@@ -265,24 +598,30 @@ foreach($tecnicos as $t) {
     </div>
 
     <!-- Tabla de Órdenes -->
-    <div class="card">
+    <div class="card animate-slide-up shadow-corporate">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-list text-accent"></i> Lista de Órdenes de Trabajo
+                <span class="badge bg-info ms-2"><?= $result->num_rows ?> registros</span>
+            </h5>
+        </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Trabajo</th>
-                            <th>Descripción</th>
-                            <th>Repuesto</th>
-                            <th>Fecha Creación</th>
-                            <th>Fecha Estimada</th>
-                            <th>Estado</th>
-                            <th>Prioridad</th>
-                            <th>Conductor</th>
-                            <th>Técnico</th>
-                            <th>Alerta</th>
-                            <th class="text-center" width="140">Acciones</th>
+                            <th><i class="bi bi-hash"></i> ID</th>
+                            <th><i class="bi bi-tools"></i> Trabajo</th>
+                            <th><i class="bi bi-card-text"></i> Descripción</th>
+                            <th><i class="bi bi-gear"></i> Repuesto</th>
+                            <th><i class="bi bi-calendar-plus"></i> F. Creación</th>
+                            <th><i class="bi bi-calendar-check"></i> F. Estimada</th>
+                            <th><i class="bi bi-flag"></i> Estado</th>
+                            <th><i class="bi bi-exclamation-triangle"></i> Prioridad</th>
+                            <th><i class="bi bi-person-check"></i> Conductor</th>
+                            <th><i class="bi bi-person-gear"></i> Técnico</th>
+                            <th><i class="bi bi-bell"></i> Alerta</th>
+                            <th class="text-center" width="140"><i class="bi bi-three-dots"></i> Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -296,50 +635,80 @@ foreach($tecnicos as $t) {
                                 <td><?= $row['fecha_estimada'] ?></td>
                                 <td>
                                     <?php 
-                                    $estado_class = '';
+                                    $estado_badge = '';
+                                    $estado_icon = '';
                                     switch($row['estado']) {
-                                        case 'completada': $estado_class = 'badge-success'; break;
-                                        case 'en_proceso': $estado_class = 'badge-info'; break;
-                                        case 'pendiente': $estado_class = 'badge-warning'; break;
-                                        case 'cancelada': $estado_class = 'badge-danger'; break;
-                                        default: $estado_class = 'badge-secondary';
+                                        case 'completada': 
+                                            $estado_badge = 'bg-success'; 
+                                            $estado_icon = '✅';
+                                            break;
+                                        case 'en_proceso': 
+                                            $estado_badge = 'bg-info'; 
+                                            $estado_icon = '🔄';
+                                            break;
+                                        case 'pendiente': 
+                                            $estado_badge = 'bg-warning'; 
+                                            $estado_icon = '⏳';
+                                            break;
+                                        case 'cancelada': 
+                                            $estado_badge = 'bg-danger'; 
+                                            $estado_icon = '❌';
+                                            break;
+                                        default: 
+                                            $estado_badge = 'bg-secondary';
+                                            $estado_icon = '❓';
                                     }
                                     ?>
-                                    <span class="badge <?= $estado_class ?>"><?= ucfirst($row['estado']) ?></span>
+                                    <span class="badge <?= $estado_badge ?>"><?= $estado_icon ?> <?= ucfirst(str_replace('_', ' ', $row['estado'])) ?></span>
                                 </td>
                                 <td>
                                     <?php 
-                                    $prioridad_class = '';
+                                    $prioridad_badge = '';
+                                    $prioridad_icon = '';
                                     switch($row['prioridad']) {
-                                        case 'critica': $prioridad_class = 'badge-danger'; break;
-                                        case 'alta': $prioridad_class = 'badge-warning'; break;
-                                        case 'media': $prioridad_class = 'badge-info'; break;
-                                        case 'baja': $prioridad_class = 'badge-success'; break;
-                                        default: $prioridad_class = 'badge-secondary';
+                                        case 'critica': 
+                                            $prioridad_badge = 'bg-danger'; 
+                                            $prioridad_icon = '🔴';
+                                            break;
+                                        case 'alta': 
+                                            $prioridad_badge = 'bg-warning'; 
+                                            $prioridad_icon = '🟠';
+                                            break;
+                                        case 'media': 
+                                            $prioridad_badge = 'bg-info'; 
+                                            $prioridad_icon = '🟡';
+                                            break;
+                                        case 'baja': 
+                                            $prioridad_badge = 'bg-success'; 
+                                            $prioridad_icon = '🟢';
+                                            break;
+                                        default: 
+                                            $prioridad_badge = 'bg-secondary';
+                                            $prioridad_icon = '⚪';
                                     }
                                     ?>
-                                    <span class="badge <?= $prioridad_class ?>"><?= ucfirst($row['prioridad']) ?></span>
+                                    <span class="badge <?= $prioridad_badge ?>"><?= $prioridad_icon ?> <?= ucfirst($row['prioridad']) ?></span>
                                 </td>
                                 <td><?= isset($conductoresById[$row['cond_id']]) ? htmlspecialchars($conductoresById[$row['cond_id']]) : ($row['cond_id'] ? $row['cond_id'] : '<span class="text-muted">Sin asignar</span>') ?></td>
                                 <td><?= isset($tecnicosById[$row['users_id']]) ? htmlspecialchars($tecnicosById[$row['users_id']]) : $row['users_id'] ?></td>
                                 <td><?= $row['alert_id'] ?: '<span class="text-muted">Sin alerta</span>' ?></td>
                                 <?php if (!$rol_conductor): ?>
                                 <td class="text-center">
-                                    <div class="btn-group" role="group">
-                                        <button type="button" class="btn btn-sm btn-info" onclick="verOrden(<?= htmlspecialchars(json_encode($row), ENT_QUOTES) ?>)" title="Ver Detalles">
+                                    <div class="d-flex gap-1 justify-content-center">
+                                        <button type="button" class="btn btn-sm btn-info" onclick="verOrden(<?= htmlspecialchars(json_encode($row), ENT_QUOTES) ?>)" title="Ver Detalles" data-bs-toggle="tooltip">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <button type="button" class="btn btn-sm btn-warning" onclick="editarOrden(<?= htmlspecialchars(json_encode($row), ENT_QUOTES) ?>)" title="Editar">
+                                        <button type="button" class="btn btn-sm btn-warning" onclick="editarOrden(<?= htmlspecialchars(json_encode($row), ENT_QUOTES) ?>)" title="Editar" data-bs-toggle="tooltip">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button type="button" class="btn btn-sm btn-danger" onclick="confirmarEliminar(<?= $row['id'] ?>, '<?= htmlspecialchars($row['nombre_trabajo'], ENT_QUOTES) ?>')" title="Eliminar">
+                                        <button type="button" class="btn btn-sm btn-danger" onclick="confirmarEliminar(<?= $row['id'] ?>, '<?= htmlspecialchars($row['nombre_trabajo'], ENT_QUOTES) ?>')" title="Eliminar" data-bs-toggle="tooltip">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
                                 </td>
                                 <?php else: ?>
                                 <td class="text-center">
-                                    <button type="button" class="btn btn-sm btn-info" onclick="verOrden(<?= htmlspecialchars(json_encode($row), ENT_QUOTES) ?>)" title="Ver Detalles">
+                                    <button type="button" class="btn btn-sm btn-info" onclick="verOrden(<?= htmlspecialchars(json_encode($row), ENT_QUOTES) ?>)" title="Ver Detalles" data-bs-toggle="tooltip">
                                         <i class="fas fa-eye"></i> Ver
                                     </button>
                                 </td>
@@ -773,8 +1142,43 @@ foreach($tecnicos as $t) {
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Inicializar tooltips para mejor UX
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar todos los tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Agregar efecto de carga a las tablas
+            const tableRows = document.querySelectorAll('tbody tr');
+            tableRows.forEach((row, index) => {
+                row.style.opacity = '0';
+                row.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    row.style.transition = 'all 0.3s ease';
+                    row.style.opacity = '1';
+                    row.style.transform = 'translateY(0)';
+                }, index * 50);
+            });
+
+            // Mejorar la experiencia de los formularios
+            const inputs = document.querySelectorAll('.form-control, .form-select');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'scale(1.02)';
+                    this.parentElement.style.transition = 'transform 0.2s ease';
+                });
+                
+                input.addEventListener('blur', function() {
+                    this.parentElement.style.transform = 'scale(1)';
+                });
+            });
+        });
+
         // Datos para referencias rápidas
         const conductoresData = <?= json_encode($conductoresById) ?>;
         const tecnicosData = <?= json_encode($tecnicosById) ?>;

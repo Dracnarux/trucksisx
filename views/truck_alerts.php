@@ -22,42 +22,148 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
     <link href="../assets/css/truck-alerts.css" rel="stylesheet">
     
     <style>
-        .header-container {
-            background: rgba(13,110,253,0.25);
-            color: #111;
-            padding: 20px 0;
-            margin-bottom: 30px;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 2px solid rgba(13,110,253,0.3);
+        /* HEADER PRINCIPAL */
+        .main-header {
+            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(30, 58, 138, 0.2);
+            color: #FFFFFF;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .main-header::before {
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2"/></svg>');
+            content: '';
+            height: 200px;
+            opacity: 0.1;
+            position: absolute;
+            right: -50px;
+            top: -50px;
+            width: 200px;
+        }
+        .main-header h1 {
+            color: #FFFFFF;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 2;
+        }
+        .main-header .lead {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+        }
+        /* TARJETAS Y CONTENEDORES */
+        .truck-diagram-container, .card, .tab-content .card {
+            background: #FFFFFF;
+            border: 1px solid rgba(209, 213, 219, 0.3);
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
         }
         .truck-diagram-container {
-            background: rgba(13,110,253,0.10);
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.10);
-            margin-bottom: 30px;
-            color: #111;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(13,110,253,0.15);
+            padding: 2rem 1.5rem;
         }
-        .btn-primary, .btn-outline-primary {
-            background-color: #0d6efd !important;
-            border-color: #0d6efd !important;
-            color: #fff !important;
+        .card:hover, .truck-diagram-container:hover {
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            transform: translateY(-2px);
         }
-        .btn-primary:hover, .btn-outline-primary:hover {
-            background-color: #0b5ed7 !important;
-            border-color: #0b5ed7 !important;
+        /* BOTONES */
+        .btn {
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            min-height: 44px;
+            padding: 0.75rem 1.5rem;
+            position: relative;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .btn:focus {
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.3);
+            outline: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+            color: #1E3A8A !important;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+            color: #1E3A8A !important;
+            transform: translateY(-2px);
+        }
+        .btn-outline-primary {
+            background: #FFFFFF;
+            border: 2px solid #1E3A8A;
+            color: #1E3A8A !important;
+        }
+        .btn-outline-primary:hover {
+            background: #1E3A8A;
+            color: #FFFFFF !important;
+            transform: translateY(-2px);
         }
         .btn-light {
             background: rgba(13,110,253,0.08) !important;
             color: #111 !important;
             border: 1px solid rgba(13,110,253,0.15) !important;
         }
-        .form-select, .form-label, .text-muted {
-            color: #111 !important;
+        /* BADGES */
+        .badge {
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+        }
+        .badge.bg-success {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+        }
+        .badge.bg-warning {
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%) !important;
+            color: #1E3A8A !important;
+        }
+        .badge.bg-danger {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
+        }
+        .badge.bg-info {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
+        }
+        /* FORMULARIOS */
+        .form-control, .form-select {
+            background: #FFFFFF;
+            border: 2px solid #D1D5DB;
+            border-radius: 8px;
+            color: #374151;
+            font-size: 16px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #1E3A8A;
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+            outline: none;
+        }
+        .form-label {
+            color: #1E3A8A;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        /* ANIMACIONES */
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up { animation: slideInUp 0.6s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
         }
         
         /* Estilos para el botón de eliminar alerta */
@@ -119,29 +225,28 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
 </head>
 <body>
     <!-- Header -->
-    <div class="header-container">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h1><i class="fas fa-truck"></i> Sistema de Alertas</h1>
-                    <p class="mb-0">Monitoreo en tiempo real de alertas para camiones doble troque</p>
-                </div>
-                <div class="col-md-4 text-end d-flex flex-column align-items-end gap-2">
-                    <a href="dashboard.php" class="btn btn-outline-primary mb-2">
-                        <i class="fas fa-arrow-left"></i> Volver al Dashboard
-                    </a>
-                    <button class="btn btn-light" id="refresh-alerts">
-                        <i class="fas fa-sync-alt"></i> Actualizar
-                    </button>
+    <div class="container-fluid py-4">
+        <div class="main-header animate-fade-in mb-4">
+            <div class="d-flex flex-column flex-md-row align-items-center justify-content-between">
+                <div>
+                    <h1 class="mb-2"><i class="fas fa-truck text-accent"></i> Sistema de Alertas</h1>
+                    <span class="lead">Monitoreo en tiempo real de alertas para camiones doble troque</span>
                     <div class="mt-2">
-                        <small class="text-muted" id="last-update">
+                        <small class="text-white-50" id="last-update">
                             <i class="fas fa-clock"></i> Última actualización: <span id="last-update-time">--</span>
                         </small>
                     </div>
                 </div>
+                <div class="d-flex gap-2 mt-3 mt-md-0">
+                    <a href="dashboard.php" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left"></i> Volver al Dashboard
+                    </a>
+                    <button class="btn btn-primary" id="refresh-alerts">
+                        <i class="fas fa-sync-alt"></i> Actualizar
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
 
     <div class="container">
         <!-- Diagrama del Camión -->
@@ -244,9 +349,9 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
                                 <!-- Se llenará dinámicamente -->
                             </div>
                             
-                            <div id="chart-container" class="row">
+                            <div id="chart-container" class="row animate-slide-up">
                                 <div class="col-12">
-                                    <div class="card shadow-sm">
+                                    <div class="card shadow-corporate">
                                         <div class="card-body">
                                             <div style="position: relative; height: 400px;">
                                                 <canvas id="tire-statistics-chart"></canvas>
@@ -255,8 +360,7 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
                                     </div>
                                 </div>
                             </div>
-                            
-                            <div id="statistics-table" class="mt-3">
+                            <div id="statistics-table" class="mt-3" style="animation:none;">
                                 <!-- Tabla de estadísticas se cargará dinámicamente -->
                             </div>
                         </div>
@@ -408,12 +512,12 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
             );
             
             const alertsHTML = uniqueAlerts.map(alert => `
-                <div class="card mb-2">
+                <div class="card mb-3 shadow-corporate animate-slide-up">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h5 class="card-title">${alert.descripcion}</h5>
-                                <p class="card-text">${alert.observaciones || ''}</p>
+                                <h5 class="card-title mb-1 text-corporate"><i class="fas fa-exclamation-triangle me-2 text-danger"></i>${alert.descripcion}</h5>
+                                <p class="card-text mb-1">${alert.observaciones || ''}</p>
                                 <small class="text-muted">
                                     <i class="fas fa-calendar"></i> ${alert.fecha_hora || ''}
                                     ${alert.placa ? `| <i class=\"fas fa-truck\"></i> ${alert.placa}` : ''}
@@ -421,9 +525,9 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
                                 </small>
                             </div>
                             <div class="text-end">
-                                <span class="badge bg-${alert.prioridad === 'alta' || alert.prioridad === 'critica' ? 'danger' : alert.prioridad === 'media' ? 'warning' : 'info'}">${alert.prioridad}</span>
+                                <span class="badge bg-${alert.prioridad === 'alta' || alert.prioridad === 'critica' ? 'danger' : alert.prioridad === 'media' ? 'warning' : 'info'} mb-1 text-uppercase">${alert.prioridad}</span>
                                 <br>
-                                <span class="badge bg-${alert.estado === 'activa' ? 'danger' : alert.estado === 'en_proceso' ? 'warning' : alert.estado === 'resuelta' ? 'success' : 'secondary'} mt-1">${alert.estado}</span>
+                                <span class="badge bg-${alert.estado === 'activa' ? 'danger' : alert.estado === 'en_proceso' ? 'warning' : alert.estado === 'resuelta' ? 'success' : 'secondary'} mt-1 text-uppercase">${alert.estado}</span>
                                 <?php if (!$rol_conductor): ?>
                                 <br>
                                 <div class="d-flex flex-wrap gap-1 mt-2 justify-content-end alert-actions">

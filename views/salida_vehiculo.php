@@ -22,58 +22,236 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
 <head>
     <meta charset="UTF-8">
     <title>Salida de Vehículo</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(120deg, #f8fafc 0%, #e3e6ed 100%);
+            background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
+            color: #374151;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            min-height: 100vh;
         }
-        .container {
-            background: rgba(13,110,253,0.10);
-            border-radius: 16px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.10);
-            padding: 32px 24px;
-            margin-top: 32px;
-            color: #111;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(13,110,253,0.15);
+        h2, h4, h5, h6 {
+            color: #1E3A8A;
+            font-weight: 600;
         }
-        h2, h4 {
-            color: #0d6efd;
+        .container-fluid {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem;
         }
-        .form-label, .form-select, .form-control {
-            color: #111 !important;
+        .main-header {
+            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(30, 58, 138, 0.2);
+            color: #FFFFFF;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
         }
-        .btn-primary, .btn-outline-primary {
-            background-color: #0d6efd !important;
-            border-color: #0d6efd !important;
-            color: #fff !important;
+        .main-header h2 {
+            color: #fff;
+            margin-bottom: 0.5rem;
         }
-        .btn-primary:hover, .btn-outline-primary:hover {
-            background-color: #0b5ed7 !important;
-            border-color: #0b5ed7 !important;
+        .main-header .lead {
+            font-size: 1.1rem;
+            opacity: 0.9;
         }
-        .btn-secondary {
-            background-color: rgba(13,110,253,0.15) !important;
-            color: #111 !important;
-            border: 1px solid rgba(13,110,253,0.15) !important;
+        .card {
+            background: #FFFFFF;
+            border: 1px solid rgba(209, 213, 219, 0.3);
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+            border-bottom: 1px solid #D1D5DB;
+            color: #1E3A8A;
+            font-weight: 600;
+            padding: 1.25rem;
+        }
+        .card-body {
+            padding: 1.5rem;
+        }
+        .btn {
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            min-height: 44px;
+            padding: 0.75rem 1.5rem;
+            position: relative;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+            color: #1E3A8A !important;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+            color: #1E3A8A !important;
+            transform: translateY(-2px);
+        }
+        .btn-outline-primary, .btn-secondary {
+            background: #FFFFFF;
+            border: 2px solid #1E3A8A;
+            color: #1E3A8A !important;
+        }
+        .btn-outline-primary:hover, .btn-secondary:hover {
+            background: #1E3A8A;
+            color: #FFFFFF !important;
+            transform: translateY(-2px);
         }
         .btn-warning {
-            background-color: #ffc107 !important;
-            border-color: #ffc107 !important;
-            color: #111 !important;
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+            color: #1E3A8A !important;
         }
         .btn-danger {
-            background-color: #dc3545 !important;
-            border-color: #dc3545 !important;
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            color: #FFFFFF !important;
         }
-        .table-bordered, .table-striped, .table th, .table td {
-            color: #111 !important;
+        .form-control, .form-select {
+            background: #FFFFFF;
+            border: 2px solid #D1D5DB;
+            border-radius: 8px;
+            color: #374151;
+            font-size: 16px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
         }
-        thead tr {
-            background: rgba(13,110,253,0.10) !important;
-            color: #111 !important;
-            border-bottom: 2px solid rgba(13,110,253,0.15);
+        .form-control:focus, .form-select:focus {
+            border-color: #1E3A8A;
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+            outline: none;
+        }
+        .form-label {
+            color: #1E3A8A;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        .form-section {
+            background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+        }
+        .form-section h6 {
+            border-bottom: 2px solid #FBBF24;
+            color: #1E3A8A;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+        }
+        .table-responsive {
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        .table thead th {
+            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            border: none;
+            color: #FFFFFF;
+            font-weight: 600;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .table tbody td {
+            border-bottom: 1px solid #E5E7EB;
+            color: #374151;
+            padding: 1rem;
+            vertical-align: middle;
+        }
+        .table-hover tbody tr:hover {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.05) 0%, rgba(30, 58, 138, 0.05) 100%);
+        }
+        .badge {
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+        }
+        .badge.bg-success {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+        }
+        .badge.bg-warning {
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%) !important;
+            color: #1E3A8A !important;
+        }
+        .badge.bg-danger {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
+        }
+        .badge.bg-info {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
+        }
+        .alert {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+        .alert-info {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.1) 100%);
+            color: #2563EB;
+        }
+        @media (max-width: 768px) {
+            .container-fluid {
+                padding: 1rem;
+            }
+            .main-header {
+                padding: 1.5rem;
+                text-align: center;
+            }
+            .card-body {
+                padding: 1rem;
+            }
+            .btn {
+                font-size: 16px;
+                min-height: 44px;
+                width: 100%;
+            }
+            .btn + .btn {
+                margin-top: 0.5rem;
+            }
+            .table-responsive {
+                font-size: 14px;
+            }
+            .form-section {
+                padding: 1rem;
+            }
+        }
+        @media (max-width: 576px) {
+            .container-fluid {
+                padding: 0.5rem;
+            }
+            h2 {
+                font-size: 1.5rem;
+            }
+            .main-header {
+                padding: 1rem;
+            }
+            .table thead th,
+            .table tbody td {
+                font-size: 12px;
+                padding: 0.5rem;
+            }
+            .btn {
+                padding: 0.75rem 1rem;
+            }
         }
     </style>
 </head>
@@ -82,75 +260,98 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
     <div class="mb-3 d-flex justify-content-end">
         <a href="dashboard.php" class="btn btn-secondary">Volver al dashboard</a>
     </div>
-    <h2>Registrar Salida de Vehículo</h2>
-    <?php if (!$rol_conductor): ?>
-    <form action="../controllers/SaliVehiController.php?action=registrar" method="POST">
-        <div class="mb-3">
-            <label for="sali_repue_id" class="form-label">ID Salida de Repuesto</label>
-            <select class="form-select" name="sali_repue_id" required>
-                <option value="">Seleccione...</option>
-                <?php foreach ((new SaliRepue($db))->getAll() as $sr): ?>
-                    <option value="<?= $sr['id'] ?>">#<?= $sr['id'] ?> - <?= $sr['fecha_salida'] ?> (<?= $sr['cantidad'] ?>)</option>
-                <?php endforeach; ?>
-            </select>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Salidas de Vehículo</h2>
+                <?php if (!$rol_conductor): ?>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalRegistrarSalida">
+                        <i class="fas fa-plus-circle me-1"></i> Registrar Salida de Vehículo
+                </button>
+                <?php endif; ?>
         </div>
-        <div class="mb-3">
-            <label for="ord_trabj_id" class="form-label">ID Orden de Trabajo</label>
-            <select class="form-select" name="ord_trabj_id" required>
-                <option value="">Seleccione...</option>
-                <?php foreach ($ordenes as $o): ?>
-                    <option value="<?= $o['id'] ?>">#<?= $o['id'] ?> - <?= $o['nombre_trabajo'] ?></option>
-                <?php endforeach; ?>
-            </select>
+
+        <!-- Modal Registrar Salida de Vehículo -->
+        <div class="modal fade" id="modalRegistrarSalida" tabindex="-1" aria-labelledby="modalRegistrarSalidaLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalRegistrarSalidaLabel"><i class="fas fa-truck-moving me-2"></i>Registrar Salida de Vehículo</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <form action="../controllers/SaliVehiController.php?action=registrar" method="POST">
+                        <div class="modal-body">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label for="sali_repue_id" class="form-label">ID Salida de Repuesto</label>
+                                    <select class="form-select" name="sali_repue_id" required>
+                                        <option value="">Seleccione...</option>
+                                        <?php foreach ((new SaliRepue($db))->getAll() as $sr): ?>
+                                            <option value="<?= $sr['id'] ?>">#<?= $sr['id'] ?> - <?= $sr['fecha_salida'] ?> (<?= $sr['cantidad'] ?>)</option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="ord_trabj_id" class="form-label">ID Orden de Trabajo</label>
+                                    <select class="form-select" name="ord_trabj_id" required>
+                                        <option value="">Seleccione...</option>
+                                        <?php foreach ($ordenes as $o): ?>
+                                            <option value="<?= $o['id'] ?>">#<?= $o['id'] ?> - <?= $o['nombre_trabajo'] ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="alerta_id" class="form-label">ID Alerta</label>
+                                    <select class="form-select" name="alerta_id" required>
+                                        <option value="">Seleccione...</option>
+                                        <?php foreach ($alertas as $a): ?>
+                                            <option value="<?= $a['id'] ?>">#<?= $a['id'] ?> - <?= $a['descripcion'] ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_flotas" class="form-label">Vehículo de la Flota</label>
+                                    <select class="form-select" name="id_flotas" required>
+                                        <option value="">Seleccione un vehículo...</option>
+                                        <?php 
+                                        $query_vehiculos = "SELECT id, placa, marca_vehiculo, modelo, num_cha FROM regis_vehic ORDER BY placa";
+                                        $stmt_vehiculos = mysqli_query($db, $query_vehiculos);
+                                        while ($vehiculo = mysqli_fetch_assoc($stmt_vehiculos)): 
+                                        ?>
+                                            <option value="<?= $vehiculo['id'] ?>">
+                                                <?= htmlspecialchars($vehiculo['placa']) ?> - <?= htmlspecialchars($vehiculo['marca_vehiculo']) ?> <?= htmlspecialchars($vehiculo['modelo']) ?> (ID: <?= $vehiculo['id'] ?>)
+                                            </option>
+                                        <?php endwhile; ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="segui_monitoreo" class="form-label">Seguimiento y Monitoreo</label>
+                                    <input type="text" class="form-control" name="segui_monitoreo" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="control_combustible" class="form-label">Control y Nivel de Combustible</label>
+                                    <input type="text" class="form-control" name="control_combustible" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="cump_regulaciones" class="form-label">Cumplimiento de Regulaciones</label>
+                                    <input type="text" class="form-control" name="cump_regulaciones" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="protocolo_seguridad" class="form-label">Protocolos de Seguridad</label>
+                                    <input type="text" class="form-control" name="protocolo_seguridad" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="gest_conductores" class="form-label">Gestión y Datos de Conductores</label>
+                                    <input type="text" class="form-control" name="gest_conductores" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Registrar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-        <div class="mb-3">
-            <label for="alerta_id" class="form-label">ID Alerta</label>
-            <select class="form-select" name="alerta_id" required>
-                <option value="">Seleccione...</option>
-                <?php foreach ($alertas as $a): ?>
-                    <option value="<?= $a['id'] ?>">#<?= $a['id'] ?> - <?= $a['descripcion'] ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="mb-3">
-            <label for="id_flotas" class="form-label">Vehículo de la Flota</label>
-            <select class="form-select" name="id_flotas" required>
-                <option value="">Seleccione un vehículo...</option>
-                <?php 
-                // Obtener vehículos registrados
-                $query_vehiculos = "SELECT id, placa, marca_vehiculo, modelo, num_cha FROM regis_vehic ORDER BY placa";
-                $stmt_vehiculos = mysqli_query($db, $query_vehiculos);
-                while ($vehiculo = mysqli_fetch_assoc($stmt_vehiculos)): 
-                ?>
-                    <option value="<?= $vehiculo['id'] ?>">
-                        <?= htmlspecialchars($vehiculo['placa']) ?> - <?= htmlspecialchars($vehiculo['marca_vehiculo']) ?> <?= htmlspecialchars($vehiculo['modelo']) ?> (ID: <?= $vehiculo['id'] ?>)
-                    </option>
-                <?php endwhile; ?>
-            </select>
-        </div>
-        <div class="mb-3">
-            <label for="segui_monitoreo" class="form-label">Seguimiento y Monitoreo</label>
-            <input type="text" class="form-control" name="segui_monitoreo" required>
-        </div>
-        <div class="mb-3">
-            <label for="control_combustible" class="form-label">Control y Nivel de Combustible</label>
-            <input type="text" class="form-control" name="control_combustible" required>
-        </div>
-        <div class="mb-3">
-            <label for="cump_regulaciones" class="form-label">Cumplimiento de Regulaciones</label>
-            <input type="text" class="form-control" name="cump_regulaciones" required>
-        </div>
-        <div class="mb-3">
-            <label for="protocolo_seguridad" class="form-label">Protocolos de Seguridad</label>
-            <input type="text" class="form-control" name="protocolo_seguridad" required>
-        </div>
-        <div class="mb-3">
-            <label for="gest_conductores" class="form-label">Gestión y Datos de Conductores</label>
-            <input type="text" class="form-control" name="gest_conductores" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Registrar Salida de Vehículo</button>
-    </form>
-    <?php endif; ?>
     <hr>
     <form class="row g-3 mb-3" method="get" action="">
         <div class="col-md-2">
@@ -263,4 +464,6 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
     <?php endif; ?>
 </div>
 </body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </html>
+

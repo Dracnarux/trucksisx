@@ -13,7 +13,6 @@ $rol_tecnico = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol']
     <meta charset="UTF-8">
     <title>Gestión de Conductores</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body {
@@ -77,6 +76,189 @@ $rol_tecnico = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol']
             <a href="cond.php?form=1" class="btn btn-success"><i class="bi bi-plus-circle"></i> Agregar Conductor</a>
             <?php endif; ?>
         </div>
+
+    <!-- Modernizado: Bootstrap 5.3.2, Inter, paleta azul/amarillo, tarjetas, botones y tablas modernas -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
+            color: #374151;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #1E3A8A;
+            font-weight: 600;
+            line-height: 1.3;
+            margin-bottom: 1rem;
+        }
+        h2 { font-size: clamp(1.5rem, 3vw, 2rem); }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .main-header {
+            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(30, 58, 138, 0.2);
+            color: #FFFFFF;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .main-header h2 { color: #fff; margin-bottom: 0.5rem; position: relative; z-index: 2; }
+        .main-header .lead { font-size: 1.1rem; opacity: 0.9; position: relative; z-index: 2; }
+        .card {
+            background: #FFFFFF;
+            border: 1px solid rgba(209, 213, 219, 0.3);
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            transform: translateY(-2px);
+        }
+        .card-header {
+            background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+            border-bottom: 1px solid #D1D5DB;
+            color: #1E3A8A;
+            font-weight: 600;
+            padding: 1.25rem;
+        }
+        .card-body { padding: 1.5rem; }
+        .btn {
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            min-height: 44px;
+            padding: 0.75rem 1.5rem;
+            position: relative;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .btn:focus {
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.3);
+            outline: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+            color: #1E3A8A !important;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+            color: #1E3A8A !important;
+            transform: translateY(-2px);
+        }
+        .btn-outline-primary, .btn-secondary {
+            background: #FFFFFF;
+            border: 2px solid #1E3A8A;
+            color: #1E3A8A !important;
+        }
+        .btn-outline-primary:hover, .btn-secondary:hover {
+            background: #1E3A8A;
+            color: #FFFFFF !important;
+            transform: translateY(-2px);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: #FFFFFF !important;
+        }
+        .btn-warning {
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+            color: #1E3A8A !important;
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            color: #FFFFFF !important;
+        }
+        .btn-info {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            color: #FFFFFF !important;
+        }
+        .btn:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+        .form-control, .form-select {
+            background: #FFFFFF;
+            border: 2px solid #D1D5DB;
+            border-radius: 8px;
+            color: #374151;
+            font-size: 16px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #1E3A8A;
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+            outline: none;
+        }
+        .form-label {
+            color: #1E3A8A;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        .form-section {
+            background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+        }
+        .form-section h6 {
+            border-bottom: 2px solid #FBBF24;
+            color: #1E3A8A;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+        }
+        .table-responsive {
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        .table {
+            margin-bottom: 0;
+            font-size: 13px;
+        }
+        .table thead th {
+            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            border: none;
+            color: #FFFFFF;
+            font-weight: 700;
+            padding: 0.7rem 0.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        .table tbody tr {
+            background: #FFFFFF;
+            border-bottom: 1px solid #E5E7EB;
+            transition: background 0.2s;
+        }
+        .table tbody tr:hover {
+            background: #F3F4F6;
+        }
+        .table td, .table th {
+            vertical-align: middle;
+            padding: 0.7rem 0.5rem;
+        }
+    </style>
         <?php
         require_once '../config/db.php';
         $conn = conectarDB();
