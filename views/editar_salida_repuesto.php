@@ -92,6 +92,16 @@ $alertas = (new Alert($db))->getAll();
 
 <body>
 <div class="container py-4">
+    <?php
+    // Mostrar mensajes de error
+    if (isset($_GET['error'])) {
+        echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle"></i> Error: ' . htmlspecialchars($_GET['error']) . '
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>';
+    }
+    ?>
+    
     <div class="main-header mb-4">
         <div class="d-flex flex-column flex-md-row align-items-center justify-content-between">
             <div>

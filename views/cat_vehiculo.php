@@ -485,12 +485,105 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
             }
             // Eliminar categoría
             if (isset($_GET['delete'])) {
-                $sql = "DELETE FROM cat_vehic WHERE id = ?";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param('i', $_GET['delete']);
-                $stmt->execute();
-                echo '<script>window.location="cat_vehiculo.php";</script>';
-                exit;
+                try {
+                    $categoria_id = $_GET['delete'];
+                    
+                    // Iniciar transacción
+                    $conn->autocommit(false);
+                    $conn->begin_transaction();
+                    
+                    // Verificar si hay subcategorías asociadas
+                    $check_sql = "SELECT COUNT(*) as count FROM subcat_vehic WHERE cat_vehic_id = ?";
+                    $check_stmt = $conn->prepare($check_sql);
+                    $check_stmt->bind_param('i', $categoria_id);
+                    $check_stmt->execute();
+                    $result = $check_stmt->get_result();
+                    $row = $result->fetch_assoc();
+                    $subcategorias_count = $row['count'];
+                    
+                    if ($subcategorias_count > 0) {
+                        // PASO 1: Obtener IDs de subcategorías para verificar registros de vehículos
+                        $get_subcat_sql = "SELECT id FROM subcat_vehic WHERE cat_vehic_id = ?";
+                        $get_subcat_stmt = $conn->prepare($get_subcat_sql);
+                        $get_subcat_stmt->bind_param('i', $categoria_id);
+                        $get_subcat_stmt->execute();
+                        $subcat_result = $get_subcat_stmt->get_result();
+                        
+                        $subcat_ids = [];
+                        while ($subcat_row = $subcat_result->fetch_assoc()) {
+                            $subcat_ids[] = $subcat_row['id'];
+                        }
+                        
+                        // PASO 2: Eliminar registros de vehículos que referencian estas subcategorías
+                        $total_registros_eliminados = 0;
+                        foreach ($subcat_ids as $subcat_id) {
+                            // Verificar cuántos registros hay para esta subcategoría
+                            $check_regis_sql = "SELECT COUNT(*) as count FROM regis_vehic WHERE subcat_vehic_id = ?";
+                            $check_regis_stmt = $conn->prepare($check_regis_sql);
+                            $check_regis_stmt->bind_param('i', $subcat_id);
+                            $check_regis_stmt->execute();
+                            $regis_result = $check_regis_stmt->get_result();
+                            $regis_row = $regis_result->fetch_assoc();
+                            $registros_count = $regis_row['count'];
+                            
+                            if ($registros_count > 0) {
+                                // Eliminar registros de vehículos de esta subcategoría
+                                $delete_regis_sql = "DELETE FROM regis_vehic WHERE subcat_vehic_id = ?";
+                                $delete_regis_stmt = $conn->prepare($delete_regis_sql);
+                                $delete_regis_stmt->bind_param('i', $subcat_id);
+                                $delete_regis_stmt->execute();
+                                
+                                $total_registros_eliminados += $registros_count;
+                                error_log("cat_vehiculo.php: Eliminados $registros_count registros de vehículos de subcategoría $subcat_id");
+                            }
+                        }
+                        
+                        if ($total_registros_eliminados > 0) {
+                            error_log("cat_vehiculo.php: Total de registros de vehículos eliminados: $total_registros_eliminados");
+                        }
+                        
+                        // PASO 3: Ahora eliminar las subcategorías (ya sin FK constraints de regis_vehic)
+                        $delete_subcat_sql = "DELETE FROM subcat_vehic WHERE cat_vehic_id = ?";
+                        $delete_subcat_stmt = $conn->prepare($delete_subcat_sql);
+                        $delete_subcat_stmt->bind_param('i', $categoria_id);
+                        $delete_subcat_stmt->execute();
+                        
+                        error_log("cat_vehiculo.php: Eliminadas $subcategorias_count subcategorías de la categoría $categoria_id");
+                    }
+                    
+                    // Ahora eliminar la categoría
+                    $sql = "DELETE FROM cat_vehic WHERE id = ?";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param('i', $categoria_id);
+                    $stmt->execute();
+                    
+                    // Confirmar transacción
+                    $conn->commit();
+                    $conn->autocommit(true);
+                    
+                    error_log("cat_vehiculo.php: Categoría $categoria_id eliminada exitosamente");
+                    
+                    // Mensaje informativo sobre lo que se eliminó
+                    $mensaje = "Categoría eliminada correctamente.";
+                    if ($subcategorias_count > 0) {
+                        $mensaje .= "\\n- $subcategorias_count subcategorías eliminadas";
+                        if (isset($total_registros_eliminados) && $total_registros_eliminados > 0) {
+                            $mensaje .= "\\n- $total_registros_eliminados registros de vehículos eliminados";
+                        }
+                    }
+                    
+                    echo '<script>alert("' . $mensaje . '"); window.location="cat_vehiculo.php";</script>';
+                    exit;
+                    
+                } catch (Exception $e) {
+                    // Revertir transacción en caso de error
+                    $conn->rollback();
+                    $conn->autocommit(true);
+                    
+                    error_log("cat_vehiculo.php: Error al eliminar categoría: " . $e->getMessage());
+                    echo '<script>alert("Error al eliminar la categoría: ' . addslashes($e->getMessage()) . '"); window.location="cat_vehiculo.php";</script>';
+                    exit;
+                }
             }
         }
         ?>

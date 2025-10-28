@@ -164,7 +164,7 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
         .animate-slide-up { animation: slideInUp 0.6s ease-out; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .animate-fade-in { animation: fadeIn 0.4s ease-out; }
-        }
+        
         
         /* Estilos para el botón de eliminar alerta */
         .btn-danger:hover {
@@ -484,7 +484,7 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
         // Cargar dashboard general
         async function loadDashboard() {
             try {
-                const response = await fetch(`../controllers/AlertController.php?action=getDashboard`);
+                const response = await fetch(`/trucksisx/controllers/AlertController.php?action=getDashboard`);
                 const data = await response.json();
                 
                 if (data.success) {
@@ -556,7 +556,7 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
         // Cargar estadísticas por posición
         async function loadStatistics() {
             try {
-                const response = await fetch(`../controllers/AlertController.php?action=getTireAlerts`);
+                const response = await fetch(`/trucksisx/controllers/AlertController.php?action=getTireAlerts`);
                 const data = await response.json();
                 
                 if (data.success && data.statistics) {
@@ -1127,7 +1127,7 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
         // Cargar órdenes de trabajo
         async function loadWorkOrders() {
             try {
-                const response = await fetch('../controllers/AlertController.php?action=getAll');
+                const response = await fetch('/trucksisx/controllers/AlertController.php?action=getAll');
                 const data = await response.json();
                 
                 if (data.success) {
@@ -1184,7 +1184,7 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
                 formData.append('id', alertId);
                 formData.append('estado', newStatus);
                 
-                const response = await fetch('../controllers/AlertController.php?action=updateStatus', {
+                const response = await fetch('/trucksisx/controllers/AlertController.php?action=updateStatus', {
                     method: 'POST',
                     body: formData
                 });
@@ -1241,18 +1241,42 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
                 return;
             }
 
+            console.log('Iniciando eliminación de alerta ID:', alertId);
+
             try {
                 const formData = new FormData();
                 formData.append('id', alertId);
                 
-                const response = await fetch('../controllers/AlertController.php?action=delete', {
+                console.log('Enviando petición DELETE a:', '/trucksisx/controllers/AlertController.php?action=delete');
+                
+                const response = await fetch('/trucksisx/controllers/AlertController.php?action=delete', {
                     method: 'POST',
                     body: formData
                 });
                 
-                const data = await response.json();
+                console.log('Respuesta del servidor - Status:', response.status, 'OK:', response.ok);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const responseText = await response.text();
+                console.log('Respuesta cruda del servidor:', responseText);
+                
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('Error parsing JSON:', parseError);
+                    console.error('Respuesta no es JSON válido:', responseText);
+                    throw new Error('Respuesta del servidor no es JSON válido: ' + responseText);
+                }
+                
+                console.log('Datos parseados:', data);
                 
                 if (data.success) {
+                    console.log('Eliminación exitosa:', data.message);
+                    
                     // Mostrar feedback visual temporal
                     const alertElement = document.querySelector(`[onclick*="deleteAlert(${alertId})"]`).closest('.card');
                     if (alertElement) {
@@ -1292,8 +1316,8 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
                     alert('Error al eliminar la alerta: ' + (data.message || 'Error desconocido'));
                 }
             } catch (error) {
-                console.error('Error:', error);
-                alert('Error de conexión al eliminar la alerta');
+                console.error('Error completo:', error);
+                alert('Error de conexión al eliminar la alerta: ' + error.message);
             }
         }
     </script>

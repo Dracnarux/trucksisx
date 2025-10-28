@@ -38,9 +38,31 @@ if (!$rol_conductor) {
         exit;
     }
     if (isset($_GET['delete'])) {
-        $controller->delete($_GET['delete']);
-        header('Location: repue.php');
-        exit;
+        try {
+            $controller->delete($_GET['delete']);
+            
+            // Si es una petición AJAX, devolver respuesta JSON
+            if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+                strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                echo json_encode(['success' => true, 'message' => 'Repuesto eliminado correctamente']);
+                exit;
+            }
+            
+            header('Location: repue.php');
+            exit;
+        } catch (Exception $e) {
+            // Si es una petición AJAX, devolver error JSON
+            if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+                strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                http_response_code(500);
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+                exit;
+            }
+            
+            // Para peticiones normales, redirigir con error
+            header('Location: repue.php?error=' . urlencode($e->getMessage()));
+            exit;
+        }
     }
 }
 // Filtros
@@ -1204,6 +1226,21 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.show();
     }
     
+    // Función para cerrar modales
+    function cerrarModal(modalId) {
+        const modalElement = document.getElementById(modalId);
+        if (modalElement) {
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) {
+                modal.hide();
+            } else {
+                // Si no hay instancia, crear una nueva y cerrarla
+                const newModal = new bootstrap.Modal(modalElement);
+                newModal.hide();
+            }
+        }
+    }
+    
     // Función para ver detalles del repuesto
     function verRepuesto(repuesto) {
         const detalles = document.getElementById('detallesRepuesto');
@@ -1587,8 +1624,45 @@ document.addEventListener('DOMContentLoaded', function() {
     // Función para confirmar eliminación
     function confirmarEliminacion() {
         if (repuestoIdEliminar) {
-            // Redirigir a la eliminación
-            window.location.href = `repue.php?delete=${repuestoIdEliminar}`;
+            // Mostrar indicador de carga
+            const confirmBtn = document.querySelector('#modalEliminarRepuesto .btn-danger');
+            const originalText = confirmBtn.textContent;
+            confirmBtn.textContent = 'Eliminando...';
+            confirmBtn.disabled = true;
+            
+            // Realizar eliminación vía AJAX con manejo de errores FK
+            fetch(`repue.php?delete=${repuestoIdEliminar}`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then(result => {
+                // Cerrar modal
+                cerrarModal('modalEliminarRepuesto');
+                
+                // Mostrar mensaje de éxito
+                alert('Repuesto eliminado correctamente');
+                
+                // Recargar página
+                window.location.reload();
+            })
+            .catch(error => {
+                console.error('Error al eliminar:', error);
+                
+                // Restaurar botón
+                confirmBtn.textContent = originalText;
+                confirmBtn.disabled = false;
+                
+                // Mostrar mensaje de error
+                alert('Error al eliminar el repuesto. Es posible que esté siendo usado en salidas de repuestos.');
+            });
         }
     }
     

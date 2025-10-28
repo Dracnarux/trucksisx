@@ -663,12 +663,63 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
             }
             // Eliminar vehículo
             if (isset($_GET['delete'])) {
-                $sql = "DELETE FROM regis_vehic WHERE id = ?";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param('i', $_GET['delete']);
-                $stmt->execute();
-                echo '<script>window.location="regis_vehic.php";</script>';
-                exit;
+                try {
+                    $vehiculo_id = $_GET['delete'];
+                    
+                    // PASO 1: Verificar dependencias del vehículo
+                    
+                    // Verificar alertas
+                    $check_alerts_sql = "SELECT COUNT(*) as total FROM alert WHERE regis_vehic_id = ?";
+                    $check_alerts_stmt = $conn->prepare($check_alerts_sql);
+                    $check_alerts_stmt->bind_param('i', $vehiculo_id);
+                    $check_alerts_stmt->execute();
+                    $alerts_count = $check_alerts_stmt->get_result()->fetch_assoc()['total'];
+                    
+                    // Verificar conductor asignado
+                    $check_conductor_sql = "SELECT cond_id FROM regis_vehic WHERE id = ?";
+                    $check_conductor_stmt = $conn->prepare($check_conductor_sql);
+                    $check_conductor_stmt->bind_param('i', $vehiculo_id);
+                    $check_conductor_stmt->execute();
+                    $conductor_id = $check_conductor_stmt->get_result()->fetch_assoc()['cond_id'];
+                    
+                    // Si hay dependencias, informar al usuario y cancelar
+                    $dependencias = [];
+                    if ($alerts_count > 0) {
+                        $dependencias[] = "$alerts_count alerta(s) activa(s)";
+                    }
+                    if ($conductor_id) {
+                        $dependencias[] = "1 conductor asignado";
+                    }
+                    
+                    if (count($dependencias) > 0) {
+                        $mensaje_dependencias = implode(" y ", $dependencias);
+                        echo "<script>
+                            alert('No se puede eliminar el vehículo porque tiene: $mensaje_dependencias\\n\\nPrimero debe:\\n- Resolver o cerrar las alertas desde el módulo de alertas\\n- Desasignar el conductor desde este mismo módulo\\n\\nDespués podrá eliminar el vehículo de forma segura.');
+                            window.location.href = 'regis_vehic.php';
+                        </script>";
+                        exit;
+                    }
+                    
+                    // PASO 2: Eliminar directamente el vehículo (ya verificamos que no tiene dependencias)
+                    $sql = "DELETE FROM regis_vehic WHERE id = ?";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param('i', $vehiculo_id);
+                    $stmt->execute();
+                    
+                    if ($stmt->affected_rows > 0) {
+                        error_log("regis_vehic.php: Vehículo $vehiculo_id eliminado exitosamente (eliminación simple)");
+                        echo '<script>alert("Vehículo eliminado correctamente."); window.location="regis_vehic.php";</script>';
+                    } else {
+                        error_log("regis_vehic.php: No se pudo eliminar el vehículo $vehiculo_id");
+                        echo '<script>alert("Error: No se pudo eliminar el vehículo."); window.location="regis_vehic.php";</script>';
+                    }
+                    exit;
+                    
+                } catch (Exception $e) {
+                    error_log("regis_vehic.php: Error al eliminar vehículo: " . $e->getMessage());
+                    echo '<script>alert("Error al eliminar el vehículo: ' . addslashes($e->getMessage()) . '"); window.location="regis_vehic.php";</script>';
+                    exit;
+                }
             }
         }
         ?>

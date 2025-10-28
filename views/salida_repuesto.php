@@ -19,6 +19,7 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
     <meta charset="UTF-8">
     <title>Salida de Repuestos</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body {
             background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
@@ -153,6 +154,32 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
 </head>
 <body>
 <div class="container-fluid py-4">
+    <?php
+    // Mostrar mensajes de éxito o error
+    if (isset($_GET['mensaje'])) {
+        $mensaje = $_GET['mensaje'];
+        $id = isset($_GET['id']) ? $_GET['id'] : '';
+        
+        if ($mensaje == 'eliminado') {
+            echo '<div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle"></i> Salida de repuesto eliminada correctamente' . ($id ? " (ID: $id)" : '') . '.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                  </div>';
+        } elseif ($mensaje == 'actualizado') {
+            echo '<div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle"></i> Salida de repuesto actualizada correctamente' . ($id ? " (ID: $id)" : '') . '.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                  </div>';
+        }
+    }
+    if (isset($_GET['error'])) {
+        echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle"></i> Error: ' . htmlspecialchars($_GET['error']) . '
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>';
+    }
+    ?>
+    
     <div class="main-header animate-fade-in mb-4">
         <div class="d-flex flex-column flex-md-row align-items-center justify-content-between">
             <div>
@@ -281,7 +308,9 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
                                 <a href="ver_salida_repuesto.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-info">Ver</a>
                                 <?php if (!$rol_conductor): ?>
                                 <a href="editar_salida_repuesto.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-warning">Editar</a>
-                                <a href="../controllers/SaliRepueController.php?action=eliminar&id=<?= $row['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar esta salida?')">Eliminar</a>
+                                <button class="btn btn-sm btn-danger" onclick="eliminarSalida(<?= $row['id'] ?>)">
+                                    <i class="bi bi-trash"></i> Eliminar
+                                </button>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -293,5 +322,38 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
     </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+function eliminarSalida(id) {
+    // Confirmar eliminación
+    if (!confirm('¿Estás seguro de que deseas eliminar esta salida de repuesto?\n\nEsta acción eliminará:\n• La salida de repuesto\n• El reporte asociado\n• Desvinculará salidas de vehículos relacionadas\n\n¿Continuar?')) {
+        return;
+    }
+    
+    // Crear indicador de carga
+    const button = event.target.closest('button');
+    const originalContent = button.innerHTML;
+    button.innerHTML = '<i class="bi bi-hourglass-split"></i> Eliminando...';
+    button.disabled = true;
+    
+    // En lugar de AJAX, usar navegación directa que es más confiable
+    console.log('Eliminando salida ID:', id);
+    
+    // Crear un enlace temporal y hacer click para seguir la redirección
+    window.location.href = `../controllers/SaliRepueController.php?action=eliminar&id=${id}`;
+}
+
+// Auto-hide alerts después de 5 segundos
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        }, 5000);
+    });
+});
+</script>
+
 </body>
 </html>

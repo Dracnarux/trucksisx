@@ -468,7 +468,7 @@ $_SESSION['last_activity'] = time();
                 border-color: rgba(220,53,69,0.3) !important;
                 color: #dc3545 !important;
         }
-        }
+        
         .card-title.module-blue,
         .card.module-blue .card-text,
         .card.module-blue .btn,
@@ -707,13 +707,75 @@ $_SESSION['last_activity'] = time();
         .uniform-row .col-md-4 {
             margin-bottom: 1rem;
         }
+        
+        /* ===== NUEVAS UTILIDADES PARA ESTADÍSTICAS Y ICONOS ===== */
+        .stats-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: stretch;
+            justify-content: center;
+        }
+
+        .stat-card {
+            min-width: 200px;
+            flex: 1 1 220px;
+            border-radius: 1rem;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.25rem;
+            color: #fff;
+        }
+
+        .stat-icon {
+            font-size: 2.25rem;
+            margin-bottom: 0.5rem;
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.12));
+            opacity: 0.95;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            font-weight: 600;
+            opacity: 0.95;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        /* Ajustes para módulos: iconos más pequeños y centrados */
+        .module-card .card-body { padding: 1.25rem; }
+        .module-badge {
+            width: 64px;
+            height: 64px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+            margin-bottom: 0.75rem;
+        }
+        .module-icon-sm { font-size: 1.35rem; }
+    .badge-gradient-yellow { background: linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%); }
+    .badge-gradient-blue { background: linear-gradient(135deg,#3b82f6 0%,#1e3a8a 100%); }
+    .badge-gradient-green { background: linear-gradient(135deg,#22c55e 0%,#16a34a 100%); }
+    .badge-gradient-teal { background: linear-gradient(135deg,#22d3ee 0%,#0ea5e9 100%); }
+    .badge-gradient-danger { background: linear-gradient(135deg,#f87171 0%,#ef4444 100%); }
+    .badge-gradient-gray { background: linear-gradient(135deg,#a3a3a3 0%,#525252 100%); }
+    .badge-gradient-purple { background: linear-gradient(135deg,#a78bfa 0%,#7c3aed 100%); }
+    .header-truck { height: 80px; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.12)); }
     </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-0">
         <div class="container-fluid">
             <!-- Botón para mostrar menú (cuando esté oculto en desktop) -->
-            <button class="btn btn-outline-light me-2" type="button" id="showSidebar" style="display: inline-block;" title="Mostrar menú">
+            <button class="btn btn-outline-light me-2 d-inline-block" type="button" id="showSidebar" title="Mostrar menú">
                 <i class="bi bi-chevron-right"></i>
             </button>
             
@@ -744,7 +806,7 @@ $_SESSION['last_activity'] = time();
     <div class="d-flex">
         <nav class="sidebar p-3 hidden-desktop" id="sidebar">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0"><i class="bi bi-grid-3x3-gap"></i> <span class="d-none d-lg-inline">Menú Rápido</span></h5>
+                <h5 class="mb-0"><i class="bi bi-grid-3x3-gap"></i> <span>Menú Rápido</span></h5>
                 <button class="btn btn-sm btn-outline-primary" id="closeSidebar" title="Ocultar menú">
                     <i class="bi bi-chevron-left"></i>
                 </button>
@@ -753,33 +815,33 @@ $_SESSION['last_activity'] = time();
                 <li class="nav-item mb-2">
                     <a class="nav-link<?php if(basename($_SERVER['PHP_SELF'])=='cond.php') echo ' active'; ?>" href="cond.php">
                         <i class="bi bi-person-badge"></i> 
-                        <span class="d-none d-lg-inline">Conductores</span>
+                        <span>Conductores</span>
                     </a>
                 </li>
                 <li class="nav-item mb-2">
                     <a class="nav-link<?php if(basename($_SERVER['PHP_SELF'])=='gestiones.php') echo ' active'; ?>" href="gestiones.php">
                         <i class="bi bi-collection"></i> 
-                        <span class="d-none d-lg-inline">Gestiones</span>
+                        <span>Gestiones</span>
                     </a>
                 </li>
                 <?php if($usuario['rol'] == 'admin'): ?>
                 <li class="nav-item mb-2">
                     <a class="nav-link<?php if(basename($_SERVER['PHP_SELF'])=='crear_usuario.php') echo ' active'; ?>" href="crear_usuario.php">
                         <i class="bi bi-people"></i> 
-                        <span class="d-none d-lg-inline">Usuarios</span>
+                        <span>Usuarios</span>
                     </a>
                 </li>
                 <?php endif; ?>
                 <li class="nav-item mb-2">
                     <a class="nav-link<?php if(basename($_SERVER['PHP_SELF'])=='truck_alerts.php') echo ' active'; ?>" href="truck_alerts.php">
                         <i class="bi bi-exclamation-triangle"></i> 
-                        <span class="d-none d-lg-inline">Alertas</span>
+                        <span>Alertas</span>
                     </a>
                 </li>
                 <li class="nav-item mb-2">
                     <a class="nav-link text-danger" href="../logout.php">
                         <i class="bi bi-box-arrow-right"></i> 
-                        <span class="d-none d-lg-inline">Salir</span>
+                        <span>Salir</span>
                     </a>
                 </li>
             </ul>
@@ -793,8 +855,8 @@ $_SESSION['last_activity'] = time();
                         <span class="user-role ms-1">Rol: <?= htmlspecialchars($usuario['rol']) ?></span>
                         <p class="mt-2 mb-0 text-white-50">Último acceso: <?= isset($_SESSION['last_activity']) ? date('d/m/Y H:i:s', $_SESSION['last_activity']) : 'Ahora' ?></p>
                     </div>
-                    <div class="d-none d-md-block">
-                        <img src="https://cdn-icons-png.flaticon.com/512/1995/1995476.png" alt="Truck" style="height: 80px; filter: drop-shadow(0 2px 8px #0002);">
+                        <div class="d-none d-md-block">
+                        <img src="https://cdn-icons-png.flaticon.com/512/1995/1995476.png" alt="Truck" class="img-fluid header-truck">
                     </div>
                 </div>
             </div>
@@ -840,42 +902,28 @@ $_SESSION['last_activity'] = time();
             }
             ?>
             
-            <!-- Cards de Estadísticas con badges -->
-            <div class="row g-3 mb-4">
-                <div class="col-md-3">
-                    <div class="card bg-primary text-white position-relative overflow-visible">
-                        <span class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-warning animate-fade-in" style="z-index:2; font-size:1rem;">Vehículos</span>
-                        <div class="card-body text-center">
-                            <i class="bi bi-truck display-4 mb-2" style="color:#fff; filter:drop-shadow(0 2px 8px #0002);"></i>
-                            <h2 class="stats-number mb-0"><?= $stats['vehiculos'] ?></h2>
-                        </div>
+            <!-- Cards de Estadísticas con nuevo layout -->
+            <div class="mb-4">
+                <div class="stats-grid">
+                    <div class="stat-card bg-primary text-white">
+                        <div class="stat-icon"><i class="bi bi-truck"></i></div>
+                        <div class="stat-label">Vehículos</div>
+                        <div class="stat-number"><?= $stats['vehiculos'] ?></div>
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card bg-warning text-dark position-relative overflow-visible">
-                        <span class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-danger animate-fade-in" style="z-index:2; font-size:1rem;">Alertas</span>
-                        <div class="card-body text-center">
-                            <i class="bi bi-exclamation-triangle display-4 mb-2" style="color:#b91c1c; filter:drop-shadow(0 2px 8px #0002);"></i>
-                            <h2 class="stats-number mb-0"><?= $stats['alertas_activas'] ?></h2>
-                        </div>
+                    <div class="stat-card bg-danger text-white">
+                        <div class="stat-icon"><i class="bi bi-exclamation-triangle"></i></div>
+                        <div class="stat-label">Alertas Activas</div>
+                        <div class="stat-number"><?= $stats['alertas_activas'] ?></div>
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card bg-info text-white position-relative overflow-visible">
-                        <span class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-primary animate-fade-in" style="z-index:2; font-size:1rem;">Órdenes</span>
-                        <div class="card-body text-center">
-                            <i class="bi bi-clipboard-check display-4 mb-2" style="color:#fff; filter:drop-shadow(0 2px 8px #0002);"></i>
-                            <h2 class="stats-number mb-0"><?= $stats['ordenes_pendientes'] ?></h2>
-                        </div>
+                    <div class="stat-card bg-warning text-dark">
+                        <div class="stat-icon"><i class="bi bi-clipboard-check"></i></div>
+                        <div class="stat-label">Órdenes Pendientes</div>
+                        <div class="stat-number"><?= $stats['ordenes_pendientes'] ?></div>
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card bg-success text-white position-relative overflow-visible">
-                        <span class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-info animate-fade-in" style="z-index:2; font-size:1rem;">Conductores</span>
-                        <div class="card-body text-center">
-                            <i class="bi bi-person-badge display-4 mb-2" style="color:#fff; filter:drop-shadow(0 2px 8px #0002);"></i>
-                            <h2 class="stats-number mb-0"><?= $stats['conductores'] ?></h2>
-                        </div>
+                    <div class="stat-card bg-success text-white">
+                        <div class="stat-icon"><i class="bi bi-person-badge"></i></div>
+                        <div class="stat-label">Conductores</div>
+                        <div class="stat-number"><?= $stats['conductores'] ?></div>
                     </div>
                 </div>
             </div>
@@ -890,8 +938,8 @@ $_SESSION['last_activity'] = time();
                     <div class="card module-blue text-center uniform-card">
                         <div class="card-body">
                             <div class="d-flex justify-content-center mb-2">
-                                <span style="background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%); border-radius:50%; padding:18px; display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 8px #0001;">
-                                    <i class="bi bi-exclamation-triangle card-icon text-white" style="font-size:2.5rem;"></i>
+                                <span class="module-badge badge-gradient-yellow">
+                                    <i class="bi bi-exclamation-triangle module-icon-sm text-white"></i>
                                 </span>
                             </div>
                             <h5 class="card-title module-blue">Sistema de Alertas</h5>
@@ -916,8 +964,8 @@ $_SESSION['last_activity'] = time();
                     <div class="card module-blue text-center uniform-card">
                         <div class="card-body">
                             <div class="d-flex justify-content-center mb-2">
-                                <span style="background:linear-gradient(135deg,#3b82f6 0%,#1e3a8a 100%); border-radius:50%; padding:18px; display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 8px #0001;">
-                                    <i class="bi bi-box-arrow-right card-icon text-white" style="font-size:2.5rem;"></i>
+                                <span class="module-badge badge-gradient-blue">
+                                    <i class="bi bi-box-arrow-right module-icon-sm text-white"></i>
                                 </span>
                             </div>
                             <h5 class="card-title module-blue">Salida de Repuestos</h5>
@@ -935,8 +983,8 @@ $_SESSION['last_activity'] = time();
                     <div class="card module-blue text-center uniform-card">
                         <div class="card-body">
                             <div class="d-flex justify-content-center mb-2">
-                                <span style="background:linear-gradient(135deg,#22c55e 0%,#16a34a 100%); border-radius:50%; padding:18px; display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 8px #0001;">
-                                    <i class="bi bi-truck card-icon text-white" style="font-size:2.5rem;"></i>
+                                <span class="module-badge badge-gradient-green">
+                                    <i class="bi bi-truck module-icon-sm text-white"></i>
                                 </span>
                             </div>
                             <h5 class="card-title module-blue">Salida de Vehículo</h5>
@@ -953,8 +1001,8 @@ $_SESSION['last_activity'] = time();
                     <div class="card module-blue text-center uniform-card">
                         <div class="card-body">
                             <div class="d-flex justify-content-center mb-2">
-                                <span style="background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%); border-radius:50%; padding:18px; display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 8px #0001;">
-                                    <i class="bi bi-clipboard-check card-icon text-white" style="font-size:2.5rem;"></i>
+                                <span class="module-badge badge-gradient-yellow">
+                                    <i class="bi bi-clipboard-check module-icon-sm text-white"></i>
                                 </span>
                             </div>
                             <h5 class="card-title module-blue">Órdenes de Trabajo</h5>
@@ -972,8 +1020,8 @@ $_SESSION['last_activity'] = time();
                     <div class="card module-blue text-center uniform-card">
                         <div class="card-body">
                             <div class="d-flex justify-content-center mb-2">
-                                <span style="background:linear-gradient(135deg,#38bdf8 0%,#0ea5e9 100%); border-radius:50%; padding:18px; display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 8px #0001;">
-                                    <i class="bi bi-people card-icon text-white" style="font-size:2.5rem;"></i>
+                                <span class="module-badge badge-gradient-teal">
+                                    <i class="bi bi-people module-icon-sm text-white"></i>
                                 </span>
                             </div>
                             <h5 class="card-title module-blue">Gestión de Usuarios</h5>
@@ -997,8 +1045,8 @@ $_SESSION['last_activity'] = time();
                     <div class="card module-blue text-center uniform-card">
                         <div class="card-body">
                             <div class="d-flex justify-content-center mb-2">
-                                <span style="background:linear-gradient(135deg,#a3a3a3 0%,#525252 100%); border-radius:50%; padding:18px; display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 8px #0001;">
-                                    <i class="bi bi-file-earmark-text card-icon text-white" style="font-size:2.5rem;"></i>
+                                <span class="module-badge badge-gradient-gray">
+                                    <i class="bi bi-file-earmark-text module-icon-sm text-white"></i>
                                 </span>
                             </div>
                             <h5 class="card-title module-blue">Reportes del Sistema</h5>
@@ -1016,8 +1064,8 @@ $_SESSION['last_activity'] = time();
                     <div class="card module-blue text-center uniform-card">
                         <div class="card-body">
                             <div class="d-flex justify-content-center mb-2">
-                                <span style="background:linear-gradient(135deg,#a78bfa 0%,#7c3aed 100%); border-radius:50%; padding:18px; display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 8px #0001;">
-                                    <i class="bi bi-collection card-icon text-white" style="font-size:2.5rem;"></i>
+                                <span class="module-badge badge-gradient-purple">
+                                    <i class="bi bi-collection module-icon-sm text-white"></i>
                                 </span>
                             </div>
                             <h5 class="card-title module-blue">Panel de Gestiones</h5>
@@ -1044,13 +1092,13 @@ $_SESSION['last_activity'] = time();
                                     <div class="card uniform-small-card text-center border-success">
                                         <div class="card-body">
                                             <div class="d-flex justify-content-center mb-2">
-                                                <span style="background:linear-gradient(135deg,#22c55e 0%,#16a34a 100%); border-radius:50%; padding:12px; display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 8px #0001;">
-                                                    <i class="bi bi-truck card-icon-small text-white" style="font-size:1.8rem;"></i>
+                                                <span class="module-badge badge-gradient-green" style="width:48px; height:48px;">
+                                                    <i class="bi bi-bookmarks-fill module-icon-sm text-white"></i>
                                                 </span>
                                             </div>
                                             <h6 class="card-title">Categorías</h6>
                                             <p class="card-text small">Gestiona categorías de vehículos</p>
-                                            <a href="cat_vehiculo.php" class="btn btn-success btn-sm">
+                                            <a href="cat_vehiculo.php" class="btn btn-outline-success btn-sm">
                                                 <i class="bi bi-arrow-right-circle"></i> Acceder
                                             </a>
                                         </div>
@@ -1060,13 +1108,13 @@ $_SESSION['last_activity'] = time();
                                     <div class="card uniform-small-card text-center border-success">
                                         <div class="card-body">
                                             <div class="d-flex justify-content-center mb-2">
-                                                <span style="background:linear-gradient(135deg,#22d3ee 0%,#0ea5e9 100%); border-radius:50%; padding:12px; display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 8px #0001;">
-                                                    <i class="bi bi-truck-flatbed card-icon-small text-white" style="font-size:1.8rem;"></i>
+                                                <span class="module-badge badge-gradient-teal" style="width:48px; height:48px;">
+                                                    <i class="bi bi-diagram-3-fill module-icon-sm text-white"></i>
                                                 </span>
                                             </div>
                                             <h6 class="card-title">Subcategorías</h6>
                                             <p class="card-text small">Gestiona subcategorías de vehículos</p>
-                                            <a href="subcat_vehiculo.php" class="btn btn-success btn-sm">
+                                            <a href="subcat_vehiculo.php" class="btn btn-outline-info btn-sm">
                                                 <i class="bi bi-arrow-right-circle"></i> Acceder
                                             </a>
                                         </div>
@@ -1076,13 +1124,13 @@ $_SESSION['last_activity'] = time();
                                     <div class="card uniform-small-card text-center border-success">
                                         <div class="card-body">
                                             <div class="d-flex justify-content-center mb-2">
-                                                <span style="background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%); border-radius:50%; padding:12px; display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 8px #0001;">
-                                                    <i class="bi bi-journal-plus card-icon-small text-white" style="font-size:1.8rem;"></i>
+                                                <span class="module-badge badge-gradient-yellow" style="width:48px; height:48px;">
+                                                    <i class="bi bi-journal-plus module-icon-sm text-white"></i>
                                                 </span>
                                             </div>
                                             <h6 class="card-title">Registro</h6>
                                             <p class="card-text small">Registra vehículos individuales</p>
-                                            <a href="regis_vehic.php" class="btn btn-success btn-sm">
+                                            <a href="regis_vehic.php" class="btn btn-outline-warning btn-sm">
                                                 <i class="bi bi-arrow-right-circle"></i> Acceder
                                             </a>
                                         </div>
@@ -1092,13 +1140,13 @@ $_SESSION['last_activity'] = time();
                                     <div class="card uniform-small-card text-center border-success">
                                         <div class="card-body">
                                             <div class="d-flex justify-content-center mb-2">
-                                                <span style="background:linear-gradient(135deg,#f87171 0%,#ef4444 100%); border-radius:50%; padding:12px; display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 8px #0001;">
-                                                    <i class="bi bi-person-badge card-icon-small text-white" style="font-size:1.8rem;"></i>
+                                                <span class="module-badge badge-gradient-danger" style="width:48px; height:48px;">
+                                                    <i class="bi bi-person-badge module-icon-sm text-white"></i>
                                                 </span>
                                             </div>
                                             <h6 class="card-title">Conductores</h6>
                                             <p class="card-text small">Gestiona conductores y datos</p>
-                                            <a href="cond.php" class="btn btn-success btn-sm">
+                                            <a href="cond.php" class="btn btn-outline-danger btn-sm">
                                                 <i class="bi bi-arrow-right-circle"></i> Acceder
                                             </a>
                                         </div>
@@ -1113,134 +1161,103 @@ $_SESSION['last_activity'] = time();
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // ===== FUNCIONALIDAD DEL MENÚ LATERAL =====
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            // Elementos del menú
+        // Sidebar - lógica simplificada y robusta
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebar = document.getElementById('sidebar');
+            const showSidebar = document.getElementById('showSidebar');
             const sidebarToggle = document.getElementById('sidebarToggle');
             const closeSidebar = document.getElementById('closeSidebar');
-            const showSidebar = document.getElementById('showSidebar');
-            const sidebar = document.getElementById('sidebar');
             const mainContent = document.querySelector('main.flex-fill');
-            
-            // Función para mostrar el sidebar en móviles
-            function showMobileSidebar() {
-                if (sidebar) {
-                    sidebar.classList.add('show-mobile');
-                    document.body.style.overflow = 'hidden';
-                    console.log('Sidebar móvil mostrado');
-                }
-            }
-            
-            // Función para ocultar el sidebar en móviles
-            function hideMobileSidebar() {
-                if (sidebar) {
-                    sidebar.classList.remove('show-mobile');
-                    document.body.style.overflow = 'auto';
-                    console.log('Sidebar móvil oculto');
-                }
-            }
-            
-            // Función para ocultar el sidebar en desktop
-            function hideDesktopSidebar() {
-                if (sidebar && window.innerWidth > 991) {
-                    sidebar.classList.add('hidden-desktop');
-                    if (mainContent) {
-                        mainContent.classList.add('content-expanded');
-                    }
-                    if (showSidebar) {
-                        showSidebar.style.display = 'inline-block';
-                    }
-                    console.log('Sidebar desktop oculto');
-                }
-            }
-            
-            // Función para mostrar el sidebar en desktop
-            function showDesktopSidebar() {
-                if (sidebar) {
-                    sidebar.classList.remove('hidden-desktop');
-                    if (mainContent) {
-                        mainContent.classList.remove('content-expanded');
-                    }
-                    if (showSidebar) {
-                        showSidebar.style.display = 'none';
-                    }
-                    console.log('Sidebar desktop mostrado');
-                }
-            }
-            
-            // Event listener para abrir sidebar (móvil)
-            if (sidebarToggle) {
-                sidebarToggle.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    showMobileSidebar();
-                });
-                console.log('Botón hamburger móvil configurado');
-            }
-            
-            // Event listener para mostrar sidebar (desktop)
-            if (showSidebar) {
-                showSidebar.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    showDesktopSidebar();
-                });
-                console.log('Botón mostrar desktop configurado');
-            }
-            
-            // Event listener para cerrar/ocultar sidebar
-            if (closeSidebar) {
-                closeSidebar.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    if (window.innerWidth <= 991) {
-                        // En móvil: ocultar sidebar móvil
-                        hideMobileSidebar();
-                    } else {
-                        // En desktop: ocultar sidebar desktop
-                        hideDesktopSidebar();
-                    }
-                });
-                console.log('Botón cerrar/ocultar configurado');
-            }
-            
-            // Cerrar sidebar al hacer clic fuera (solo móviles)
-            document.addEventListener('click', function(e) {
-                if (window.innerWidth <= 991 && 
-                    sidebar && sidebar.classList.contains('show-mobile') && 
-                    !sidebar.contains(e.target) && 
-                    sidebarToggle && !sidebarToggle.contains(e.target)) {
-                    hideMobileSidebar();
-                }
-            });
-            
-            // Manejar cambios de tamaño de ventana
-            window.addEventListener('resize', function() {
-                if (window.innerWidth > 991 && sidebar) {
-                    // Al cambiar a desktop, ocultar sidebar móvil y restaurar desktop
-                    hideMobileSidebar();
-                    
-                    // Si el sidebar no está oculto en desktop, asegurar que esté visible
-                    if (!sidebar.classList.contains('hidden-desktop')) {
-                        showDesktopSidebar();
-                    }
-                } else if (window.innerWidth <= 991 && sidebar) {
-                    // Al cambiar a móvil, restaurar comportamiento móvil
-                    sidebar.classList.remove('hidden-desktop');
-                    if (mainContent) {
-                        mainContent.classList.remove('content-expanded');
-                    }
-                    if (showSidebar) {
-                        showSidebar.style.display = 'none';
-                    }
-                }
-            });
-            
-            console.log('🚛 TruckSISX - Menú lateral configurado correctamente');
-        });
 
+            function updateShowButton() {
+                if (!showSidebar) return;
+                // Mostrar el botón solo cuando el sidebar está oculto en desktop
+                const isHiddenDesktop = sidebar && sidebar.classList.contains('hidden-desktop');
+                showSidebar.style.display = (window.innerWidth > 991 && isHiddenDesktop) ? 'inline-block' : 'none';
+            }
+
+            function openDesktopSidebar() {
+                if (!sidebar) return;
+                sidebar.classList.remove('hidden-desktop');
+                if (mainContent) mainContent.classList.remove('content-expanded');
+                updateShowButton();
+            }
+
+            function closeDesktopSidebar() {
+                if (!sidebar) return;
+                sidebar.classList.add('hidden-desktop');
+                if (mainContent) mainContent.classList.add('content-expanded');
+                updateShowButton();
+            }
+
+            function openMobileSidebar() {
+                if (!sidebar) return;
+                sidebar.classList.add('show-mobile');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeMobileSidebar() {
+                if (!sidebar) return;
+                sidebar.classList.remove('show-mobile');
+                document.body.style.overflow = 'auto';
+            }
+
+            // Click en el botón mostrar (desktop)
+            if (showSidebar) {
+                showSidebar.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openDesktopSidebar();
+                });
+            }
+
+            // Click en el botón hamburger (móvil)
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openMobileSidebar();
+                });
+            }
+
+            // Click en cerrar sidebar
+            if (closeSidebar) {
+                closeSidebar.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (window.innerWidth <= 991) closeMobileSidebar(); else closeDesktopSidebar();
+                });
+            }
+
+            // Clic fuera del sidebar cierra (móvil)
+            document.addEventListener('click', function (e) {
+                if (window.innerWidth <= 991 && sidebar && sidebar.classList.contains('show-mobile')) {
+                    if (!sidebar.contains(e.target) && !(sidebarToggle && sidebarToggle.contains(e.target))) {
+                        closeMobileSidebar();
+                    }
+                }
+            });
+
+            // Al cambiar tamaño de ventana, actualizar estado
+            window.addEventListener('resize', function () {
+                if (window.innerWidth > 991) {
+                    // cerrar mobile overlay si hay
+                    closeMobileSidebar();
+                    // mantener comportamiento por defecto: si no tiene hidden-desktop, mostrar sidebar
+                    if (!sidebar.classList.contains('hidden-desktop')) {
+                        openDesktopSidebar();
+                    }
+                } else {
+                    // en móvil, ocultar el botón showSidebar
+                    updateShowButton();
+                }
+                updateShowButton();
+            });
+
+            // Inicializar visibilidad del botón
+            updateShowButton();
+            console.log('🚛 TruckSISX - Sidebar control inicializado');
+        });
     </script>
     
     <style>
@@ -1255,7 +1272,7 @@ $_SESSION['last_activity'] = time();
             overflow: visible !important;
         }
         
-        /* Mejorar la visualización del botón hamburger */
+        /* Mejorar la visualización del botón hamburger y textos del menú */
         #sidebarToggle {
             display: none;
         }
@@ -1263,6 +1280,32 @@ $_SESSION['last_activity'] = time();
         @media (max-width: 991px) {
             #sidebarToggle {
                 display: inline-block !important;
+            }
+            
+            /* Hacer visible el texto del menú en móviles */
+            .sidebar .nav-link span {
+                display: inline-block !important;
+                color: #FFFFFF !important;
+                font-size: 1rem !important;
+                margin-left: 0.5rem !important;
+            }
+            
+            /* Mejorar el contraste de los íconos */
+            .sidebar .nav-link i {
+                font-size: 1.2rem !important;
+                color: #FFFFFF !important;
+            }
+            
+            /* Aumentar el espacio entre elementos del menú */
+            .sidebar .nav-item {
+                margin-bottom: 0.75rem !important;
+            }
+            
+            /* Mejorar el estilo del título del menú */
+            .sidebar h5 {
+                color: #FFFFFF !important;
+                font-size: 1.1rem !important;
+                margin-bottom: 1.5rem !important;
             }
         }
         

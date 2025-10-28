@@ -1,5 +1,5 @@
 <?php
-require_once '../config/db.php';
+require_once __DIR__ . '/../config/db.php';
 
 class Alert {
     private $db;
@@ -258,10 +258,84 @@ class Alert {
 
     // Eliminar alerta
     public function delete($id) {
-        $query = "DELETE FROM " . $this->table . " WHERE id = :id";
-        $stmt = $this->db->prepare($query);
-        $stmt->bindParam(':id', $id);
-        return $stmt->execute();
+        try {
+            // Iniciar transacción
+            $this->db->beginTransaction();
+            
+            $totalActualizaciones = 0;
+            
+            // 1. Verificar y desvincular órdenes de trabajo
+            $check_ord_sql = "SELECT COUNT(*) as count FROM ord_trabj WHERE alert_id = ?";
+            $check_ord_stmt = $this->db->prepare($check_ord_sql);
+            $check_ord_stmt->execute([$id]);
+            $ord_result = $check_ord_stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($ord_result['count'] > 0) {
+                $update_ord_sql = "UPDATE ord_trabj SET alert_id = NULL WHERE alert_id = ?";
+                $update_ord_stmt = $this->db->prepare($update_ord_sql);
+                if (!$update_ord_stmt->execute([$id])) {
+                    throw new Exception("Error al desvincular órdenes de trabajo");
+                }
+                $totalActualizaciones += $ord_result['count'];
+            }
+            
+            // 2. Verificar y desvincular salidas de repuestos
+            $check_repue_sql = "SELECT COUNT(*) as count FROM sali_repue WHERE alerta_id = ?";
+            $check_repue_stmt = $this->db->prepare($check_repue_sql);
+            $check_repue_stmt->execute([$id]);
+            $repue_result = $check_repue_stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($repue_result['count'] > 0) {
+                $update_repue_sql = "UPDATE sali_repue SET alerta_id = NULL WHERE alerta_id = ?";
+                $update_repue_stmt = $this->db->prepare($update_repue_sql);
+                if (!$update_repue_stmt->execute([$id])) {
+                    throw new Exception("Error al desvincular salidas de repuestos");
+                }
+                $totalActualizaciones += $repue_result['count'];
+            }
+            
+            // 3. Verificar y desvincular salidas de vehículos
+            $check_vehi_sql = "SELECT COUNT(*) as count FROM sali_vehi WHERE alerta_id = ?";
+            $check_vehi_stmt = $this->db->prepare($check_vehi_sql);
+            $check_vehi_stmt->execute([$id]);
+            $vehi_result = $check_vehi_stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($vehi_result['count'] > 0) {
+                $update_vehi_sql = "UPDATE sali_vehi SET alerta_id = NULL WHERE alerta_id = ?";
+                $update_vehi_stmt = $this->db->prepare($update_vehi_sql);
+                if (!$update_vehi_stmt->execute([$id])) {
+                    throw new Exception("Error al desvincular salidas de vehículos");
+                }
+                $totalActualizaciones += $vehi_result['count'];
+            }
+            
+            // Log para debugging
+            error_log("Alert ID {$id}: Se desvincularon {$totalActualizaciones} registros antes de eliminar");
+            
+            // 4. Ahora eliminar la alerta
+            $delete_sql = "DELETE FROM " . $this->table . " WHERE id = ?";
+            $delete_stmt = $this->db->prepare($delete_sql);
+            
+            if (!$delete_stmt->execute([$id])) {
+                throw new Exception("Error al eliminar la alerta de la base de datos");
+            }
+            
+            // Verificar que se eliminó correctamente
+            if ($delete_stmt->rowCount() === 0) {
+                throw new Exception("No se encontró la alerta para eliminar");
+            }
+            
+            // Confirmar transacción
+            $this->db->commit();
+            error_log("Alert ID {$id}: Eliminación completada exitosamente");
+            return true;
+            
+        } catch (Exception $e) {
+            // Revertir transacción
+            $this->db->rollback();
+            error_log("Error al eliminar Alert ID {$id}: " . $e->getMessage());
+            throw $e;
+        }
     }
 
     // Obtener estadísticas de alertas por posición de llanta

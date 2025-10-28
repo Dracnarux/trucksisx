@@ -333,7 +333,7 @@ $rol_tecnico = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol']
                             <td class="text-center">
                                 <?php if (!$rol_conductor && !$rol_tecnico): ?>
                                 <a href="cond.php?form=1&id=<?= $row['id'] ?>" class="btn btn-warning btn-sm mx-1"><i class="bi bi-pencil-square"></i> Editar</a>
-                                <a href="cond.php?delete=<?= $row['id'] ?>" class="btn btn-danger btn-sm mx-1" onclick="return confirm('¿Eliminar conductor?')"><i class="bi bi-trash"></i> Eliminar</a>
+                                <button type="button" class="btn btn-danger btn-sm mx-1" onclick="confirmarEliminacionAvanzada(<?= $row['id'] ?>, 'Conductor ID <?= $row['id'] ?> (<?= addslashes($row['cargo'] ?? 'Sin cargo') ?>)')"><i class="bi bi-trash"></i> Eliminar</button>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -442,13 +442,161 @@ $rol_tecnico = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol']
             }
             // Eliminar conductor
             if (isset($_GET['delete'])) {
-                $sql = "DELETE FROM cond WHERE id = ?";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param('i', $_GET['delete']);
-                $stmt->execute();
-                echo '<script>window.location="cond.php";</script>';
+                $conductor_id = (int)$_GET['delete'];
+                
+                try {
+                    // Iniciar transacción para asegurar consistencia
+                    $conn->begin_transaction();
+                    
+                    // Verificar si el conductor existe
+                    $check_conductor_sql = "SELECT cargo FROM cond WHERE id = ?";
+                    $check_conductor_stmt = $conn->prepare($check_conductor_sql);
+                    $check_conductor_stmt->bind_param('i', $conductor_id);
+                    $check_conductor_stmt->execute();
+                    $conductor_result = $check_conductor_stmt->get_result();
+                    
+                    if ($conductor_result->num_rows === 0) {
+                        throw new Exception("El conductor no existe.");
+                    }
+                    
+                    $conductor_data = $conductor_result->fetch_assoc();
+                    $nombre_conductor = "Conductor ID $conductor_id (" . ($conductor_data['cargo'] ?? 'Sin cargo') . ")";
+                    
+                    // Verificar si el conductor está asignado a algún vehículo
+                    $check_vehiculos_sql = "SELECT COUNT(*) as total, GROUP_CONCAT(placa) as placas FROM regis_vehic WHERE cond_id = ?";
+                    $check_vehiculos_stmt = $conn->prepare($check_vehiculos_sql);
+                    $check_vehiculos_stmt->bind_param('i', $conductor_id);
+                    $check_vehiculos_stmt->execute();
+                    $vehiculos_result = $check_vehiculos_stmt->get_result();
+                    $vehiculos_data = $vehiculos_result->fetch_assoc();
+                    
+                    $mensaje = "Conductor '$nombre_conductor' eliminado correctamente.";
+                    
+                    // Verificar si el conductor tiene alertas asociadas
+                    $check_alertas_sql = "SELECT COUNT(*) as total FROM alert WHERE cond_id = ?";
+                    $check_alertas_stmt = $conn->prepare($check_alertas_sql);
+                    $check_alertas_stmt->bind_param('i', $conductor_id);
+                    $check_alertas_stmt->execute();
+                    $alertas_result = $check_alertas_stmt->get_result();
+                    $alertas_data = $alertas_result->fetch_assoc();
+                    
+                    if ($alertas_data['total'] > 0) {
+                        // Si el conductor tiene alertas, primero desvincular
+                        $update_alertas_sql = "UPDATE alert SET cond_id = NULL WHERE cond_id = ?";
+                        $update_alertas_stmt = $conn->prepare($update_alertas_sql);
+                        $update_alertas_stmt->bind_param('i', $conductor_id);
+                        
+                        if (!$update_alertas_stmt->execute()) {
+                            throw new Exception("Error al desvincular alertas del conductor.");
+                        }
+                        
+                        $mensaje .= " Se desvincularon {$alertas_data['total']} alerta(s).";
+                    }
+                    
+                    // Verificar si el conductor tiene órdenes de trabajo asociadas
+                    $check_ordenes_sql = "SELECT COUNT(*) as total FROM ord_trabj WHERE cond_id = ?";
+                    $check_ordenes_stmt = $conn->prepare($check_ordenes_sql);
+                    $check_ordenes_stmt->bind_param('i', $conductor_id);
+                    $check_ordenes_stmt->execute();
+                    $ordenes_result = $check_ordenes_stmt->get_result();
+                    $ordenes_data = $ordenes_result->fetch_assoc();
+                    
+                    if ($ordenes_data['total'] > 0) {
+                        // Si el conductor tiene órdenes de trabajo, primero desvincular
+                        $update_ordenes_sql = "UPDATE ord_trabj SET cond_id = NULL WHERE cond_id = ?";
+                        $update_ordenes_stmt = $conn->prepare($update_ordenes_sql);
+                        $update_ordenes_stmt->bind_param('i', $conductor_id);
+                        
+                        if (!$update_ordenes_stmt->execute()) {
+                            throw new Exception("Error al desvincular órdenes de trabajo del conductor.");
+                        }
+                        
+                        $mensaje .= " Se desvincularon {$ordenes_data['total']} orden(es) de trabajo.";
+                    }
+                    
+                    if ($vehiculos_data['total'] > 0) {
+                        // Si el conductor está asignado a vehículos, primero desvincular
+                        $update_vehiculos_sql = "UPDATE regis_vehic SET cond_id = NULL, estado = 'Sin conductor' WHERE cond_id = ?";
+                        $update_vehiculos_stmt = $conn->prepare($update_vehiculos_sql);
+                        $update_vehiculos_stmt->bind_param('i', $conductor_id);
+                        
+                        if (!$update_vehiculos_stmt->execute()) {
+                            throw new Exception("Error al desvincular vehículos del conductor.");
+                        }
+                        
+                        $mensaje .= " Los vehículos ({$vehiculos_data['placas']}) han sido desvinculados.";
+                    }
+                    
+                    // Ahora eliminar el conductor
+                    $delete_sql = "DELETE FROM cond WHERE id = ?";
+                    $delete_stmt = $conn->prepare($delete_sql);
+                    $delete_stmt->bind_param('i', $conductor_id);
+                    
+                    if (!$delete_stmt->execute()) {
+                        throw new Exception("Error al eliminar el conductor de la base de datos.");
+                    }
+                    
+                    // Confirmar transacción
+                    $conn->commit();
+                    
+                    echo '<script>alert("' . addslashes($mensaje) . '"); window.location="cond.php";</script>';
+                    
+                } catch (Exception $e) {
+                    // Revertir transacción en caso de error
+                    $conn->rollback();
+                    echo '<script>alert("Error: ' . addslashes($e->getMessage()) . '"); window.location="cond.php";</script>';
+                }
                 exit;
             }
+        }
+        
+        // AJAX para verificar dependencias del conductor
+        if (isset($_GET['ajax']) && $_GET['ajax'] === 'check_dependencies' && isset($_GET['cond_id'])) {
+            header('Content-Type: application/json');
+            $conductor_id = (int)$_GET['cond_id'];
+            
+            try {
+                // Verificar vehículos
+                $vehiculos_sql = "SELECT COUNT(*) as total, GROUP_CONCAT(placa) as placas FROM regis_vehic WHERE cond_id = ?";
+                $vehiculos_stmt = $conn->prepare($vehiculos_sql);
+                $vehiculos_stmt->bind_param('i', $conductor_id);
+                $vehiculos_stmt->execute();
+                $vehiculos_result = $vehiculos_stmt->get_result();
+                $vehiculos_data = $vehiculos_result->fetch_assoc();
+                
+                // Verificar alertas
+                $alertas_sql = "SELECT COUNT(*) as total FROM alert WHERE cond_id = ?";
+                $alertas_stmt = $conn->prepare($alertas_sql);
+                $alertas_stmt->bind_param('i', $conductor_id);
+                $alertas_stmt->execute();
+                $alertas_result = $alertas_stmt->get_result();
+                $alertas_data = $alertas_result->fetch_assoc();
+                
+                // Verificar órdenes de trabajo
+                $ordenes_sql = "SELECT COUNT(*) as total FROM ord_trabj WHERE cond_id = ?";
+                $ordenes_stmt = $conn->prepare($ordenes_sql);
+                $ordenes_stmt->bind_param('i', $conductor_id);
+                $ordenes_stmt->execute();
+                $ordenes_result = $ordenes_stmt->get_result();
+                $ordenes_data = $ordenes_result->fetch_assoc();
+                
+                echo json_encode([
+                    'vehiculos' => [
+                        'total' => $vehiculos_data['total'],
+                        'placas' => $vehiculos_data['placas']
+                    ],
+                    'alertas' => [
+                        'total' => $alertas_data['total']
+                    ],
+                    'ordenes' => [
+                        'total' => $ordenes_data['total']
+                    ]
+                ]);
+                
+            } catch (Exception $e) {
+                echo json_encode(['error' => $e->getMessage()]);
+            }
+            exit;
         }
         ?>
         <div class="mt-5 text-end">
@@ -456,5 +604,78 @@ $rol_tecnico = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol']
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Función mejorada para confirmar eliminación de conductor con verificación AJAX
+        function confirmarEliminacionAvanzada(conductorId, nombreConductor) {
+            // Mostrar mensaje de carga
+            const loadingMsg = "Verificando dependencias del conductor...";
+            
+            // Hacer petición AJAX para verificar dependencias
+            fetch(`cond.php?ajax=check_dependencies&cond_id=${conductorId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(`Error al verificar dependencias: ${data.error}`);
+                        return;
+                    }
+                    
+                    let mensaje = `¿Está seguro de eliminar al conductor "${nombreConductor}"?`;
+                    let advertencias = [];
+                    
+                    // Verificar vehículos
+                    if (data.vehiculos.total > 0) {
+                        advertencias.push(`• ${data.vehiculos.total} vehículo(s): ${data.vehiculos.placas}`);
+                    }
+                    
+                    // Verificar alertas
+                    if (data.alertas.total > 0) {
+                        advertencias.push(`• ${data.alertas.total} alerta(s) activa(s)`);
+                    }
+                    
+                    // Verificar órdenes de trabajo
+                    if (data.ordenes.total > 0) {
+                        advertencias.push(`• ${data.ordenes.total} orden(es) de trabajo`);
+                    }
+                    
+                    if (advertencias.length > 0) {
+                        mensaje += `\n\n⚠️ ADVERTENCIA: Este conductor tiene los siguientes elementos asociados que serán desvinculados:\n\n`;
+                        mensaje += advertencias.join('\n');
+                        mensaje += `\n\nTodos estos elementos quedarán disponibles para ser reasignados a otros conductores.`;
+                    } else {
+                        mensaje += `\n\n✅ Este conductor no tiene elementos asociados, se puede eliminar sin afectar otros registros.`;
+                    }
+                    
+                    mensaje += `\n\n¿Desea continuar con la eliminación?`;
+                    
+                    if (confirm(mensaje)) {
+                        window.location.href = `cond.php?delete=${conductorId}`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Fallback a confirmación simple
+                    if (confirm(`¿Está seguro de eliminar al conductor "${nombreConductor}"?\n\nNota: Si tiene elementos asociados, serán desvinculados automáticamente.`)) {
+                        window.location.href = `cond.php?delete=${conductorId}`;
+                    }
+                });
+        }
+        
+        // Función de respaldo para casos simples
+        function confirmarEliminacion(conductorId, nombreConductor, vehiculoInfo) {
+            let mensaje = `¿Está seguro de eliminar al conductor "${nombreConductor}"?`;
+            
+            if (vehiculoInfo && vehiculoInfo.trim() !== '' && vehiculoInfo !== '(Sin vehículo)') {
+                mensaje += `\n\nAdvertencia: Este conductor tiene asignado el vehículo: ${vehiculoInfo}`;
+                mensaje += `\nEl vehículo será desvinculado automáticamente y quedará disponible para otros conductores.`;
+            } else {
+                mensaje += `\n\nEste conductor no tiene vehículos asignados.`;
+            }
+            
+            mensaje += `\n\nNota: Si este conductor tiene alertas o reportes asociados, también serán desvinculados automáticamente.`;
+            mensaje += `\n\n¿Desea continuar con la eliminación?`;
+            
+            return confirm(mensaje);
+        }
+    </script>
 </body>
 </html>

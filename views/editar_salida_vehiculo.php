@@ -16,6 +16,14 @@ if (!$salida) {
     echo "<div class='container mt-4'><div class='alert alert-danger'>No se encontró la salida de vehículo.</div></div>";
     exit;
 }
+
+// Obtener lista de vehículos disponibles
+$query_vehiculos = "SELECT id, placa, marca_vehiculo, modelo, num_cha FROM regis_vehic ORDER BY placa";
+$stmt_vehiculos = mysqli_query($db, $query_vehiculos);
+$vehiculos = [];
+while ($vehiculo = mysqli_fetch_assoc($stmt_vehiculos)) {
+    $vehiculos[] = $vehiculo;
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -42,6 +50,20 @@ if (!$salida) {
         .card { border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
         .card-header { background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%); color: #1E3A8A; font-weight: 600; }
         .form-label { color: #1E3A8A; font-weight: 500; }
+        .form-control, .form-select {
+            background: #FFFFFF;
+            border: 2px solid #D1D5DB;
+            border-radius: 8px;
+            color: #374151;
+            font-size: 16px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #1E3A8A;
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+            outline: none;
+        }
         .btn-primary {
             background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
             color: #1E3A8A !important;
@@ -98,6 +120,23 @@ if (!$salida) {
             </div>
         </div>
     </div>
+    <!-- Mensajes de error -->
+    <?php if (isset($_GET['error'])): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <?php 
+            switch($_GET['error']) {
+                case 'update_failed':
+                    echo '<strong>Error:</strong> No se pudo actualizar la salida de vehículo. Inténtelo nuevamente.';
+                    break;
+                default:
+                    echo '<strong>Error:</strong> Ocurrió un problema al procesar la solicitud.';
+            }
+            ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
+
     <div class="card animate-slide-up">
         <div class="card-header">
             <h5 class="mb-0"><i class="bi bi-clipboard-data"></i> Información de la Salida</h5>
@@ -107,8 +146,25 @@ if (!$salida) {
                 <div class="form-section">
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <label for="id_flotas" class="form-label">ID Flota</label>
-                            <input type="number" class="form-control" name="id_flotas" value="<?= $salida['id_flotas'] ?>" required>
+                            <label for="id_flotas" class="form-label">Vehículo de la Flota</label>
+                            <select class="form-select" name="id_flotas" id="vehiculoSelect" required>
+                                <option value="">Seleccione un vehículo...</option>
+                                <?php foreach ($vehiculos as $vehiculo): ?>
+                                    <option value="<?= $vehiculo['id'] ?>" 
+                                            data-placa="<?= htmlspecialchars($vehiculo['placa']) ?>"
+                                            data-marca="<?= htmlspecialchars($vehiculo['marca_vehiculo']) ?>"
+                                            data-modelo="<?= htmlspecialchars($vehiculo['modelo']) ?>"
+                                            data-chasis="<?= htmlspecialchars($vehiculo['num_cha']) ?>"
+                                            <?= $vehiculo['id'] == $salida['id_flotas'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($vehiculo['placa']) ?> - <?= htmlspecialchars($vehiculo['marca_vehiculo']) ?> <?= htmlspecialchars($vehiculo['modelo']) ?> (ID: <?= $vehiculo['id'] ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <div class="mt-2" id="vehiculoInfo" style="display: none;">
+                                <small class="text-muted">
+                                    <strong>Chasis:</strong> <span id="vehiculoChasis"></span>
+                                </small>
+                            </div>
                         </div>
                         <div class="col-md-4">
                             <label for="segui_monitoreo" class="form-label">Seguimiento y Monitoreo</label>
@@ -145,5 +201,29 @@ if (!$salida) {
     </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const vehiculoSelect = document.getElementById('vehiculoSelect');
+    const vehiculoInfo = document.getElementById('vehiculoInfo');
+    const vehiculoChasis = document.getElementById('vehiculoChasis');
+    
+    function updateVehicleInfo() {
+        const selectedOption = vehiculoSelect.options[vehiculoSelect.selectedIndex];
+        
+        if (selectedOption.value && selectedOption.dataset.chasis) {
+            vehiculoChasis.textContent = selectedOption.dataset.chasis;
+            vehiculoInfo.style.display = 'block';
+        } else {
+            vehiculoInfo.style.display = 'none';
+        }
+    }
+    
+    // Mostrar información del vehículo seleccionado inicialmente
+    updateVehicleInfo();
+    
+    // Escuchar cambios en el select
+    vehiculoSelect.addEventListener('change', updateVehicleInfo);
+});
+</script>
 </body>
 </html>

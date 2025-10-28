@@ -58,10 +58,91 @@ class SaliVehiController {
             }
         }
     }
+
+    public function actualizar() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+            
+            if ($id <= 0) {
+                header('Location: ../views/salida_vehiculo.php?error=id_invalido');
+                exit();
+            }
+
+            // Verificar que la salida existe
+            $salidaExistente = $this->model->getById($id);
+            if (!$salidaExistente) {
+                header('Location: ../views/salida_vehiculo.php?error=no_encontrado');
+                exit();
+            }
+
+            $data = [
+                'id_flotas' => $_POST['id_flotas'],
+                'segui_monitoreo' => $_POST['segui_monitoreo'],
+                'control_combustible' => $_POST['control_combustible'],
+                'cump_regulaciones' => $_POST['cump_regulaciones'],
+                'protocolo_seguridad' => $_POST['protocolo_seguridad'],
+                'gest_conductores' => $_POST['gest_conductores']
+            ];
+
+            $resultado = $this->model->actualizarSalida($id, $data);
+            
+            if ($resultado) {
+                header('Location: ../views/salida_vehiculo.php?success=actualizado');
+                exit();
+            } else {
+                header('Location: ../views/editar_salida_vehiculo.php?id=' . $id . '&error=update_failed');
+                exit();
+            }
+        } else {
+            header('Location: ../views/salida_vehiculo.php');
+            exit();
+        }
+    }
+
+    public function eliminar() {
+        if (isset($_GET['id'])) {
+            $id = intval($_GET['id']);
+            
+            if ($id <= 0) {
+                header('Location: ../views/salida_vehiculo.php?error=id_invalido');
+                exit();
+            }
+
+            $resultado = $this->model->eliminarSalida($id);
+            
+            if ($resultado) {
+                header('Location: ../views/salida_vehiculo.php?success=eliminado');
+                exit();
+            } else {
+                header('Location: ../views/salida_vehiculo.php?error=delete_failed');
+                exit();
+            }
+        } else {
+            header('Location: ../views/salida_vehiculo.php');
+            exit();
+        }
+    }
 }
 
 // Enrutamiento simple
-if (isset($_GET['action']) && $_GET['action'] === 'registrar') {
+if (isset($_GET['action'])) {
     $controller = new SaliVehiController();
-    $controller->registrar();
+    
+    switch ($_GET['action']) {
+        case 'registrar':
+            $controller->registrar();
+            break;
+        case 'actualizar':
+            $controller->actualizar();
+            break;
+        case 'eliminar':
+            $controller->eliminar();
+            break;
+        default:
+            header('Location: ../views/salida_vehiculo.php');
+            exit();
+    }
+} else {
+    header('Location: ../views/salida_vehiculo.php');
+    exit();
 }

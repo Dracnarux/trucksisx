@@ -1,11 +1,11 @@
 <?php
-require_once '../models/Alert.php';
-require_once '../models/User.php';
+require_once __DIR__ . '/../models/Alert.php';
+require_once __DIR__ . '/../models/User.php';
 
 class AlertController {
     // Obtener lista de conductores para el formulario
     public function getConductores() {
-        require_once '../config/db.php';
+        require_once __DIR__ . '/../config/db.php';
         $database = new Database();
         $db = $database->getConnection();
         $query = "SELECT id, cargo FROM cond ORDER BY cargo ASC";
@@ -16,7 +16,7 @@ class AlertController {
     }
     // Obtener lista de vehículos para el formulario
     public function getVehicles() {
-        require_once '../config/db.php';
+        require_once __DIR__ . '/../config/db.php';
         $database = new Database();
         $db = $database->getConnection();
         $query = "SELECT id, placa, marca_vehiculo FROM regis_vehic ORDER BY placa";
@@ -44,7 +44,7 @@ class AlertController {
             }
 
             // Validar existencia de conductor y vehículo
-            require_once '../config/db.php';
+            require_once __DIR__ . '/../config/db.php';
             $database = new Database();
             $db = $database->getConnection();
             $cond_id = $_POST['cond_id'];
@@ -156,7 +156,7 @@ class AlertController {
             $alertId = $_POST['id'];
             $nuevoEstado = $_POST['estado'];
             
-            require_once '../config/db.php';
+            require_once __DIR__ . '/../config/db.php';
             $database = new Database();
             $db = $database->getConnection();
             
@@ -243,43 +243,64 @@ class AlertController {
 
     // Eliminar alerta
     public function delete() {
+        // Asegurar que devolvemos JSON
+        header('Content-Type: application/json');
+        
         if ($_POST && isset($_POST['id'])) {
-            $alertId = $_POST['id'];
+            $alertId = intval($_POST['id']);
             
-            // Antes de eliminar, actualizar órdenes de trabajo relacionadas
-            require_once '../config/db.php';
-            $database = new Database();
-            $db = $database->getConnection();
+            // Validar que el ID sea válido
+            if ($alertId <= 0) {
+                echo json_encode(['success' => false, 'message' => 'ID de alerta inválido']);
+                return;
+            }
             
             try {
-                // Iniciar transacción
-                $db->beginTransaction();
+                // Verificar que la alerta existe antes de eliminar
+                $alertaExistente = $this->alert->getById($alertId);
+                if (!$alertaExistente) {
+                    echo json_encode(['success' => false, 'message' => 'La alerta no existe']);
+                    return;
+                }
                 
-                // Actualizar órdenes de trabajo que referencian esta alerta
-                $updateOrdenQuery = "UPDATE ord_trabj SET alert_id = NULL WHERE alert_id = :alert_id";
-                $updateStmt = $db->prepare($updateOrdenQuery);
-                $updateStmt->bindParam(':alert_id', $alertId, PDO::PARAM_INT);
-                $updateStmt->execute();
+                // Log para debugging
+                error_log("Intentando eliminar alerta ID: {$alertId}");
                 
-                // Eliminar la alerta
+                // Usar directamente el método delete del modelo que ya maneja las FK constraints
                 $result = $this->alert->delete($alertId);
                 
-                if ($result) {
-                    $db->commit();
+                if ($result === true) {
+                    error_log("Alerta ID {$alertId} eliminada exitosamente");
                     echo json_encode([
                         'success' => true, 
-                        'message' => 'Alerta eliminada correctamente. Las órdenes de trabajo relacionadas han sido actualizadas.'
+                        'message' => 'Alerta eliminada correctamente. Las órdenes de trabajo relacionadas han sido desvinculadas automáticamente.'
                     ]);
                 } else {
-                    $db->rollback();
-                    echo json_encode(['success' => false, 'message' => 'Error al eliminar la alerta']);
+                    error_log("Falló la eliminación de alerta ID {$alertId} - resultado: " . var_export($result, true));
+                    echo json_encode(['success' => false, 'message' => 'Error al eliminar la alerta: operación no completada']);
                 }
+                
             } catch (Exception $e) {
-                $db->rollback();
-                echo json_encode(['success' => false, 'message' => 'Error en la base de datos: ' . $e->getMessage()]);
+                // Log detallado del error
+                error_log("Exception eliminando alerta ID {$alertId}: " . $e->getMessage());
+                error_log("Stack trace: " . $e->getTraceAsString());
+                
+                // Mensaje de error más específico
+                $errorMessage = $e->getMessage();
+                
+                if (strpos($errorMessage, 'Cannot delete or update a parent row') !== false || 
+                    strpos($errorMessage, 'foreign key constraint fails') !== false) {
+                    $errorMessage = 'No se puede eliminar la alerta porque tiene dependencias activas. Verifique las órdenes de trabajo asociadas.';
+                } else if (strpos($errorMessage, 'desvincular') !== false) {
+                    $errorMessage = 'Error al desvincular las órdenes de trabajo relacionadas: ' . $errorMessage;
+                } else if (strpos($errorMessage, 'doesn\'t exist') !== false) {
+                    $errorMessage = 'La alerta que intenta eliminar no existe.';
+                }
+                
+                echo json_encode(['success' => false, 'message' => $errorMessage]);
             }
         } else {
-            echo json_encode(['success' => false, 'message' => 'ID de alerta no proporcionado']);
+            echo json_encode(['success' => false, 'message' => 'ID de alerta no proporcionado. Método: ' . $_SERVER['REQUEST_METHOD']]);
         }
     }
 

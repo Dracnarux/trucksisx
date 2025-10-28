@@ -66,8 +66,45 @@ class SubCatRepu {
     }
 
     public function delete($id) {
-        $stmt = $this->conn->prepare("DELETE FROM subcat_repu WHERE id=?");
-        $stmt->bind_param('i', $id);
-        return $stmt->execute();
+        try {
+            // Iniciar transacción
+            $this->conn->begin_transaction();
+            
+            // Verificar si la subcategoría está siendo usada en repue
+            $check_sql = "SELECT COUNT(*) as count FROM repue WHERE subcat_repu_id = ?";
+            $check_stmt = $this->conn->prepare($check_sql);
+            $check_stmt->bind_param('i', $id);
+            $check_stmt->execute();
+            $result = $check_stmt->get_result();
+            $row = $result->fetch_assoc();
+            
+            if ($row['count'] > 0) {
+                // Si hay repuestos que usan esta subcategoría, desvincular
+                $update_sql = "UPDATE repue SET subcat_repu_id = NULL WHERE subcat_repu_id = ?";
+                $update_stmt = $this->conn->prepare($update_sql);
+                $update_stmt->bind_param('i', $id);
+                if (!$update_stmt->execute()) {
+                    throw new Exception("Error al desvincular repuestos de la subcategoría");
+                }
+            }
+            
+            // Ahora eliminar la subcategoría
+            $delete_sql = "DELETE FROM subcat_repu WHERE id = ?";
+            $delete_stmt = $this->conn->prepare($delete_sql);
+            $delete_stmt->bind_param('i', $id);
+            
+            if (!$delete_stmt->execute()) {
+                throw new Exception("Error al eliminar la subcategoría");
+            }
+            
+            // Confirmar transacción
+            $this->conn->commit();
+            return true;
+            
+        } catch (Exception $e) {
+            // Revertir transacción
+            $this->conn->rollback();
+            throw $e;
+        }
     }
 }

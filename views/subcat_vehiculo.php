@@ -520,12 +520,46 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
             }
             // Eliminar subcategoría
             if (isset($_GET['delete'])) {
-                $sql = "DELETE FROM subcat_vehic WHERE id = ?";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param('i', $_GET['delete']);
-                $stmt->execute();
-                echo '<script>window.location="subcat_vehiculo.php";</script>';
-                exit;
+                try {
+                    $subcat_id = $_GET['delete'];
+                    
+                    // PASO 1: Verificar si la subcategoría tiene vehículos asociados
+                    $check_vehiculos_sql = "SELECT COUNT(*) as total FROM regis_vehic WHERE subcat_vehic_id = ?";
+                    $check_vehiculos_stmt = $conn->prepare($check_vehiculos_sql);
+                    $check_vehiculos_stmt->bind_param('i', $subcat_id);
+                    $check_vehiculos_stmt->execute();
+                    $check_result = $check_vehiculos_stmt->get_result();
+                    $vehiculos_count = $check_result->fetch_assoc()['total'];
+                    
+                    // Si hay vehículos asociados, no permitir la eliminación
+                    if ($vehiculos_count > 0) {
+                        echo "<script>
+                            alert('No se puede eliminar la subcategoría porque tiene $vehiculos_count vehículo(s) asociado(s).\\n\\nPrimero debe:\\n- Reasignar los vehículos a otra subcategoría, o\\n- Eliminar los vehículos individualmente desde el módulo de vehículos');
+                            window.location.href = 'subcat_vehiculo.php';
+                        </script>";
+                        exit;
+                    }
+                    
+                    // PASO 2: Eliminar directamente la subcategoría (ya verificamos que no tiene vehículos)
+                    $sql = "DELETE FROM subcat_vehic WHERE id = ?";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param('i', $subcat_id);
+                    $stmt->execute();
+                    
+                    if ($stmt->affected_rows > 0) {
+                        error_log("subcat_vehiculo.php: Subcategoría $subcat_id eliminada exitosamente (eliminación simple)");
+                        echo '<script>alert("Subcategoría eliminada correctamente."); window.location="subcat_vehiculo.php";</script>';
+                    } else {
+                        error_log("subcat_vehiculo.php: No se pudo eliminar la subcategoría $subcat_id");
+                        echo '<script>alert("Error: No se pudo eliminar la subcategoría."); window.location="subcat_vehiculo.php";</script>';
+                    }
+                    exit;
+                    
+                } catch (Exception $e) {
+                    error_log("subcat_vehiculo.php: Error al eliminar subcategoría: " . $e->getMessage());
+                    echo '<script>alert("Error al eliminar la subcategoría: ' . addslashes($e->getMessage()) . '"); window.location="subcat_vehiculo.php";</script>';
+                    exit;
+                }
             }
         }
         ?>

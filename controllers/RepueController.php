@@ -15,6 +15,12 @@ class RepueController {
         return $this->model->save($data);
     }
     public function delete($id) {
-        return $this->model->delete($id);
+        try {
+            return $this->model->delete($id);
+        } catch (Exception $e) {
+            // Log error and return false or throw exception
+            error_log("Error eliminando repuesto ID {$id}: " . $e->getMessage());
+            throw $e;
+        }
     }
 }

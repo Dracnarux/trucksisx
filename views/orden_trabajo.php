@@ -12,9 +12,11 @@ $conn = conectarDB();
 
 $estado = $_GET['estado'] ?? '';
 $prioridad = $_GET['prioridad'] ?? '';
+$nombre_trabajo = $_GET['nombre_trabajo'] ?? '';
 $condicion = [];
 if ($estado) $condicion[] = "estado = '" . $conn->real_escape_string($estado) . "'";
 if ($prioridad) $condicion[] = "prioridad = '" . $conn->real_escape_string($prioridad) . "'";
+if ($nombre_trabajo) $condicion[] = "nombre_trabajo LIKE '%" . $conn->real_escape_string($nombre_trabajo) . "%'";
 $where = $condicion ? 'WHERE ' . implode(' AND ', $condicion) : '';
 
 $sql = "SELECT * FROM ord_trabj $where ORDER BY fecha_creacion DESC";
@@ -558,11 +560,31 @@ foreach($tecnicos as $t) {
         <div class="card-header">
             <h5 class="mb-0">
                 <i class="bi bi-funnel text-accent"></i> Filtros de Búsqueda
+                <?php 
+                $filtros_activos = 0;
+                if ($estado) $filtros_activos++;
+                if ($prioridad) $filtros_activos++;
+                if ($nombre_trabajo) $filtros_activos++;
+                if ($filtros_activos > 0): ?>
+                    <span class="badge bg-primary ms-2"><?= $filtros_activos ?> filtro<?= $filtros_activos > 1 ? 's' : '' ?> activo<?= $filtros_activos > 1 ? 's' : '' ?></span>
+                <?php endif; ?>
             </h5>
         </div>
         <div class="card-body">
+            <div class="alert alert-info mb-3">
+                <i class="bi bi-lightbulb"></i>
+                <strong>Mejora:</strong> Ahora puedes buscar órdenes de trabajo por nombre específico usando el campo de texto.
+            </div>
             <form method="get" class="row g-3">
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <label class="form-label">
+                        <i class="bi bi-briefcase text-corporate"></i> Nombre del Trabajo
+                    </label>
+                    <input type="text" name="nombre_trabajo" class="form-control" 
+                           placeholder="Buscar por nombre..." 
+                           value="<?= htmlspecialchars($nombre_trabajo) ?>">
+                </div>
+                <div class="col-md-3">
                     <label class="form-label">
                         <i class="bi bi-flag text-corporate"></i> Estado
                     </label>
@@ -570,10 +592,10 @@ foreach($tecnicos as $t) {
                         <option value="">Todos los estados</option>
                         <option value="pendiente" <?= $estado === 'pendiente' ? 'selected' : '' ?>>⏳ Pendiente</option>
                         <option value="en_proceso" <?= $estado === 'en_proceso' ? 'selected' : '' ?>>🔄 En Proceso</option>
-                        <option value="completada" <?= $estado === 'completada' ? 'selected' : '' ?>>✅ Completada</option>
+                        <option value="resuelta" <?= $estado === 'resuelta' ? 'selected' : '' ?>>✅ Resuelta</option>
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label">
                         <i class="bi bi-exclamation-triangle text-corporate"></i> Prioridad
                     </label>
@@ -585,13 +607,16 @@ foreach($tecnicos as $t) {
                         <option value="critica" <?= $prioridad === 'critica' ? 'selected' : '' ?>>🔴 Crítica</option>
                     </select>
                 </div>
-                <div class="col-md-4 d-flex align-items-end gap-2">
+                <div class="col-md-3 d-flex align-items-end gap-2">
                     <button type="submit" class="btn btn-primary flex-fill">
                         <i class="bi bi-search"></i> Buscar
                     </button>
-                    <a href="orden_trabajo.php" class="btn btn-outline-primary">
-                        <i class="bi bi-arrow-clockwise"></i>
+                    <a href="orden_trabajo.php" class="btn btn-outline-secondary" title="Limpiar todos los filtros">
+                        <i class="bi bi-x-circle"></i>
                     </a>
+                    <button type="button" class="btn btn-outline-info" onclick="limpiarTexto()" title="Limpiar solo el campo de texto">
+                        <i class="bi bi-eraser"></i>
+                    </button>
                 </div>
             </form>
         </div>
@@ -602,7 +627,7 @@ foreach($tecnicos as $t) {
         <div class="card-header">
             <h5 class="mb-0">
                 <i class="fas fa-list text-accent"></i> Lista de Órdenes de Trabajo
-                <span class="badge bg-info ms-2"><?= $result->num_rows ?> registros</span>
+                <span class="badge bg-info ms-2"><?= $result ? $result->num_rows : 0 ?> registro<?= ($result && $result->num_rows != 1) ? 's' : '' ?></span>
             </h5>
         </div>
         <div class="card-body p-0">
@@ -625,7 +650,8 @@ foreach($tecnicos as $t) {
                         </tr>
                     </thead>
                     <tbody>
-                            <?php while($row = $result->fetch_assoc()): ?>
+                            <?php if($result && $result->num_rows > 0): ?>
+                                <?php while($row = $result->fetch_assoc()): ?>
                             <tr>
                                 <td><strong>#<?= $row['id'] ?></strong></td>
                                 <td><?= htmlspecialchars($row['nombre_trabajo']) ?></td>
@@ -638,7 +664,7 @@ foreach($tecnicos as $t) {
                                     $estado_badge = '';
                                     $estado_icon = '';
                                     switch($row['estado']) {
-                                        case 'completada': 
+                                        case 'resuelta': 
                                             $estado_badge = 'bg-success'; 
                                             $estado_icon = '✅';
                                             break;
@@ -714,7 +740,21 @@ foreach($tecnicos as $t) {
                                 </td>
                                 <?php endif; ?>
                             </tr>
-                            <?php endwhile; ?>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="9" class="text-center py-5">
+                                        <div class="text-muted">
+                                            <i class="fas fa-search fa-3x mb-3"></i>
+                                            <h5>No se encontraron órdenes de trabajo</h5>
+                                            <p>No hay órdenes que coincidan con los filtros aplicados.</p>
+                                            <a href="orden_trabajo.php" class="btn btn-outline-primary">
+                                                <i class="bi bi-arrow-clockwise"></i> Limpiar filtros
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -1535,6 +1575,52 @@ foreach($tecnicos as $t) {
             console.log('Datos del formulario completo:');
             for (let [key, value] of formData.entries()) {
                 console.log(`${key}: ${value}`);
+            }
+        });
+
+        // Función para limpiar solo el campo de texto de nombre del trabajo
+        function limpiarTexto() {
+            const campoTexto = document.querySelector('input[name="nombre_trabajo"]');
+            if (campoTexto) {
+                campoTexto.value = '';
+                campoTexto.focus();
+                
+                // Opcional: mostrar mensaje informativo
+                const mensaje = document.createElement('div');
+                mensaje.className = 'alert alert-success alert-dismissible fade show mt-2';
+                mensaje.innerHTML = `
+                    <i class="bi bi-check-circle"></i>
+                    Campo de búsqueda limpiado. 
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                campoTexto.parentNode.appendChild(mensaje);
+                
+                // Auto-remover el mensaje después de 3 segundos
+                setTimeout(() => {
+                    if (mensaje.parentNode) {
+                        mensaje.remove();
+                    }
+                }, 3000);
+            }
+        }
+
+        // Agregar funcionalidad de búsqueda en tiempo real (opcional)
+        document.addEventListener('DOMContentLoaded', function() {
+            const campoTexto = document.querySelector('input[name="nombre_trabajo"]');
+            if (campoTexto) {
+                // Agregar placeholder dinámico
+                const placeholders = [
+                    'Buscar por nombre...',
+                    'Ej: Cambio de aceite',
+                    'Ej: Reparación de frenos',
+                    'Ej: Mantenimiento preventivo'
+                ];
+                
+                let currentPlaceholder = 0;
+                setInterval(() => {
+                    currentPlaceholder = (currentPlaceholder + 1) % placeholders.length;
+                    campoTexto.placeholder = placeholders[currentPlaceholder];
+                }, 3000);
             }
         });
     </script>

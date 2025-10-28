@@ -604,26 +604,26 @@ if (isset($_GET['error'])) {
                         <h6><i class="bi bi-building"></i> Información de la Empresa</h6>
                         <div class="row">
                             <div class="col-md-4">
-                                <label class="form-label">NIT/Identificación <span class="text-danger">*</span></label>
-                                <input type="text" name="nit_num_identi" class="form-control" required placeholder="123456789-0">
+                                <label for="create_nit_num_identi" class="form-label">NIT/Identificación <span class="text-danger">*</span></label>
+                                <input type="text" id="create_nit_num_identi" name="nit_num_identi" class="form-control" required placeholder="123456789-0">
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">Nombre del Proveedor <span class="text-danger">*</span></label>
-                                <input type="text" name="nom_proveedor" class="form-control" required placeholder="Nombre de la empresa">
+                                <label for="create_nom_proveedor" class="form-label">Nombre del Proveedor <span class="text-danger">*</span></label>
+                                <input type="text" id="create_nom_proveedor" name="nom_proveedor" class="form-control" required placeholder="Nombre de la empresa">
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">Tipo de Repuesto</label>
-                                <input type="text" name="tip_repuesto" class="form-control" placeholder="Motor, frenos, transmisión...">
+                                <label for="create_tip_repuesto" class="form-label">Tipo de Repuesto</label>
+                                <input type="text" id="create_tip_repuesto" name="tip_repuesto" class="form-control" placeholder="Motor, frenos, transmisión...">
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6">
-                                <label class="form-label">Marca que Distribuye</label>
-                                <input type="text" name="mar_distribuye" class="form-control" placeholder="Toyota, Ford, Chevrolet...">
+                                <label for="create_mar_distribuye" class="form-label">Marca que Distribuye</label>
+                                <input type="text" id="create_mar_distribuye" name="mar_distribuye" class="form-control" placeholder="Toyota, Ford, Chevrolet...">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Zonas de Cobertura</label>
-                                <input type="text" name="zon_cobertura" class="form-control" placeholder="Nacional, Regional, Local...">
+                                <label for="create_zon_cobertura" class="form-label">Zonas de Cobertura</label>
+                                <input type="text" id="create_zon_cobertura" name="zon_cobertura" class="form-control" placeholder="Nacional, Regional, Local...">
                             </div>
                         </div>
                     </div>
