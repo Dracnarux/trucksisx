@@ -14,11 +14,11 @@ class Alert {
     public function create($data) {
         $query = "INSERT INTO " . $this->table . " 
                   (descripcion, prioridad, estado, tipo_alerta, posicion_llanta, 
-                   codigo_conductor, observaciones, imagen_evidencia, 
+                   codigo_conductor, observaciones, 
                    cond_id, regis_vehic_id) 
                   VALUES 
                   (:descripcion, :prioridad, :estado, :tipo_alerta, :posicion_llanta, 
-                   :codigo_conductor, :observaciones, :imagen_evidencia, 
+                   :codigo_conductor, :observaciones, 
                    :cond_id, :regis_vehic_id)";
 
         $stmt = $this->db->prepare($query);
@@ -30,7 +30,6 @@ class Alert {
         $stmt->bindParam(':posicion_llanta', $data['posicion_llanta']);
         $stmt->bindParam(':codigo_conductor', $data['codigo_conductor']);
         $stmt->bindParam(':observaciones', $data['observaciones']);
-        $stmt->bindParam(':imagen_evidencia', $data['imagen_evidencia']);
         $stmt->bindParam(':cond_id', $data['cond_id']);
         $stmt->bindParam(':regis_vehic_id', $data['regis_vehic_id']);
 

@@ -8,8 +8,12 @@ if (!isset($_SESSION['usuario'])) {
     exit();
 }
 
-// Solo administradores pueden gestionar usuarios
-if ($_SESSION['usuario']['rol'] !== 'admin') {
+// Determinar roles
+$es_admin = $_SESSION['usuario']['rol'] === 'admin';
+$es_tecnico = $_SESSION['usuario']['rol'] === 'tecnico';
+
+// Solo administradores y técnicos pueden gestionar usuarios
+if (!$es_admin && !$es_tecnico) {
     header('Location: ../views/dashboard.php?error=no_permission');
     exit();
 }
@@ -31,6 +35,11 @@ $action = $_GET['action'] ?? '';
 switch ($action) {
     case 'create':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Solo admins pueden crear usuarios
+            if (!$es_admin) {
+                redirectWithMessage(false, 'No tienes permisos para crear usuarios');
+            }
+            
             try {
                 // Validar datos requeridos
                 $requiredFields = ['num_documento', 'tipo_documento', 'nombre', 'apellido', 'rol', 'contrasena'];
@@ -74,6 +83,14 @@ switch ($action) {
             try {
                 $id = intval($_POST['id']);
                 
+                // Si es técnico, verificar que solo edite su propio usuario
+                if ($es_tecnico) {
+                    $usuarioAEditar = $userModel->getById($id);
+                    if (!$usuarioAEditar || $usuarioAEditar['num_documento'] !== $_SESSION['usuario']['num_documento']) {
+                        redirectWithMessage(false, 'Solo puedes editar tu propio perfil');
+                    }
+                }
+                
                 // Validar datos requeridos
                 if (empty($_POST['nombre']) || empty($_POST['apellido']) || empty($_POST['rol'])) {
                     redirectWithMessage(false, 'Los campos nombre, apellido y rol son obligatorios');
@@ -110,6 +127,11 @@ switch ($action) {
         
     case 'delete':
         if (isset($_GET['id'])) {
+            // Solo admins pueden eliminar usuarios
+            if (!$es_admin) {
+                redirectWithMessage(false, 'No tienes permisos para eliminar usuarios');
+            }
+            
             try {
                 $id = intval($_GET['id']);
                 

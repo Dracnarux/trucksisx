@@ -920,19 +920,291 @@ $_SESSION['last_activity'] = time();
                         <div class="stat-label">Órdenes Pendientes</div>
                         <div class="stat-number"><?= $stats['ordenes_pendientes'] ?></div>
                     </div>
+                    <?php if($usuario['rol'] != 'conductor'): ?>
                     <div class="stat-card bg-success text-white">
                         <div class="stat-icon"><i class="bi bi-person-badge"></i></div>
                         <div class="stat-label">Conductores</div>
                         <div class="stat-number"><?= $stats['conductores'] ?></div>
                     </div>
+                    <?php else: ?>
+                    <div class="stat-card bg-info text-white">
+                        <div class="stat-icon"><i class="bi bi-person-circle"></i></div>
+                        <div class="stat-label">Mi Perfil</div>
+                        <div class="stat-number"><i class="bi bi-check-circle"></i></div>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
             <!-- Módulos Principales -->
+            <?php if($usuario['rol'] == 'conductor'): ?>
+            <!-- Dashboard optimizado para Conductores -->
+            <div class="row g-4 dashboard-section">
+                <div class="col-12">
+                    <h4 class="fw-bold mb-4"><i class="bi bi-grid-3x3-gap"></i> Mis Módulos de Trabajo</h4>
+                </div>
+                
+                <!-- Fila 1: Sistema de Alertas y Mi Perfil -->
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <div class="card module-blue text-center uniform-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-center mb-2">
+                                <span class="module-badge badge-gradient-yellow">
+                                    <i class="bi bi-exclamation-triangle module-icon-sm text-white"></i>
+                                </span>
+                            </div>
+                            <h5 class="card-title module-blue">Sistema de Alertas</h5>
+                            <p class="card-text">Crea y consulta alertas de llantas de los vehículos de la flota.</p>
+                            <a href="truck_alerts.php" class="btn btn-danger">
+                                <i class="bi bi-plus-circle"></i> Crear/Ver Alertas
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <div class="card module-blue text-center uniform-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-center mb-2">
+                                <span class="module-badge badge-gradient-teal">
+                                    <i class="bi bi-person-circle module-icon-sm text-white"></i>
+                                </span>
+                            </div>
+                            <h5 class="card-title module-blue">Mi Perfil de Conductor</h5>
+                            <p class="card-text">Consulta y actualiza tu información personal como conductor.</p>
+                            <a href="cond.php?mi_perfil=1" class="btn btn-info">
+                                <i class="bi bi-person-gear"></i> Ver Mi Perfil
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Fila 2: Órdenes de Trabajo y Salida de Flotas -->
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <div class="card module-blue text-center uniform-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-center mb-2">
+                                <span class="module-badge badge-gradient-yellow">
+                                    <i class="bi bi-clipboard-check module-icon-sm text-white"></i>
+                                </span>
+                            </div>
+                            <h5 class="card-title module-blue">Órdenes de Trabajo</h5>
+                            <p class="card-text">Consulta las órdenes de trabajo asignadas y su estado actual.</p>
+                            <a href="orden_trabajo.php?view=1" class="btn btn-outline-warning">
+                                <i class="bi bi-eye"></i> Consultar Órdenes
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <div class="card module-blue text-center uniform-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-center mb-2">
+                                <span class="module-badge badge-gradient-green">
+                                    <i class="bi bi-truck module-icon-sm text-white"></i>
+                                </span>
+                            </div>
+                            <h5 class="card-title module-blue">Salida de Flotas</h5>
+                            <p class="card-text">Consulta el historial de salidas de vehículos de la flota.</p>
+                            <a href="salida_vehiculo.php?view=1" class="btn btn-outline-success">
+                                <i class="bi bi-eye"></i> Consultar Salidas
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Fila 3: Registro de Vehículos y Reportes -->
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <div class="card module-blue text-center uniform-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-center mb-2">
+                                <span class="module-badge badge-gradient-blue">
+                                    <i class="bi bi-truck module-icon-sm text-white"></i>
+                                </span>
+                            </div>
+                            <h5 class="card-title module-blue">Registro de Vehículos</h5>
+                            <p class="card-text">Consulta el registro completo de vehículos de la flota.</p>
+                            <a href="regis_vehic.php?view=1" class="btn btn-outline-primary">
+                                <i class="bi bi-eye"></i> Ver Vehículos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <div class="card module-blue text-center uniform-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-center mb-2">
+                                <span class="module-badge badge-gradient-gray">
+                                    <i class="bi bi-file-earmark-text module-icon-sm text-white"></i>
+                                </span>
+                            </div>
+                            <h5 class="card-title module-blue">Reportes del Sistema</h5>
+                            <p class="card-text">Consulta reportes de salidas de repuestos y vehículos.</p>
+                            <a href="reporte_salidas.php?view=1" class="btn btn-outline-secondary">
+                                <i class="bi bi-eye"></i> Ver Reportes
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <?php elseif($usuario['rol'] == 'tecnico'): ?>
+            <!-- Dashboard optimizado para Técnicos (2 columnas) -->
+            <div class="row g-4 dashboard-section">
+                <div class="col-12">
+                    <h4 class="fw-bold mb-4"><i class="bi bi-grid-3x3-gap"></i> Módulos de Trabajo</h4>
+                </div>
+                
+                <!-- Fila 1: Sistema de Alertas y Salida de Repuestos -->
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <div class="card module-blue text-center uniform-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-center mb-2">
+                                <span class="module-badge badge-gradient-yellow">
+                                    <i class="bi bi-exclamation-triangle module-icon-sm text-white"></i>
+                                </span>
+                            </div>
+                            <h5 class="card-title module-blue">Sistema de Alertas</h5>
+                            <p class="card-text">Monitorea y gestiona alertas de camiones doble troque con diagrama interactivo.</p>
+                            <a href="truck_alerts.php" class="btn btn-danger">
+                                <i class="bi bi-arrow-right-circle"></i> Acceder
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <div class="card module-blue text-center uniform-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-center mb-2">
+                                <span class="module-badge badge-gradient-blue">
+                                    <i class="bi bi-box-arrow-right module-icon-sm text-white"></i>
+                                </span>
+                            </div>
+                            <h5 class="card-title module-blue">Salida de Repuestos</h5>
+                            <p class="card-text">Registra la salida de repuestos del inventario de forma secuencial.</p>
+                            <a href="salida_repuesto.php" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Registrar Salida
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Fila 2: Salida de Vehículo y Órdenes de Trabajo -->
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <div class="card module-blue text-center uniform-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-center mb-2">
+                                <span class="module-badge badge-gradient-green">
+                                    <i class="bi bi-truck module-icon-sm text-white"></i>
+                                </span>
+                            </div>
+                            <h5 class="card-title module-blue">Salida de Vehículo</h5>
+                            <p class="card-text">Registra la salida de vehículos después de completar salida de repuestos.</p>
+                            <a href="salida_vehiculo.php" class="btn btn-success">
+                                <i class="bi bi-truck-front"></i> Registrar Salida
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <div class="card module-blue text-center uniform-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-center mb-2">
+                                <span class="module-badge badge-gradient-yellow">
+                                    <i class="bi bi-clipboard-check module-icon-sm text-white"></i>
+                                </span>
+                            </div>
+                            <h5 class="card-title module-blue">Órdenes de Trabajo</h5>
+                            <p class="card-text">Gestiona las órdenes de trabajo generadas por las alertas del sistema.</p>
+                            <a href="orden_trabajo.php" class="btn btn-warning">
+                                <i class="bi bi-list-task"></i> Ver Órdenes
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Fila 3: Gestión de Usuarios y Reportes -->
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <div class="card module-blue text-center uniform-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-center mb-2">
+                                <span class="module-badge badge-gradient-teal">
+                                    <i class="bi bi-people module-icon-sm text-white"></i>
+                                </span>
+                            </div>
+                            <h5 class="card-title module-blue">Gestión de Usuarios</h5>
+                            <p class="card-text">Consulta información de usuarios y edita tu propio perfil.</p>
+                            <a href="crear_usuario.php?view=1" class="btn btn-info">
+                                <i class="bi bi-eye"></i> Ver Usuarios
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <div class="card module-blue text-center uniform-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-center mb-2">
+                                <span class="module-badge badge-gradient-gray">
+                                    <i class="bi bi-file-earmark-text module-icon-sm text-white"></i>
+                                </span>
+                            </div>
+                            <h5 class="card-title module-blue">Reportes del Sistema</h5>
+                            <p class="card-text">Consulta reportes consolidados de salidas de repuestos y vehículos.</p>
+                            <a href="reporte_salidas.php" class="btn btn-secondary">
+                                <i class="bi bi-file-earmark-spreadsheet"></i> Ver Reportes
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Fila 4: Gestiones Generales -->
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <div class="card module-blue text-center uniform-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-center mb-2">
+                                <span class="module-badge badge-gradient-purple">
+                                    <i class="bi bi-collection module-icon-sm text-white"></i>
+                                </span>
+                            </div>
+                            <h5 class="card-title module-blue">Gestiones</h5>
+                            <p class="card-text">Accede a gestiones de vehículos, conductores, repuestos y proveedores.</p>
+                            <a href="gestiones.php" class="btn btn-dark">
+                                <i class="bi bi-grid"></i> Ver Gestiones
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <div class="card module-blue text-center uniform-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-center mb-2">
+                                <span class="module-badge badge-gradient-teal">
+                                    <i class="bi bi-person-badge module-icon-sm text-white"></i>
+                                </span>
+                            </div>
+                            <h5 class="card-title module-blue">Conductores</h5>
+                            <p class="card-text">Gestiona información de conductores y asignación de vehículos.</p>
+                            <a href="cond.php" class="btn btn-info">
+                                <i class="bi bi-people"></i> Ver Conductores
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <?php else: ?>
+            <!-- Dashboard para Administradores (3 columnas) -->
             <div class="row g-4 dashboard-section uniform-row">
                 <div class="col-12">
                     <h4 class="fw-bold mb-4"><i class="bi bi-grid-3x3-gap"></i> Módulos Principales</h4>
                 </div>
                 
+                <!-- Fila 1: Módulos Operativos -->
                 <!-- Sistema de Alertas -->
                 <div class="col-lg-4 col-md-6 col-sm-12">
                     <div class="card module-blue text-center uniform-card">
@@ -943,23 +1215,20 @@ $_SESSION['last_activity'] = time();
                                 </span>
                             </div>
                             <h5 class="card-title module-blue">Sistema de Alertas</h5>
-                            <p class="card-text">Monitorea y gestiona alertas de camiones doble troque. Diagrama interactivo y órdenes de trabajo automáticas.</p>
+                            <p class="card-text">Monitorea y gestiona alertas de camiones doble troque con diagrama interactivo.</p>
                             <div class="d-flex gap-2 justify-content-center flex-wrap">
                                 <a href="truck_alerts.php" class="btn btn-danger">
                                     <i class="bi bi-arrow-right-circle"></i> Acceder
                                 </a>
-                                <?php if($usuario['rol'] == 'admin'): ?>
                                 <a href="../system_status.php" class="btn btn-outline-danger" title="Estado del Sistema">
                                     <i class="bi bi-gear"></i>
                                 </a>
-                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Salida de Repuestos -->
-                <?php if($usuario['rol'] != 'conductor'): ?>
                 <div class="col-lg-4 col-md-6 col-sm-12">
                     <div class="card module-blue text-center uniform-card">
                         <div class="card-body">
@@ -969,14 +1238,13 @@ $_SESSION['last_activity'] = time();
                                 </span>
                             </div>
                             <h5 class="card-title module-blue">Salida de Repuestos</h5>
-                            <p class="card-text">Registrar la salida obligatoria y secuencial de repuestos del inventario.</p>
+                            <p class="card-text">Registra la salida obligatoria y secuencial de repuestos del inventario.</p>
                             <a href="salida_repuesto.php" class="btn btn-primary">
                                 <i class="bi bi-plus-circle"></i> Registrar Salida
                             </a>
                         </div>
                     </div>
                 </div>
-                <?php endif; ?>
                 
                 <!-- Salida de Vehículo -->
                 <div class="col-lg-4 col-md-6 col-sm-12">
@@ -988,7 +1256,7 @@ $_SESSION['last_activity'] = time();
                                 </span>
                             </div>
                             <h5 class="card-title module-blue">Salida de Vehículo</h5>
-                            <p class="card-text">Registrar la salida de vehículo después de completar la salida de repuestos.</p>
+                            <p class="card-text">Registra la salida de vehículos después de completar salida de repuestos.</p>
                             <a href="salida_vehiculo.php" class="btn btn-success">
                                 <i class="bi bi-truck-front"></i> Registrar Salida
                             </a>
@@ -996,6 +1264,7 @@ $_SESSION['last_activity'] = time();
                     </div>
                 </div>
                 
+                <!-- Fila 2: Gestión y Control -->
                 <!-- Órdenes de Trabajo -->
                 <div class="col-lg-4 col-md-6 col-sm-12">
                     <div class="card module-blue text-center uniform-card">
@@ -1014,8 +1283,7 @@ $_SESSION['last_activity'] = time();
                     </div>
                 </div>
                 
-                <!-- Gestión de Usuarios (Solo Admin) -->
-                <?php if($usuario['rol'] == 'admin'): ?>
+                <!-- Gestión de Usuarios -->
                 <div class="col-lg-4 col-md-6 col-sm-12">
                     <div class="card module-blue text-center uniform-card">
                         <div class="card-body">
@@ -1032,16 +1300,9 @@ $_SESSION['last_activity'] = time();
                         </div>
                     </div>
                 </div>
-                <?php endif; ?>
-            </div>
-            
-            <!-- Sección de Reportes y Gestiones -->
-            <div class="row g-4 dashboard-section uniform-row">
-                <div class="col-12">
-                    <h4 class="fw-bold mb-4"><i class="bi bi-bar-chart"></i> Reportes y Gestiones</h4>
-                </div>
                 
-                <div class="col-lg-6 col-md-12">
+                <!-- Reportes del Sistema -->
+                <div class="col-lg-4 col-md-6 col-sm-12">
                     <div class="card module-blue text-center uniform-card">
                         <div class="card-body">
                             <div class="d-flex justify-content-center mb-2">
@@ -1049,18 +1310,18 @@ $_SESSION['last_activity'] = time();
                                     <i class="bi bi-file-earmark-text module-icon-sm text-white"></i>
                                 </span>
                             </div>
-                            <h5 class="card-title module-blue">Reportes del Sistema</h5>
-                            <p class="card-text">Ver reportes consolidados de salidas de repuestos y vehículos del sistema.</p>
-                            <div class="d-flex gap-2 justify-content-center flex-wrap">
-                                <a href="reporte_salidas.php" class="btn btn-secondary">
-                                    <i class="bi bi-file-earmark-spreadsheet"></i> Salidas
-                                </a>
-                            </div>
+                            <h5 class="card-title module-blue">Reportes</h5>
+                            <p class="card-text">Consulta y descarga reportes completos del sistema en PDF y Excel.</p>
+                            <a href="/trucksisx/reportes.php" class="btn btn-secondary">
+                                <i class="bi bi-file-earmark-text"></i> Acceder
+                            </a>
                         </div>
                     </div>
                 </div>
                 
-                <div class="col-lg-6 col-md-12">
+                <!-- Fila 3: Gestiones Adicionales -->
+                <!-- Panel de Gestiones -->
+                <div class="col-lg-4 col-md-6 col-sm-12">
                     <div class="card module-blue text-center uniform-card">
                         <div class="card-body">
                             <div class="d-flex justify-content-center mb-2">
@@ -1069,15 +1330,53 @@ $_SESSION['last_activity'] = time();
                                 </span>
                             </div>
                             <h5 class="card-title module-blue">Panel de Gestiones</h5>
-                            <p class="card-text">Acceso centralizado a todas las gestiones de repuestos, categorías y configuraciones.</p>
-                            <a href="gestiones.php" class="btn btn-outline-primary">
-                                <i class="bi bi-gear"></i> Ir a Gestiones
+                            <p class="card-text">Acceso centralizado a gestiones de repuestos, categorías y configuraciones.</p>
+                            <a href="gestiones.php" class="btn btn-dark">
+                                <i class="bi bi-grid"></i> Ir a Gestiones
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Conductores -->
+                <div class="col-lg-4 col-md-6 col-sm-12">
+                    <div class="card module-blue text-center uniform-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-center mb-2">
+                                <span class="module-badge badge-gradient-teal">
+                                    <i class="bi bi-person-badge module-icon-sm text-white"></i>
+                                </span>
+                            </div>
+                            <h5 class="card-title module-blue">Conductores</h5>
+                            <p class="card-text">Gestiona información de conductores y asignación de vehículos de la flota.</p>
+                            <a href="cond.php" class="btn btn-info">
+                                <i class="bi bi-people"></i> Ver Conductores
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Registro de Vehículos -->
+                <div class="col-lg-4 col-md-6 col-sm-12">
+                    <div class="card module-blue text-center uniform-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-center mb-2">
+                                <span class="module-badge badge-gradient-blue">
+                                    <i class="bi bi-truck-front-fill module-icon-sm text-white"></i>
+                                </span>
+                            </div>
+                            <h5 class="card-title module-blue">Registro de Vehículos</h5>
+                            <p class="card-text">Administra el registro completo de vehículos de la flota y sus datos.</p>
+                            <a href="regis_vehic.php" class="btn btn-primary">
+                                <i class="bi bi-clipboard-data"></i> Ver Vehículos
                             </a>
                         </div>
                     </div>
                 </div>
             </div>
-            <!-- Gestión Vehicular -->
+            <?php endif; ?>
+            <!-- Gestión Vehicular (oculto para conductores) -->
+            <?php if($usuario['rol'] != 'conductor'): ?>
             <div class="row g-4 dashboard-section">
                 <div class="col-12">
                     <h4 class="fw-bold mb-4 text-success"><i class="bi bi-truck"></i> Gestión Vehicular</h4>
@@ -1157,6 +1456,7 @@ $_SESSION['last_activity'] = time();
                     </div>
                 </div>
             </div>
+            <?php endif; ?>
         </main>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

@@ -63,14 +63,9 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
             margin-bottom: 1.5rem;
             overflow: hidden;
-            transition: all 0.3s ease;
         }
         .truck-diagram-container {
             padding: 2rem 1.5rem;
-        }
-        .card:hover, .truck-diagram-container:hover {
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-            transform: translateY(-2px);
         }
         /* BOTONES */
         .btn {
@@ -83,7 +78,6 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
             padding: 0.75rem 1.5rem;
             position: relative;
             text-decoration: none;
-            transition: all 0.3s ease;
         }
         .btn:focus {
             box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.3);
@@ -99,7 +93,6 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
             background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
             box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
             color: #1E3A8A !important;
-            transform: translateY(-2px);
         }
         .btn-outline-primary {
             background: #FFFFFF;
@@ -109,7 +102,6 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
         .btn-outline-primary:hover {
             background: #1E3A8A;
             color: #FFFFFF !important;
-            transform: translateY(-2px);
         }
         .btn-light {
             background: rgba(13,110,253,0.08) !important;
@@ -144,7 +136,6 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
             color: #374151;
             font-size: 16px;
             padding: 0.75rem 1rem;
-            transition: all 0.3s ease;
         }
         .form-control:focus, .form-select:focus {
             border-color: #1E3A8A;
@@ -157,27 +148,198 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
             margin-bottom: 0.5rem;
         }
         /* ANIMACIONES */
-        @keyframes slideInUp {
-            from { opacity: 0; transform: translateY(30px); }
+        /* Animaciones removidas para mejorar rendimiento */
+        
+        /* Desactivar todas las animaciones en la tabla de estadísticas */
+        #statistics-table *, #statistics-table {
+            animation: none !important;
+            transition: none !important;
+            transform: none !important;
+        }
+        
+        /* Desactivar animaciones en las barras de progreso */
+        .progress-bar {
+            animation: none !important;
+            transition: none !important;
+        }
+        
+        /* ESTILOS PARA EL MODAL DE ALERTA */
+        .alert-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(3px);
+        }
+        
+        .alert-modal-content {
+            background-color: #ffffff;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(-50px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .animate-slide-up { animation: slideInUp 0.6s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
+        
+        .alert-modal-header {
+            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .alert-modal-title {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: #fbbf24;
+            text-decoration: none;
+        }
+        
+        #alert-form {
+            padding: 25px;
+        }
+        
+        #alert-form .form-group {
+            margin-bottom: 20px;
+        }
+        
+        #alert-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #1E3A8A;
+        }
+        
+        #alert-form input[type="text"],
+        #alert-form select,
+        #alert-form textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #D1D5DB;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #F9FAFB;
+        }
+        
+        #alert-form input[type="text"]:focus,
+        #alert-form select:focus,
+        #alert-form textarea:focus {
+            outline: none;
+            border-color: #1E3A8A;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        }
+        
+        #alert-form textarea {
+            height: 80px;
+            resize: vertical;
+        }
+        
+        #alert-form button {
+            padding: 10px 20px;
+            margin: 0 5px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        #alert-form .btn-primary {
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+            color: #1E3A8A;
+        }
+        
+        #alert-form .btn-secondary {
+            background: #6B7280;
+            color: white;
+        }
+        
+        #alert-form .btn-primary:hover {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+        }
+        
+        #alert-form .btn-secondary:hover {
+            background: #4B5563;
+        }
+        
+        /* ESTILOS PARA EL DIAGRAMA DE LLANTAS */
+        .truck-diagram {
+            width: 100%;
+            height: 400px;
+            max-width: 300px;
+            margin: 0 auto;
+            display: block;
+        }
+        
+        .tire {
+            cursor: pointer;
+            stroke: #000;
+            stroke-width: 2;
+            transition: all 0.2s ease;
+        }
+        
+        .tire:hover {
+            fill: #fbbf24 !important;
+            stroke: #f59e0b;
+            stroke-width: 3;
+        }
+        
+        .tire-label {
+            font-family: Arial, sans-serif;
+            font-size: 10px;
+            font-weight: bold;
+            text-anchor: middle;
+            fill: white;
+            pointer-events: none;
+        }
+        
+        .truck-line {
+            stroke: #333;
+            stroke-width: 3;
+            fill: none;
+        }
+        
+        /* Estados de las llantas según alertas */
+        .tire.status-normal { fill: #10b981; }
+        .tire.status-warning { fill: #f59e0b; }
+        .tire.status-critical { fill: #ef4444; }
         
         
         /* Estilos para el botón de eliminar alerta */
         .btn-danger:hover {
             background-color: #c82333 !important;
             border-color: #bd2130 !important;
-            transform: scale(1.05);
-            transition: all 0.2s ease;
         }
         
-        /* Animación para la eliminación de alertas */
+        /* Animación para la eliminación de alertas removida */
         .alert-deleting {
-            transition: all 0.3s ease;
-            transform: translateX(-100%);
             opacity: 0;
         }
         
@@ -197,12 +359,6 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
             padding: 0.25rem 0.75rem;
             font-size: 0.875rem;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: all 0.2s ease;
-        }
-        
-        .alert-actions .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
         
         /* Responsivo para pantallas pequeñas */
@@ -226,7 +382,7 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
 <body>
     <!-- Header -->
     <div class="container-fluid py-4">
-        <div class="main-header animate-fade-in mb-4">
+        <div class="main-header mb-4">
             <div class="d-flex flex-column flex-md-row align-items-center justify-content-between">
                 <div>
                     <h1 class="mb-2"><i class="fas fa-truck text-accent"></i> Sistema de Alertas</h1>
@@ -349,7 +505,7 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
                                 <!-- Se llenará dinámicamente -->
                             </div>
                             
-                            <div id="chart-container" class="row animate-slide-up">
+                            <div id="chart-container" class="row">
                                 <div class="col-12">
                                     <div class="card shadow-corporate">
                                         <div class="card-body">
@@ -393,9 +549,12 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="../assets/js/truck-alerts.js?v=2"></script>
+    <script src="../assets/js/truck-alerts.js?v=4"></script>
     
     <script>
+        // Verificar que la versión correcta del JS se cargó (sin imagen de evidencia)
+        console.log('TruckSISX Alert System v4.0 cargado - CSS del modal agregado');
+        
         // Extender funcionalidad para estadísticas y gráficos
         document.addEventListener('DOMContentLoaded', function() {
             // Cargar dashboard inicial
@@ -512,7 +671,7 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
             );
             
             const alertsHTML = uniqueAlerts.map(alert => `
-                <div class="card mb-3 shadow-corporate animate-slide-up">
+                <div class="card mb-3 shadow-corporate">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
@@ -775,10 +934,7 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
                             }
                         }
                     },
-                    animation: {
-                        duration: 1000,
-                        easing: 'easeInOutQuart'
-                    }
+                    animation: false
                 }
             };
 

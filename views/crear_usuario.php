@@ -9,11 +9,14 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
 $rol_tecnico = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol'] === 'tecnico';
 $rol_admin = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol'] === 'admin';
 
-// Solo admins pueden acceder a esta página
-if (!$rol_admin) {
+// Solo admins y técnicos pueden acceder a esta página
+if (!$rol_admin && !$rol_tecnico) {
     header('Location: dashboard.php');
     exit();
 }
+
+// Determinar si es vista de solo lectura/edición (técnicos)
+$solo_lectura_edicion = $rol_tecnico;
 
 require_once '../config/db.php';
 $db = new Database();
@@ -110,7 +113,7 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h2 class="mb-1"><i class="bi bi-people-fill"></i> Gestión de Usuarios</h2>
-                        <p class="mb-0 opacity-75">Administra usuarios del sistema TruckSISX</p>
+                        <p class="mb-0 opacity-75"><?php echo $rol_admin ? 'Administra usuarios del sistema TruckSISX' : 'Consulta y actualiza información de usuarios del sistema'; ?></p>
                     </div>
                     <a href="dashboard.php" class="btn btn-light">
                         <i class="bi bi-arrow-left"></i> Volver al Dashboard
@@ -140,9 +143,15 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </form>
                     </div>
                     <div class="col-md-4 text-end">
+                        <?php if($rol_admin): ?>
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCrearUsuario">
                             <i class="bi bi-person-plus"></i> Crear Usuario
                         </button>
+                        <?php else: ?>
+                        <span class="badge bg-warning text-dark fs-6 py-2 px-3">
+                            <i class="bi bi-info-circle"></i> Modo Solo Lectura/Edición
+                        </span>
+                        <?php endif; ?>
                     </div>
                 </div>
                 <!-- Tabla de Usuarios -->
@@ -216,14 +225,21 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                                     title="Ver detalles">
                                                 <i class="bi bi-eye"></i>
                                             </button>
+                                            <?php 
+                                            // Técnicos solo pueden editar su propio usuario
+                                            $puede_editar = $rol_admin || ($rol_tecnico && $usuario['num_documento'] === $_SESSION['usuario']['num_documento']);
+                                            if($puede_editar): 
+                                            ?>
                                             <button type="button" 
                                                     class="btn btn-outline-warning" 
                                                     onclick="editarUsuario(<?= htmlspecialchars(json_encode($usuario)) ?>)"
                                                     data-bs-toggle="modal" 
                                                     data-bs-target="#modalEditarUsuario"
-                                                    title="Editar usuario">
+                                                    title="<?= $rol_admin ? 'Editar usuario' : 'Editar mi perfil' ?>">
                                                 <i class="bi bi-pencil"></i>
                                             </button>
+                                            <?php endif; ?>
+                                            <?php if($rol_admin): ?>
                                             <button type="button" 
                                                     class="btn btn-outline-danger" 
                                                     onclick="eliminarUsuario(<?= $usuario['id'] ?>, '<?= htmlspecialchars($usuario['nombre'] . ' ' . $usuario['apellido']) ?>')"
@@ -232,6 +248,7 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                                     title="Eliminar usuario">
                                                 <i class="bi bi-trash"></i>
                                             </button>
+                                            <?php endif; ?>
                                         </div>
                                     </td>
                                 </tr>
@@ -278,7 +295,7 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <option value="">Seleccionar...</option>
                                     <option value="CC">Cédula de Ciudadanía</option>
                                     <option value="CE">Cédula de Extranjería</option>
-                                    <option value="TI">Tarjeta de Identidad</option>
+                                    <option value="PP">Pasaporte</option>
                                 </select>
                             </div>
                         </div>
@@ -591,6 +608,15 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         // Función para cargar datos en el modal de edición
         function editarUsuario(usuario) {
+            // Verificar permisos para técnicos
+            const esTecnico = <?= $rol_tecnico ? 'true' : 'false' ?>;
+            const documentoUsuarioActual = '<?= $_SESSION['usuario']['num_documento'] ?? '' ?>';
+            
+            if (esTecnico && usuario.num_documento !== documentoUsuarioActual) {
+                alert('❌ Solo puedes editar tu propio perfil.\n\nPuedes ver los datos de otros usuarios pero no modificarlos.');
+                return false;
+            }
+            
             document.getElementById('editar_id').value = usuario.id;
             document.getElementById('editar_documento_readonly').value = usuario.num_documento;
             document.getElementById('editar_tipo_documento_readonly').value = usuario.tipo_documento;
@@ -600,6 +626,17 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
             document.getElementById('editar_correo').value = usuario.correo || '';
             document.getElementById('editar_rol').value = usuario.rol;
             document.getElementById('editar_contrasena').value = '';
+            
+            // Si es técnico editando su propio perfil, agregar mensaje informativo
+            if (esTecnico) {
+                const modalTitle = document.querySelector('#modalEditarUsuario .modal-title');
+                if (modalTitle && !modalTitle.querySelector('.badge-info')) {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge bg-info ms-2 badge-info';
+                    badge.innerHTML = '<i class="bi bi-person-circle"></i> Mi Perfil';
+                    modalTitle.appendChild(badge);
+                }
+            }
         }
         
         // Función para configurar modal de eliminación

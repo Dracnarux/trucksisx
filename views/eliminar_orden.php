@@ -107,46 +107,22 @@ if ($id) {
         }
     }
     
-    // 4. Antes de eliminar sali_repue, necesitamos eliminar sali_vehi que depende de sali_repue
-    // Primero obtener y eliminar registros de sali_vehi que dependen de los sali_repue de esta orden
+    // 4. Manejar la relación circular entre sali_repue y sali_vehi
     if (!empty($sali_repue_ids)) {
         foreach ($sali_repue_ids as $sali_repue_id) {
-            // Primero obtener IDs de sali_vehi que dependen de este sali_repue_id
-            $get_sali_vehi_by_repue_stmt = $conn->prepare("SELECT id FROM sali_vehi WHERE sali_repue_id=?");
-            $get_sali_vehi_by_repue_stmt->bind_param('i', $sali_repue_id);
-            $get_sali_vehi_by_repue_stmt->execute();
-            $sali_vehi_by_repue_result = $get_sali_vehi_by_repue_stmt->get_result();
-            $sali_vehi_by_repue_ids = [];
-            while ($row = $sali_vehi_by_repue_result->fetch_assoc()) {
-                $sali_vehi_by_repue_ids[] = $row['id'];
-            }
-            $get_sali_vehi_by_repue_stmt->close();
-            
-            // Eliminar dependencias de repor hacia estos sali_vehi
-            if (!empty($sali_vehi_by_repue_ids)) {
-                foreach ($sali_vehi_by_repue_ids as $sali_vehi_id) {
-                    // Primero romper la relación circular sali_vehi.repor_id → repor.id
-                    $update_sali_vehi_stmt = $conn->prepare("UPDATE sali_vehi SET repor_id=NULL WHERE id=?");
-                    $update_sali_vehi_stmt->bind_param('i', $sali_vehi_id);
-                    $update_sali_vehi_stmt->execute();
-                    $update_sali_vehi_stmt->close();
-                    
-                    // Ahora eliminar repor que depende de este sali_vehi_id
-                    $check_repor_vehi = $conn->query("SHOW COLUMNS FROM repor LIKE 'sali_vehi_id'");
-                    if ($check_repor_vehi && $check_repor_vehi->num_rows > 0) {
-                        $delete_repor_vehi_stmt = $conn->prepare("DELETE FROM repor WHERE sali_vehi_id=?");
-                        $delete_repor_vehi_stmt->bind_param('i', $sali_vehi_id);
-                        $delete_repor_vehi_stmt->execute();
-                        $delete_repor_vehi_stmt->close();
-                    }
-                }
-            }
-            
-            // Ahora eliminar sali_vehi que depende de este sali_repue_id
-            $delete_sali_vehi_by_repue_stmt = $conn->prepare("DELETE FROM sali_vehi WHERE sali_repue_id=?");
-            $delete_sali_vehi_by_repue_stmt->bind_param('i', $sali_repue_id);
-            $delete_sali_vehi_by_repue_stmt->execute();
-            $delete_sali_vehi_by_repue_stmt->close();
+            // Primero romper la relación desde sali_vehi hacia sali_repue
+            $update_sali_vehi_repue_stmt = $conn->prepare("UPDATE sali_vehi SET sali_repue_id=NULL WHERE sali_repue_id=?");
+            $update_sali_vehi_repue_stmt->bind_param('i', $sali_repue_id);
+            $update_sali_vehi_repue_stmt->execute();
+            $update_sali_vehi_repue_stmt->close();
+        }
+        
+        // Ahora sí podemos eliminar los registros de sali_repue
+        foreach ($sali_repue_ids as $sali_repue_id) {
+            $delete_sali_repue_stmt = $conn->prepare("DELETE FROM sali_repue WHERE id=?");
+            $delete_sali_repue_stmt->bind_param('i', $sali_repue_id);
+            $delete_sali_repue_stmt->execute();
+            $delete_sali_repue_stmt->close();
         }
     }
     
@@ -188,11 +164,7 @@ if ($id) {
     $delete_sali_vehi_by_orden_stmt->execute();
     $delete_sali_vehi_by_orden_stmt->close();
     
-    // 6. Ahora sí podemos eliminar registros de salida de repuestos que dependen de esta orden
-    $delete_sali_repue_stmt = $conn->prepare("DELETE FROM sali_repue WHERE ord_trabj_id=?");
-    $delete_sali_repue_stmt->bind_param('i', $id);
-    $delete_sali_repue_stmt->execute();
-    $delete_sali_repue_stmt->close();
+    // 6. Los registros de sali_repue ya fueron eliminados en el paso 4
     
     // 7. Verificar y limpiar otras posibles dependencias de nivel superior
     // Lista de tablas que pueden tener referencias directas a ord_trabj (excluyendo las ya procesadas)

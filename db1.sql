@@ -174,7 +174,6 @@ CREATE TABLE alert (
     ),
     codigo_conductor VARCHAR(20),
     observaciones TEXT,
-    imagen_evidencia VARCHAR(255),
     ord_trabj_id INT,
     cond_id INT,
     regis_vehic_id INT,
@@ -346,12 +345,12 @@ INSERT INTO ord_trabj (nombre_trabajo, descripcion, nombre_repuesto, fecha_creac
 ('Verificación documentos','Actualización certificados','Certificado Homologación','2025-09-05','2025-09-07','pendiente','baja',5,3,NULL);
 
 -- Alertas (5) referencing ord_trabj, cond and regis_vehic
-INSERT INTO alert (fecha_hora, prioridad, estado, descripcion, tipo_alerta, posicion_llanta, codigo_conductor, observaciones, imagen_evidencia, ord_trabj_id, cond_id, regis_vehic_id) VALUES
-('2025-09-01 09:20:00','alta','activa','Temperatura anormal en freno delantero','frenos',NULL,'C-001','Revisar conjunto delantero',NULL,1,1,1),
-('2025-08-21 10:45:00','media','activa','Consumo excesivo de aceite detectado','motor',NULL,'C-002','Requiere diagnóstico',NULL,2,2,2),
-('2025-07-14 07:50:00','baja','resuelta','Presión baja en eje trasero','llanta','traccion1_izquierda','C-003','Inflado y verificado',NULL,3,3,3),
-('2025-09-02 12:30:00','media','activa','SOAT próximo a vencer','general',NULL,'C-004','Notificar a oficina',NULL,4,4,4),
-('2025-09-03 15:00:00','alta','activa','Fallo en sensor de velocidad','general',NULL,'C-005','Sensor intermitente',NULL,5,5,5);
+INSERT INTO alert (fecha_hora, prioridad, estado, descripcion, tipo_alerta, posicion_llanta, codigo_conductor, observaciones, ord_trabj_id, cond_id, regis_vehic_id) VALUES
+('2025-09-01 09:20:00','alta','activa','Temperatura anormal en freno delantero','frenos',NULL,'C-001','Revisar conjunto delantero',1,1,1),
+('2025-08-21 10:45:00','media','activa','Consumo excesivo de aceite detectado','motor',NULL,'C-002','Requiere diagnóstico',2,2,2),
+('2025-07-14 07:50:00','baja','resuelta','Presión baja en eje trasero','llanta','traccion1_izquierda','C-003','Inflado y verificado',3,3,3),
+('2025-09-02 12:30:00','media','activa','SOAT próximo a vencer','general',NULL,'C-004','Notificar a oficina',4,4,4),
+('2025-09-03 15:00:00','alta','activa','Fallo en sensor de velocidad','general',NULL,'C-005','Sensor intermitente',5,5,5);
 
 -- Actualizar ord_trabj para enlazar alert_id con las alertas creadas
 UPDATE ord_trabj SET alert_id = 1 WHERE id = 1;

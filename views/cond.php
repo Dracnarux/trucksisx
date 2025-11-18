@@ -71,11 +71,16 @@ $rol_tecnico = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol']
     </nav>
     <div class="container py-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold mb-0"><i class="bi bi-person-badge"></i> Conductores</h2>
+            <h2 class="fw-bold mb-0"><i class="bi bi-person-badge"></i> <?= $rol_conductor ? 'Mi Perfil de Conductor' : 'Conductores' ?></h2>
             <?php if (!$rol_conductor && !$rol_tecnico): ?>
             <a href="cond.php?form=1" class="btn btn-success"><i class="bi bi-plus-circle"></i> Agregar Conductor</a>
             <?php endif; ?>
         </div>
+        <?php if ($rol_conductor): ?>
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> <strong>Vista de Conductor:</strong> Aquí puedes consultar y editar tu información personal. Solo puedes modificar tus propios datos.
+        </div>
+        <?php endif; ?>
 
     <!-- Modernizado: Bootstrap 5.3.2, Inter, paleta azul/amarillo, tarjetas, botones y tablas modernas -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -271,13 +276,22 @@ $rol_tecnico = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol']
         // Filtros
         $filtro_cargo = isset($_GET['filtro_cargo']) ? $_GET['filtro_cargo'] : '';
         $filtro_vehic = isset($_GET['filtro_vehic']) ? $_GET['filtro_vehic'] : '';
-        $sql = "SELECT c.*, v.placa, v.marca_vehiculo FROM cond c JOIN regis_vehic v ON c.regis_vehic_id = v.id WHERE c.cargo LIKE ?";
-        $params = ["%$filtro_cargo%"];
-        $types = 's';
-        if ($filtro_vehic) {
-            $sql .= " AND v.id = ?";
-            $params[] = $filtro_vehic;
-            $types .= 'i';
+        
+        // Si es conductor, solo mostrar su propia información
+        if ($rol_conductor) {
+            $nombre_usuario = $_SESSION['usuario']['nombre'];
+            $sql = "SELECT c.*, v.placa, v.marca_vehiculo FROM cond c JOIN regis_vehic v ON c.regis_vehic_id = v.id WHERE c.cargo = ?";
+            $params = [$nombre_usuario];
+            $types = 's';
+        } else {
+            $sql = "SELECT c.*, v.placa, v.marca_vehiculo FROM cond c JOIN regis_vehic v ON c.regis_vehic_id = v.id WHERE c.cargo LIKE ?";
+            $params = ["%$filtro_cargo%"];
+            $types = 's';
+            if ($filtro_vehic) {
+                $sql .= " AND v.id = ?";
+                $params[] = $filtro_vehic;
+                $types .= 'i';
+            }
         }
         $sql .= " ORDER BY c.id DESC";
         $stmt = $conn->prepare($sql);
@@ -285,6 +299,7 @@ $rol_tecnico = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol']
         $stmt->execute();
         $conductores = $stmt->get_result();
         ?>
+        <?php if (!$rol_conductor): ?>
         <form class="row mb-4" method="get">
             <div class="col-md-4">
                 <input type="text" name="filtro_cargo" class="form-control" placeholder="Buscar por cargo" value="<?= htmlspecialchars($filtro_cargo) ?>">
@@ -304,6 +319,7 @@ $rol_tecnico = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol']
                 <a href="cond.php" class="btn btn-secondary w-100"><i class="bi bi-x-circle"></i> Limpiar</a>
             </div>
         </form>
+        <?php endif; ?>
         <div class="card">
             <div class="card-body p-0 table-responsive">
                 <table class="table table-hover mb-0">
@@ -331,7 +347,9 @@ $rol_tecnico = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol']
                             <td><?= htmlspecialchars($row['descripcion']) ?></td>
                             <td><?= htmlspecialchars($row['placa']) ?> (<?= htmlspecialchars($row['marca_vehiculo']) ?>)</td>
                             <td class="text-center">
-                                <?php if (!$rol_conductor && !$rol_tecnico): ?>
+                                <?php if ($rol_conductor): ?>
+                                <a href="cond.php?form=1&id=<?= $row['id'] ?>" class="btn btn-primary btn-sm mx-1"><i class="bi bi-pencil-square"></i> Editar Mi Perfil</a>
+                                <?php elseif (!$rol_tecnico): ?>
                                 <a href="cond.php?form=1&id=<?= $row['id'] ?>" class="btn btn-warning btn-sm mx-1"><i class="bi bi-pencil-square"></i> Editar</a>
                                 <button type="button" class="btn btn-danger btn-sm mx-1" onclick="confirmarEliminacionAvanzada(<?= $row['id'] ?>, 'Conductor ID <?= $row['id'] ?> (<?= addslashes($row['cargo'] ?? 'Sin cargo') ?>)')"><i class="bi bi-trash"></i> Eliminar</button>
                                 <?php endif; ?>
@@ -349,26 +367,60 @@ $rol_tecnico = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol']
         </div>
         <?php
         // Formulario alta/edición
-    if (isset($_GET['form']) && !$rol_conductor && !$rol_tecnico):
-            $editData = [];
-            if (isset($_GET['id'])) {
-                $sql = "SELECT * FROM cond WHERE id = ?";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param('i', $_GET['id']);
-                $stmt->execute();
-                $editData = $stmt->get_result()->fetch_assoc();
+        $mostrar_formulario = false;
+        $editData = [];
+        
+        if (isset($_GET['form'])) {
+            if ($rol_conductor) {
+                // Conductores solo pueden editar su propio perfil
+                if (isset($_GET['id'])) {
+                    $nombre_usuario = $_SESSION['usuario']['nombre'];
+                    $sql = "SELECT * FROM cond WHERE id = ? AND cargo = ?";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param('is', $_GET['id'], $nombre_usuario);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                    if ($result->num_rows > 0) {
+                        $editData = $result->fetch_assoc();
+                        $mostrar_formulario = true;
+                    } else {
+                        echo '<div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> No tienes permiso para editar este perfil.</div>';
+                    }
+                }
+            } elseif (!$rol_tecnico) {
+                // Admin y técnicos pueden crear y editar cualquier conductor
+                $mostrar_formulario = true;
+                if (isset($_GET['id'])) {
+                    $sql = "SELECT * FROM cond WHERE id = ?";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param('i', $_GET['id']);
+                    $stmt->execute();
+                    $editData = $stmt->get_result()->fetch_assoc();
+                }
             }
+        }
+        
+        if ($mostrar_formulario):
         ?>
         <div class="card mt-4">
             <div class="card-body">
-                <h5 class="card-title"><i class="bi bi-pencil-square"></i> <?= isset($editData['id']) ? 'Editar' : 'Agregar' ?> Conductor</h5>
+                <h5 class="card-title"><i class="bi bi-pencil-square"></i> <?= $rol_conductor ? 'Editar Mi Perfil' : (isset($editData['id']) ? 'Editar' : 'Agregar') . ' Conductor' ?></h5>
+                <?php if ($rol_conductor): ?>
+                <div class="alert alert-warning">
+                    <i class="bi bi-info-circle"></i> Puedes actualizar tu información personal. Los campos marcados son obligatorios.
+                </div>
+                <?php endif; ?>
                 <form method="post" action="cond.php">
                     <input type="hidden" name="id" value="<?= $editData['id'] ?? '' ?>">
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <label class="form-label">Nombre (debe coincidir con el usuario)</label>
-                            <input type="text" name="cargo" class="form-control" required value="<?= htmlspecialchars($editData['cargo'] ?? '') ?>">
+                            <label class="form-label">Nombre <?= $rol_conductor ? '' : '(debe coincidir con el usuario)' ?></label>
+                            <input type="text" name="cargo" class="form-control" required value="<?= htmlspecialchars($editData['cargo'] ?? '') ?>" <?= $rol_conductor ? 'readonly' : '' ?>>
+                            <?php if (!$rol_conductor): ?>
                             <div class="form-text text-danger">Debe ser igual al nombre del usuario registrado en el sistema para que se relacione correctamente.</div>
+                            <?php else: ?>
+                            <div class="form-text text-muted">Tu nombre de usuario no puede ser modificado desde aquí.</div>
+                            <?php endif; ?>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Horas Trabajadas</label>
@@ -403,10 +455,28 @@ $rol_tecnico = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol']
         </div>
         <?php endif; ?>
         <?php
-        // Guardar/editar/eliminar conductor solo si no es conductor
-    if (!$rol_conductor && !$rol_tecnico) {
-            // Guardar/editar conductor
-            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cargo'], $_POST['horas_trabajadas'], $_POST['tareas_completadas'], $_POST['efeciencia'], $_POST['regis_vehic_id'])) {
+        // Guardar/editar conductor
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cargo'], $_POST['horas_trabajadas'], $_POST['tareas_completadas'], $_POST['efeciencia'], $_POST['regis_vehic_id'])) {
+            $puede_guardar = false;
+            
+            if ($rol_conductor) {
+                // Conductor solo puede editar su propio perfil
+                if (!empty($_POST['id'])) {
+                    $nombre_usuario = $_SESSION['usuario']['nombre'];
+                    $check_sql = "SELECT id FROM cond WHERE id = ? AND cargo = ?";
+                    $check_stmt = $conn->prepare($check_sql);
+                    $check_stmt->bind_param('is', $_POST['id'], $nombre_usuario);
+                    $check_stmt->execute();
+                    if ($check_stmt->get_result()->num_rows > 0) {
+                        $puede_guardar = true;
+                    }
+                }
+            } elseif (!$rol_tecnico) {
+                // Admin puede crear y editar cualquier conductor
+                $puede_guardar = true;
+            }
+            
+            if ($puede_guardar) {
                 $fields = [
                     'cargo','horas_trabajadas','tareas_completadas','efeciencia','descripcion','regis_vehic_id'
                 ];
@@ -437,9 +507,16 @@ $rol_tecnico = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol']
                     $stmtV->bind_param('ii', $conductor_id, $vehiculo_id);
                     $stmtV->execute();
                 }
-                echo '<script>window.location="cond.php";</script>';
+                echo '<script>alert("Información actualizada correctamente."); window.location="cond.php";</script>';
+                exit;
+            } else {
+                echo '<script>alert("No tienes permiso para realizar esta acción."); window.location="cond.php";</script>';
                 exit;
             }
+        }
+        
+        // Eliminar conductor solo si no es conductor
+        if (!$rol_conductor && !$rol_tecnico) {
             // Eliminar conductor
             if (isset($_GET['delete'])) {
                 $conductor_id = (int)$_GET['delete'];

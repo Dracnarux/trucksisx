@@ -75,7 +75,6 @@ class AlertController {
                 'posicion_llanta' => $_POST['posicion_llanta'],
                 'codigo_conductor' => '', // Ya no se usa, pero se mantiene por compatibilidad
                 'observaciones' => $_POST['observaciones'] ?? '',
-                'imagen_evidencia' => $this->handleImageUpload(),
                 'cond_id' => $_POST['cond_id'],
                 'regis_vehic_id' => $_POST['regis_vehic_id']
             ];
@@ -360,22 +359,7 @@ class AlertController {
     }
 
     // Métodos auxiliares privados
-    private function handleImageUpload() {
-        if (isset($_FILES['imagen_evidencia']) && $_FILES['imagen_evidencia']['error'] === 0) {
-            $uploadDir = '../uploads/alertas/';
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0755, true);
-            }
-            
-            $fileName = uniqid() . '_' . $_FILES['imagen_evidencia']['name'];
-            $uploadPath = $uploadDir . $fileName;
-            
-            if (move_uploaded_file($_FILES['imagen_evidencia']['tmp_name'], $uploadPath)) {
-                return $fileName;
-            }
-        }
-        return null;
-    }
+    // NOTA: La función handleImageUpload() fue removida - ya no se manejan imágenes de evidencia
 
     private function formatTirePosition($position) {
         $positions = [

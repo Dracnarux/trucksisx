@@ -1,3 +1,4 @@
+// TruckSISX Alert System v3.0 - Imagen de evidencia removida
 // Aplica la animación a las alertas recientes al agregarlas
 function displayRecentAlerts(alerts) {
     const alertsList = document.getElementById('alerts-list');
@@ -21,10 +22,13 @@ class TruckAlertSystem {
     onTireLeave() {}
     // Manejar click en una llanta
     onTireClick(e) {
+        console.log('Tire clicked', e.target);
         const tire = e.target;
         const position = tire.getAttribute('data-position');
+        console.log('Tire position:', position);
         const name = this.tirePositions[position] || position;
         this.selectedTire = { position, name };
+        console.log('Selected tire:', this.selectedTire);
         this.showAlertModal();
     }
     // Método vacío para evitar error JS y permitir funcionamiento del sistema
@@ -178,9 +182,13 @@ class TruckAlertSystem {
 
     // Crear modal para registro de alertas
     createModal() {
-    // Eliminar cualquier modal anterior para evitar duplicados
-    const oldModal = document.getElementById('alert-modal');
-    if (oldModal) oldModal.remove();
+        console.log('Creating modal...');
+        // Eliminar cualquier modal anterior para evitar duplicados
+        const oldModal = document.getElementById('alert-modal');
+        if (oldModal) {
+            console.log('Removing old modal');
+            oldModal.remove();
+        }
 
         const modalHTML = `
             <div id="alert-modal" class="alert-modal">
@@ -252,10 +260,6 @@ class TruckAlertSystem {
                             <textarea id="alert-description" name="descripcion" required placeholder="Describa el problema observado"></textarea>
                         </div>
                         <div class="form-group">
-                            <label for="alert-image">Imagen de Evidencia:</label>
-                            <input type="file" id="alert-image" name="imagen_evidencia" accept="image/*">
-                        </div>
-                        <div class="form-group">
                             <label for="alert-observations">Observaciones Adicionales:</label>
                             <textarea id="alert-observations" name="observaciones" placeholder="Observaciones adicionales o contexto"></textarea>
                         </div>
@@ -275,6 +279,7 @@ class TruckAlertSystem {
 
         document.body.insertAdjacentHTML('beforeend', modalHTML);
         this.alertModal = document.getElementById('alert-modal');
+        console.log('Modal created:', this.alertModal);
         this.setupModalEvents();
 
         // Llenar el menú desplegable de vehículos con datos desde el backend
@@ -329,12 +334,26 @@ class TruckAlertSystem {
 
     // Mostrar modal de alerta
     showAlertModal() {
-    if (!this.selectedTire) return;
+        console.log('showAlertModal called', this.selectedTire);
+        if (!this.selectedTire) {
+            console.log('No tire selected');
+            return;
+        }
 
-    const positionInput = document.getElementById('tire-position');
-    positionInput.value = this.selectedTire.position;
+        if (!this.alertModal) {
+            console.log('Modal not found, recreating...');
+            this.createModal();
+        }
 
-    this.alertModal.style.display = 'block';
+        const positionInput = document.getElementById('tire-position');
+        if (positionInput) {
+            positionInput.value = this.selectedTire.position;
+        } else {
+            console.log('Position input not found');
+        }
+
+        console.log('Showing modal');
+        this.alertModal.style.display = 'block';
 
         // Focus en el campo de código de conductor
         setTimeout(() => {

@@ -244,12 +244,64 @@
             animation: pulse 0.3s ease;
         }
 
-        /* ========== RESPONSIVIDAD ========== */
+        /* ========== RESPONSIVIDAD COMPLETA ========== */
+        
+        /* Tablets y pantallas medianas */
+        @media (max-width: 768px) {
+            body {
+                font-size: 15px;
+                padding: 1rem 0;
+            }
+            
+            .login-card {
+                margin: 1.5rem auto;
+                min-width: 90%;
+                max-width: 90%;
+                padding: 2rem 1.5rem !important;
+            }
+
+            .system-title {
+                font-size: 1.6rem;
+            }
+
+            .logo-icon {
+                height: 70px;
+                width: 70px;
+                font-size: 2.2rem;
+            }
+
+            .form-control {
+                font-size: 16px;
+                padding: 0.875rem 1rem;
+            }
+            
+            .btn {
+                font-size: 0.95rem;
+                min-height: 48px;
+            }
+        }
+        
+        /* Móviles */
         @media (max-width: 576px) {
+            body {
+                font-size: 14px;
+                padding: 0.5rem 0;
+            }
+            
             .login-card {
                 margin: 1rem;
                 min-width: auto;
+                max-width: calc(100% - 2rem);
                 padding: 2rem 1.5rem !important;
+                border-radius: 12px;
+            }
+
+            .system-title {
+                font-size: 1.4rem;
+            }
+            
+            .system-subtitle {
+                font-size: 0.85rem;
             }
 
             .logo-icon {
@@ -257,14 +309,81 @@
                 width: 60px;
                 font-size: 2rem;
             }
-
-            .system-title {
-                font-size: 1.5rem;
+            
+            .logo-container {
+                margin-bottom: 1.5rem;
             }
 
+            .btn {
+                min-height: 48px;
+                padding: 0.875rem 1rem;
+                font-size: 0.95rem;
+            }
+            
+            .form-label {
+                font-size: 0.9rem;
+                margin-bottom: 0.5rem;
+            }
+            
             .form-control {
-                font-size: 16px; /* Evita zoom en iOS */
+                font-size: 16px;
                 padding: 0.75rem;
+            }
+            
+            .alert {
+                font-size: 0.9rem;
+                padding: 0.875rem 1rem;
+            }
+        }
+        
+        /* Móviles pequeños */
+        @media (max-width: 400px) {
+            .login-card {
+                padding: 1.5rem 1rem !important;
+                margin: 0.5rem;
+            }
+            
+            .system-title {
+                font-size: 1.25rem;
+            }
+            
+            .logo-icon {
+                height: 55px;
+                width: 55px;
+                font-size: 1.8rem;
+                margin-bottom: 0.75rem;
+            }
+            
+            .btn {
+                padding: 0.75rem 0.875rem;
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Landscape móviles */
+        @media (max-height: 600px) and (orientation: landscape) {
+            .login-card {
+                margin: 0.5rem auto;
+                padding: 1.25rem 1.5rem !important;
+            }
+            
+            .logo-icon {
+                height: 45px;
+                width: 45px;
+                font-size: 1.5rem;
+                margin-bottom: 0.5rem;
+            }
+            
+            .logo-container {
+                margin-bottom: 0.75rem;
+            }
+            
+            .system-title {
+                font-size: 1.25rem;
+            }
+            
+            .form-control {
+                padding: 0.625rem 0.875rem;
             }
         }
 
@@ -356,13 +475,6 @@
                     <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
                 </button>
             </form>
-            
-            <div class="text-center">
-                <small class="text-muted">
-                    <i class="bi bi-info-circle me-1"></i>
-                    Usuarios de prueba: admin, tecnico, conduc
-                </small>
-            </div>
         </div>
     </div>
     

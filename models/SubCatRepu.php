@@ -23,9 +23,16 @@ class SubCatRepu {
             $types .= 's';
         }
         if ($filtro_categoria) {
-            $sql .= " AND c.nombre LIKE ?";
-            $params[] = "%$filtro_categoria%";
-            $types .= 's';
+            // Si es numérico, buscar por ID, sino por nombre
+            if (is_numeric($filtro_categoria)) {
+                $sql .= " AND s.cat_repu_id = ?";
+                $params[] = $filtro_categoria;
+                $types .= 'i';
+            } else {
+                $sql .= " AND c.nombre LIKE ?";
+                $params[] = "%$filtro_categoria%";
+                $types .= 's';
+            }
         }
         if ($filtro_tipo) {
             $sql .= " AND s.tipo_sub_repuesto LIKE ?";
