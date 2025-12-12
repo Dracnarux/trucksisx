@@ -1,0 +1,110 @@
+// Diagrama GraphViz - Camión Doble Troque
+// Sistema de Alertas de Llantas
+
+digraph TruckAlertSystem {
+    rankdir=TB;
+    bgcolor="white";
+    node [fontname="Arial"];
+    edge [fontname="Arial"];
+    
+    // Configuración general
+    graph [label="Sistema de Alertas de Llantas - Camión Doble Troque\nVista Esquemática", labelloc="t", fontsize=16, fontname="Arial Bold"];
+    
+    // Subgrafos para organizar la estructura
+    subgraph cluster_truck {
+        label="Estructura del Camión";
+        style=rounded;
+        color=blue;
+        
+        // Cabina y carrocería
+        cabina [shape=box, style=filled, fillcolor="#4a90e2", fontcolor=white, label="Cabina\nConductor"];
+        carroceria [shape=box, style=filled, fillcolor="#5ba0f2", fontcolor=white, label="Carrocería\nPrincipal"];
+        
+        cabina -> carroceria [label="Estructura"];
+    }
+    
+    subgraph cluster_tires {
+        label="Sistema de Llantas";
+        style=rounded;
+        color=green;
+        
+        // Llantas direccionales
+        dir_i [shape=circle, style=filled, fillcolor="#333333", fontcolor=white, label="DIR-I"];
+        dir_d [shape=circle, style=filled, fillcolor="#333333", fontcolor=white, label="DIR-D"];
+        
+        // Llantas tracción primera
+        t1_i [shape=circle, style=filled, fillcolor="#333333", fontcolor=white, label="T1-I"];
+        t1_d [shape=circle, style=filled, fillcolor="#333333", fontcolor=white, label="T1-D"];
+        t1_i2 [shape=circle, style=filled, fillcolor="#333333", fontcolor=white, label="T1-I2"];
+        t1_d2 [shape=circle, style=filled, fillcolor="#333333", fontcolor=white, label="T1-D2"];
+        
+        // Llantas tracción segunda
+        t2_i [shape=circle, style=filled, fillcolor="#333333", fontcolor=white, label="T2-I"];
+        t2_d [shape=circle, style=filled, fillcolor="#333333", fontcolor=white, label="T2-D"];
+        
+        // Conexiones entre llantas (ejes)
+        dir_i -> dir_d [dir=both, style=bold, color=gray, label="Eje Frontal"];
+        t1_i -> t1_d [dir=both, style=bold, color=gray, label="Eje T1"];
+        t1_i2 -> t1_d2 [dir=both, style=bold, color=gray, label="Eje T1B"];
+        t1_i -> t1_i2 [dir=both, style=bold, color=gray, label="Lado Izq"];
+        t1_d -> t1_d2 [dir=both, style=bold, color=gray, label="Lado Der"];
+        t2_i -> t2_d [dir=both, style=bold, color=gray, label="Eje T2"];
+    }
+    
+    subgraph cluster_system {
+        label="Sistema de Alertas";
+        style=rounded;
+        color=red;
+        
+        // Componentes del sistema
+        conductor [shape=person, style=filled, fillcolor="#95e1d3", label="Conductor"];
+        alert_system [shape=box, style=filled, fillcolor="#ff6b6b", fontcolor=white, label="Sistema\nde Alertas"];
+        work_order [shape=box, style=filled, fillcolor="#4ecdc4", fontcolor=white, label="Órdenes\nde Trabajo"];
+        database [shape=cylinder, style=filled, fillcolor="#f39c12", fontcolor=white, label="Base de\nDatos"];
+    }
+    
+    // Conexiones del camión con las llantas
+    carroceria -> dir_i [style=dotted, color=blue];
+    carroceria -> dir_d [style=dotted, color=blue];
+    carroceria -> t1_i [style=dotted, color=blue];
+    carroceria -> t1_d [style=dotted, color=blue];
+    carroceria -> t1_i2 [style=dotted, color=blue];
+    carroceria -> t1_d2 [style=dotted, color=blue];
+    carroceria -> t2_i [style=dotted, color=blue];
+    carroceria -> t2_d [style=dotted, color=blue];
+    
+    // Conexiones del sistema de alertas
+    conductor -> alert_system [color=red, label="Reporta\nAlerta"];
+    alert_system -> work_order [color=green, label="Genera\nAutomáticamente"];
+    alert_system -> database [color=orange, label="Almacena"];
+    database -> work_order [color=orange, label="Consulta"];
+    
+    // Monitoreo de llantas
+    alert_system -> dir_i [style=dashed, color=red, arrowhead=vee];
+    alert_system -> dir_d [style=dashed, color=red, arrowhead=vee];
+    alert_system -> t1_i [style=dashed, color=red, arrowhead=vee];
+    alert_system -> t1_d [style=dashed, color=red, arrowhead=vee];
+    alert_system -> t1_i2 [style=dashed, color=red, arrowhead=vee];
+    alert_system -> t1_d2 [style=dashed, color=red, arrowhead=vee];
+    alert_system -> t2_i [style=dashed, color=red, arrowhead=vee];
+    alert_system -> t2_d [style=dashed, color=red, arrowhead=vee];
+    
+    // Leyenda de estados (usando nodos invisibles para posicionamiento)
+    subgraph cluster_legend {
+        label="Leyenda de Estados de Llantas";
+        style=rounded;
+        color=purple;
+        
+        normal [shape=circle, style=filled, fillcolor="#333333", fontcolor=white, label="Normal"];
+        baja [shape=circle, style=filled, fillcolor="#ffff00", fontcolor=black, label="Alerta\nBaja"];
+        media [shape=circle, style=filled, fillcolor="#ffa500", fontcolor=white, label="Alerta\nMedia"];
+        alta [shape=circle, style=filled, fillcolor="#ff4444", fontcolor=white, label="Alerta\nAlta/Crítica"];
+        resuelta [shape=circle, style=filled, fillcolor="#28a745", fontcolor=white, label="Resuelta"];
+        
+        // Ordenar horizontalmente
+        {rank=same; normal; baja; media; alta; resuelta;}
+    }
+    
+    // Notas del sistema
+    note [shape=note, style=filled, fillcolor="#f8f9fa", label="NOTAS:\n• Clic en cualquier llanta para registrar alerta\n• Las alertas generan órdenes de trabajo automáticamente\n• Los colores indican el estado de cada llanta\n• El conductor ingresa su código para validación"];
+}

@@ -1,0 +1,14 @@
+/* Fondo traslúcido para el recuadro de login */
+.login-card-bg {
+    background: rgba(255,255,255,0.25);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    border-radius: 16px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.3);
+}
+body.login-bg {
+    background: url('../images/trucksisx-logo.png') no-repeat center center fixed;
+    background-size: contain;
+    background-color: #fff;
+}

@@ -4,6 +4,7 @@ if (!isset($_SESSION['usuario'])) {
     header('Location: ../index.php');
     exit();
 }
+$rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol'] === 'conductor';
 require_once '../controllers/CatRepuController.php';
 ?>
 <!DOCTYPE html>
@@ -11,93 +12,879 @@ require_once '../controllers/CatRepuController.php';
 <head>
     <meta charset="UTF-8">
     <title>Categoría de Repuestos</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
+            color: #374151;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        h2, h3, h4, h5, h6 {
+            color: #475569;
+            font-weight: 600;
+        }
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .main-container {
+            background: #FFFFFF;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.10);
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        .header-section {
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            color: #fff !important;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 10px 25px rgba(71, 85, 105, 0.2);
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .header-section h2 {
+            color: #fff !important;
+            font-weight: 700;
+        }
+        .header-section p {
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .header-section .btn-light {
+            background: #fff !important;
+            color: #475569 !important;
+            border: none;
+            font-weight: 600;
+        }
+        .header-section .btn-light:hover {
+            background: #F3F4F6 !important;
+            color: #334155 !important;
+        }
+        .content-section {
+            padding: 2rem;
+        }
+        .card, .main-container {
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            border: 1px solid rgba(209, 213, 219, 0.3);
+            background: #fff;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+            border-bottom: 1px solid #D1D5DB;
+            color: #475569;
+            font-weight: 600;
+            padding: 1.25rem;
+        }
+        .card-body {
+            padding: 1.5rem;
+        }
+        .btn {
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            min-height: 44px;
+            padding: 0.75rem 1.5rem;
+            position: relative;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            box-shadow: 0 4px 12px rgba(71, 85, 105, 0.3);
+            color: #FFFFFF !important;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+            box-shadow: 0 6px 20px rgba(71, 85, 105, 0.4);
+            color: #FFFFFF !important;
+            transform: translateY(-2px);
+        }
+        .btn-outline-primary, .btn-secondary {
+            background: #FFFFFF;
+            border: 2px solid #475569;
+            color: #475569 !important;
+        }
+        .btn-outline-primary:hover, .btn-secondary:hover {
+            background: #475569;
+            color: #FFFFFF !important;
+            transform: translateY(-2px);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: #FFFFFF !important;
+        }
+        .btn-success:hover {
+            background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+            color: #fff !important;
+        }
+        .btn-warning {
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+            color: #1E3A8A !important;
+        }
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            color: #1E3A8A !important;
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            color: #FFFFFF !important;
+        }
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+            color: #fff !important;
+        }
+        .table-responsive {
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        .table {
+            margin-bottom: 0;
+            font-size: 13px;
+        }
+        .table thead th {
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            border: none;
+            color: #FFFFFF;
+            font-weight: 700;
+            padding: 0.7rem 0.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .table tbody td {
+            border-bottom: 1px solid #E5E7EB;
+            color: #374151;
+            padding: 0.6rem 0.5rem;
+            vertical-align: middle;
+        }
+        .table-hover tbody tr:hover {
+            background: linear-gradient(135deg, rgba(71, 85, 105, 0.08) 0%, rgba(51, 65, 85, 0.08) 100%);
+        }
+        .table td.text-center .btn {
+            font-size: 12px;
+            padding: 0.3rem 0.6rem;
+            margin: 0 2px;
+        }
+        .badge {
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+        }
+        .badge.bg-success {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+        }
+        .badge.bg-warning {
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%) !important;
+            color: #1E3A8A !important;
+        }
+        .badge.bg-danger {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
+        }
+        .badge.bg-info {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%) !important;
+        }
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+        .modal-header {
+            border-radius: 20px 20px 0 0;
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            color: #fff;
+        }
+        .modal-header.bg-success {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+            color: #fff !important;
+        }
+        .modal-header.bg-warning {
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%) !important;
+            color: #1E3A8A !important;
+        }
+        .modal-header.bg-danger {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
+            color: #fff !important;
+        }
+        .modal-header.bg-info {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%) !important;
+            color: #fff !important;
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #475569;
+            box-shadow: 0 0 0 0.2rem rgba(71, 85, 105, 0.15);
+        }
+        .form-label {
+            color: #475569;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        /* Animaciones */
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up { animation: slideInUp 0.6s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
+        /* Responsive y utilidades igual que antes... */
+        /* ...existing code... */
+
+        /* Mejoras para móviles */
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+                margin-top: 16px;
+            }
+            
+            .main-container {
+                margin-top: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .header-section {
+                padding: 1.5rem;
+            }
+            
+            .header-section .d-flex {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .content-section {
+                padding: 1rem;
+            }
+            
+            /* Filtros responsivos */
+            .row.mb-4 .col-md-8 {
+                margin-bottom: 1rem;
+            }
+            
+            .row.mb-4 .col-md-4 {
+                text-align: center;
+            }
+            
+            .row.g-2 .col-md-4,
+            .row.g-2 .col-md-2 {
+                margin-bottom: 0.5rem;
+            }
+            
+            /* Tabla responsiva mejorada */
+            .table-responsive {
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
+            
+            .table {
+                font-size: 0.85rem;
+            }
+            
+            .table th,
+            .table td {
+                padding: 0.5rem 0.25rem;
+                white-space: nowrap;
+            }
+            
+            .table th:nth-child(4),
+            .table td:nth-child(4) {
+                max-width: 120px;
+                white-space: normal;
+                word-break: break-word;
+            }
+            
+            /* Ocultar algunas columnas en móvil */
+            .table th:nth-child(1),
+            .table td:nth-child(1) {
+                display: none;
+            }
+            
+            .table th:nth-child(5),
+            .table td:nth-child(5) {
+                display: none;
+            }
+            
+            /* Botones de acción más pequeños en móvil */
+            .btn-group-sm .btn {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
+            }
+            
+            .btn-group-sm .btn i {
+                font-size: 0.75rem;
+            }
+            
+            /* Modales en móvil */
+            .modal-dialog {
+                margin: 0.5rem;
+            }
+            
+            .modal-dialog.modal-lg {
+                max-width: none;
+                margin: 0.5rem;
+            }
+            
+            .modal-body {
+                padding: 1rem;
+            }
+            
+            .modal-body .row .col-md-6 {
+                margin-bottom: 1rem;
+            }
+            
+            /* Cards en modales más compactas */
+            .modal-body .card {
+                margin-bottom: 1rem;
+            }
+            
+            .modal-body .card .card-body {
+                padding: 0.75rem;
+            }
+            
+            /* Botones de modal apilados */
+            .modal-footer {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .modal-footer .btn {
+                width: 100%;
+                margin: 0;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header-section h2 {
+                font-size: 1.25rem;
+            }
+            
+            .header-section p {
+                font-size: 0.875rem;
+            }
+            
+            .table {
+                font-size: 0.75rem;
+            }
+            
+            /* En móviles muy pequeños, mostrar como tarjetas */
+            .table thead {
+                display: none;
+            }
+            
+            .table tbody tr {
+                display: block;
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                margin-bottom: 1rem;
+                padding: 1rem;
+                background: white;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            
+            .table tbody td {
+                display: block;
+                text-align: left !important;
+                border: none;
+                padding: 0.25rem 0;
+                white-space: normal;
+            }
+            
+            .table tbody td:before {
+                content: attr(data-label) ": ";
+                font-weight: bold;
+                color: #64748b;
+            }
+            
+            .table tbody td:nth-child(1):before { content: "ID: "; }
+            .table tbody td:nth-child(2):before { content: "Tipo: "; }
+            .table tbody td:nth-child(3):before { content: "Nombre: "; }
+            .table tbody td:nth-child(4):before { content: "Características: "; }
+            .table tbody td:nth-child(5):before { content: "Repuestos: "; }
+            .table tbody td:nth-child(6):before { content: "Acciones: "; }
+            
+            .table tbody td:nth-child(1),
+            .table tbody td:nth-child(5) {
+                display: block;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-4">
-    <h2 class="mb-4">Categoría de Repuestos</h2>
-    <form class="row mb-4" method="get">
-        <div class="col-md-3">
-            <input type="text" name="filtro_nombre" class="form-control" placeholder="Buscar por nombre" value="<?= isset($_GET['filtro_nombre']) ? htmlspecialchars($_GET['filtro_nombre']) : '' ?>">
+<div class="container"> 
+    <div class="main-container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1"><i class="bi bi-tags-fill"></i> Gestión de Categorías de Repuestos</h2>
+                    <p class="mb-0 opacity-75">Administra las categorías del sistema de repuestos</p>
+                </div>
+                <a href="gestiones.php" class="btn btn-light">
+                    <i class="bi bi-arrow-left"></i> Volver a Gestiones
+                </a>
+            </div>
         </div>
-        <div class="col-md-3">
-            <input type="text" name="filtro_caracteristicas" class="form-control" placeholder="Buscar por características" value="<?= isset($_GET['filtro_caracteristicas']) ? htmlspecialchars($_GET['filtro_caracteristicas']) : '' ?>">
-        </div>
-        <div class="col-md-2">
-            <button type="submit" class="btn btn-primary w-100">Filtrar</button>
-        </div>
-        <div class="col-md-2">
-            <a href="cat_repu.php" class="btn btn-secondary w-100">Limpiar</a>
-        </div>
-        <div class="col-md-2 text-end">
-            <a href="cat_repu.php?form=1" class="btn btn-success w-100">Agregar Categoría</a>
-        </div>
-    </form>
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Tipo de Repuesto</th>
-                <th>Nombre</th>
-                <th>Características</th>
-                <th>Productos</th>
-                <th class="text-center">Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-        <?php 
-        require_once '../models/Repue.php';
-        $repueModel = new Repue();
-        while ($row = $categorias->fetch_assoc()): 
-            $productos = [];
-            $repuestos = $repueModel->getAll(['cat_repu_id' => $row['id']]);
-            while ($rep = $repuestos->fetch_assoc()) {
-                $productos[] = htmlspecialchars($rep['nombre']);
-            }
-        ?>
-            <tr>
-                <td><?= $row['id'] ?></td>
-                <td><?= htmlspecialchars($row['tipo_repuesto'] ?? '') ?></td>
-                <td><?= htmlspecialchars($row['nombre']) ?></td>
-                <td><?= htmlspecialchars($row['caracteristicas'] ?? '') ?></td>
-                <td><?= $productos ? implode(', ', $productos) : '' ?></td>
-                <td class="text-center">
-                    <a href="cat_repu.php?form=1&id=<?= $row['id'] ?>" class="btn btn-warning mx-1">Editar</a>
-                    <a href="cat_repu.php?delete=<?= $row['id'] ?>" class="btn btn-danger mx-1" onclick="return confirm('¿Eliminar categoría?')">Eliminar</a>
-                </td>
-            </tr>
-        <?php endwhile; ?>
-        </tbody>
-    </table>
+        
+        <!-- Content Section -->
+        <div class="content-section">
+            <!-- Filtros y Búsqueda -->
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <form method="get" action="">
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <input type="text" name="filtro_nombre" class="form-control" 
+                                       placeholder="Buscar por nombre..." 
+                                       value="<?= isset($_GET['filtro_nombre']) ? htmlspecialchars($_GET['filtro_nombre']) : '' ?>">
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" name="filtro_caracteristicas" class="form-control" 
+                                       placeholder="Buscar por características..." 
+                                       value="<?= isset($_GET['filtro_caracteristicas']) ? htmlspecialchars($_GET['filtro_caracteristicas']) : '' ?>">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-outline-primary w-100">
+                                    <i class="bi bi-search"></i> Buscar
+                                </button>
+                            </div>
+                            <div class="col-md-2">
+                                <?php if (isset($_GET['filtro_nombre']) || isset($_GET['filtro_caracteristicas'])): ?>
+                                <a href="cat_repu.php" class="btn btn-outline-secondary w-100">
+                                    <i class="bi bi-x"></i> Limpiar
+                                </a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-4 text-end">
+                    <?php if (!$rol_conductor): ?>
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalCrearCategoria">
+                        <i class="bi bi-plus-circle"></i> Agregar Categoría
+                    </button>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <!-- Tabla de Categorías -->
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th><i class="bi bi-hash"></i> ID</th>
+                            <th><i class="bi bi-bookmarks"></i> Nombre</th>
+                            <th><i class="bi bi-list-ul"></i> Características</th>
+                            <th><i class="bi bi-box"></i> Repuestos</th>
+                            <th class="text-center"><i class="bi bi-gear"></i> Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php 
+                    require_once '../models/Repue.php';
+                    $repueModel = new Repue();
+                    
+                    // Aplicar filtros
+                    $categorias_filtradas = [];
+                    $categorias->data_seek(0);
+                    while ($row = $categorias->fetch_assoc()) {
+                        $incluir = true;
+                        
+                        if (!empty($_GET['filtro_nombre'])) {
+                            $filtro_nombre = strtolower($_GET['filtro_nombre']);
+                            if (strpos(strtolower($row['nombre']), $filtro_nombre) === false) {
+                                $incluir = false;
+                            }
+                        }
+                        
+                        if (!empty($_GET['filtro_caracteristicas'])) {
+                            $filtro_carac = strtolower($_GET['filtro_caracteristicas']);
+                            if (strpos(strtolower($row['caracteristicas'] ?? ''), $filtro_carac) === false) {
+                                $incluir = false;
+                            }
+                        }
+                        
+                        if ($incluir) {
+                            $categorias_filtradas[] = $row;
+                        }
+                    }
+                    
+                    if (empty($categorias_filtradas)):
+                    ?>
+                        <tr>
+                            <td colspan="5" class="text-center py-4">
+                                <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.5;"></i>
+                                <p class="mt-2 text-muted">No se encontraron categorías</p>
+                            </td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($categorias_filtradas as $row): 
+                            // Contar repuestos asociados
+                            $repuestos = $repueModel->getAll(['cat_repu_id' => $row['id']]);
+                            $count_repuestos = 0;
+                            while ($rep = $repuestos->fetch_assoc()) {
+                                $count_repuestos++;
+                            }
+                        ?>
+                            <tr>
+                                <td><strong>#<?= $row['id'] ?></strong></td>
+                                <td><strong><?= htmlspecialchars($row['nombre']) ?></strong></td>
+                                <td>
+                                    <?php if (!empty($row['caracteristicas'])): ?>
+                                        <?= htmlspecialchars(substr($row['caracteristicas'], 0, 50)) ?>
+                                        <?php if (strlen($row['caracteristicas']) > 50): ?>...<?php endif; ?>
+                                    <?php else: ?>
+                                        <small class="text-muted">Sin características</small>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary"><?= $count_repuestos ?> repuesto(s)</span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <button type="button" 
+                                                class="btn btn-outline-info" 
+                                                onclick="verCategoria(<?= htmlspecialchars(json_encode($row)) ?>)"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#modalVerCategoria"
+                                                title="Ver detalles">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <?php if (!$rol_conductor): ?>
+                                        <button type="button" 
+                                                class="btn btn-outline-warning" 
+                                                onclick="editarCategoria(<?= htmlspecialchars(json_encode($row)) ?>)"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#modalEditarCategoria"
+                                                title="Editar categoría">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" 
+                                                class="btn btn-outline-danger" 
+                                                onclick="eliminarCategoria(<?= $row['id'] ?>, '<?= htmlspecialchars($row['nombre']) ?>', <?= $count_repuestos ?>)"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#modalEliminarCategoria"
+                                                title="Eliminar categoría">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
 
-    <?php if (isset($_GET['form'])): ?>
-    <div class="card mt-4">
-        <div class="card-body">
-            <h5 class="card-title"><?= isset($categoria) ? 'Editar' : 'Agregar' ?> Categoría</h5>
-            <form method="post">
-                <input type="hidden" name="id" value="<?= $categoria['id'] ?? '' ?>">
-                <div class="mb-3">
-                    <label class="form-label">Tipo de Repuesto</label>
-                    <input type="text" name="tipo_repuesto" class="form-control" value="<?= htmlspecialchars($categoria['tipo_repuesto'] ?? '') ?>">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Nombre</label>
-                    <input type="text" name="nombre" class="form-control" required value="<?= htmlspecialchars($categoria['nombre'] ?? '') ?>">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Características</label>
-                    <input type="text" name="caracteristicas" class="form-control" value="<?= htmlspecialchars($categoria['caracteristicas'] ?? '') ?>">
-                </div>
-                <button type="submit" class="btn btn-success">Guardar</button>
-                <a href="cat_repu.php" class="btn btn-secondary mx-2">Cancelar</a>
-            </form>
         </div>
-    </div>
-    <?php endif; ?>
-
-    <div class="mt-5 text-end">
-        <a href="dashboard.php" class="btn btn-outline-secondary">Volver al Dashboard</a>
     </div>
 </div>
+
+<!-- Modal para crear categoría -->
+<div class="modal fade" id="modalCrearCategoria" tabindex="-1" aria-labelledby="modalCrearCategoriaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="modalCrearCategoriaLabel">
+                    <i class="bi bi-plus-circle"></i> Crear Nueva Categoría
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="" id="formCrearCategoria">
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="nombre_create" class="form-label">
+                                <i class="bi bi-bookmarks"></i> Nombre de la Categoría *
+                            </label>
+                            <input type="text" class="form-control" id="nombre_create" name="nombre" 
+                                   placeholder="Ej: Filtros de Aceite" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="caracteristicas_create" class="form-label">
+                            <i class="bi bi-list-ul"></i> Características
+                        </label>
+                        <textarea class="form-control" id="caracteristicas_create" name="caracteristicas" 
+                                  rows="4" placeholder="Describe las características principales de esta categoría..."></textarea>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Información:</strong> Esta categoría estará disponible para clasificar repuestos en el sistema.
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </button>
+                <button type="submit" form="formCrearCategoria" class="btn btn-success">
+                    <i class="bi bi-check-circle"></i> Crear Categoría
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para ver detalles de categoría -->
+<div class="modal fade" id="modalVerCategoria" tabindex="-1" aria-labelledby="modalVerCategoriaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="modalVerCategoriaLabel">
+                    <i class="bi bi-eye"></i> Detalles de la Categoría
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <i class="bi bi-info-circle"></i> Información General
+                            </div>
+                            <div class="card-body">
+                                <p><strong>ID:</strong> <span id="ver_id"></span></p>
+                                <p><strong>Nombre:</strong> <span id="ver_nombre"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <i class="bi bi-list-ul"></i> Características
+                            </div>
+                            <div class="card-body">
+                                <p id="ver_caracteristicas"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar categoría -->
+<div class="modal fade" id="modalEditarCategoria" tabindex="-1" aria-labelledby="modalEditarCategoriaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="modalEditarCategoriaLabel">
+                    <i class="bi bi-pencil-square"></i> Editar Categoría
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="" id="formEditarCategoria">
+                    <input type="hidden" name="id" id="editar_id">
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="editar_nombre" class="form-label">
+                                <i class="bi bi-bookmarks"></i> Nombre de la Categoría *
+                            </label>
+                            <input type="text" class="form-control" id="editar_nombre" name="nombre" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editar_caracteristicas" class="form-label">
+                            <i class="bi bi-list-ul"></i> Características
+                        </label>
+                        <textarea class="form-control" id="editar_caracteristicas" name="caracteristicas" rows="4"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </button>
+                <button type="submit" form="formEditarCategoria" class="btn btn-warning">
+                    <i class="bi bi-check-circle"></i> Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para confirmar eliminación -->
+<div class="modal fade" id="modalEliminarCategoria" tabindex="-1" aria-labelledby="modalEliminarCategoriaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="modalEliminarCategoriaLabel">
+                    <i class="bi bi-exclamation-triangle"></i> Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>¡Advertencia!</strong> Esta acción no se puede deshacer.
+                </div>
+                
+                <p class="mb-3">¿Está seguro de que desea eliminar la categoría:</p>
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title mb-1" id="eliminar_nombre_categoria"></h6>
+                        <small class="text-muted">ID: <span id="eliminar_id_categoria"></span></small>
+                    </div>
+                </div>
+                
+                <div class="mt-3" id="advertencia_repuestos" style="display: none;">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-circle"></i>
+                        Esta categoría tiene <span id="count_repuestos"></span> repuesto(s) asociado(s).
+                        Al eliminar la categoría, estos repuestos quedarán sin categoría.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </button>
+                <a href="#" id="btn_confirmar_eliminar_categoria" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Sí, Eliminar Categoría
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Función para ver detalles de la categoría
+function verCategoria(categoria) {
+    document.getElementById('ver_id').textContent = '#' + categoria.id;
+    document.getElementById('ver_nombre').textContent = categoria.nombre;
+    document.getElementById('ver_caracteristicas').textContent = categoria.caracteristicas || 'Sin características especificadas';
+}
+
+// Función para cargar datos en el modal de edición
+function editarCategoria(categoria) {
+    document.getElementById('editar_id').value = categoria.id;
+    document.getElementById('editar_nombre').value = categoria.nombre;
+    document.getElementById('editar_caracteristicas').value = categoria.caracteristicas || '';
+    // --- Solución accesibilidad: quitar aria-hidden si existe ---
+    const modal = document.getElementById('modalEditarCategoria');
+    if (modal.hasAttribute('aria-hidden')) {
+        modal.removeAttribute('aria-hidden');
+    }
+    // Mostrar el modal usando Bootstrap (si no se usa data-bs-toggle)
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        const modalInstance = bootstrap.Modal.getOrCreateInstance(modal);
+        modalInstance.show();
+    }
+}
+
+// Función para configurar modal de eliminación
+function eliminarCategoria(id, nombre, countRepuestos) {
+    document.getElementById('eliminar_id_categoria').textContent = id;
+    document.getElementById('eliminar_nombre_categoria').textContent = nombre;
+    document.getElementById('btn_confirmar_eliminar_categoria').href = 'cat_repu.php?delete=' + id;
+    
+    // Mostrar advertencia si hay repuestos asociados
+    if (countRepuestos > 0) {
+        document.getElementById('count_repuestos').textContent = countRepuestos;
+        document.getElementById('advertencia_repuestos').style.display = 'block';
+    } else {
+        document.getElementById('advertencia_repuestos').style.display = 'none';
+    }
+}
+
+// Validaciones de formularios
+document.getElementById('formCrearCategoria').addEventListener('submit', function(e) {
+    const nombre = document.getElementById('nombre_create').value.trim();
+    if (!nombre) {
+        e.preventDefault();
+        alert('El nombre de la categoría es obligatorio');
+        return false;
+    }
+});
+
+document.getElementById('formEditarCategoria').addEventListener('submit', function(e) {
+    const nombre = document.getElementById('editar_nombre').value.trim();
+    if (!nombre) {
+        e.preventDefault();
+        alert('El nombre de la categoría es obligatorio');
+        return false;
+    }
+});
+
+// Limpiar formularios al cerrar modales
+document.getElementById('modalCrearCategoria').addEventListener('hidden.bs.modal', function () {
+    document.getElementById('formCrearCategoria').reset();
+});
+
+document.getElementById('modalEditarCategoria').addEventListener('hidden.bs.modal', function () {
+    document.getElementById('formEditarCategoria').reset();
+});
+
+// Mostrar mensajes de éxito/error si existen en la URL
+window.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const mensaje = urlParams.get('mensaje');
+    const tipo = urlParams.get('tipo');
+    
+    if (mensaje && tipo) {
+        const alertClass = tipo === 'exito' ? 'alert-success' : 'alert-danger';
+        const iconClass = tipo === 'exito' ? 'bi-check-circle' : 'bi-exclamation-triangle';
+        
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert ${alertClass} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            <i class="bi ${iconClass}"></i>
+            <strong>${tipo === 'exito' ? 'Éxito:' : 'Error:'}</strong> ${decodeURIComponent(mensaje)}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        const container = document.querySelector('.content-section');
+        container.insertBefore(alertDiv, container.firstChild);
+        
+        // Remover parámetros de la URL
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+    }
+    
+    // Mejorar UX en móvil - colapsar modales automáticamente
+    if (window.innerWidth <= 768) {
+        // Hacer que los modales se adapten mejor en móvil
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            modal.addEventListener('show.bs.modal', function() {
+                document.body.style.paddingRight = '0';
+            });
+        });
+    }
+});
+</script>
+
 </body>
 </html>

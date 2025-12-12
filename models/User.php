@@ -1,22 +1,196 @@
 <?php
-require_once 'config/db.php';
+require_once __DIR__ . '/../config/db.php';
 
 class User {
     private $db;
+    private $table = "users";
+
     public function __construct() {
-        $this->db = conectarDB();
+        $database = new Database();
+        $this->db = $database->getConnection();
     }
-    public function login($usuario, $contrasena) {
-        $sql = "SELECT * FROM users WHERE nombre = ? OR correo = ?";
+
+    // Obtener todos los técnicos
+    public function getTecnicos() {
+        $sql = "SELECT * FROM " . $this->table . " WHERE rol = 'tecnico' ORDER BY nombre, apellido";
         $stmt = $this->db->prepare($sql);
-        $stmt->bind_param('ss', $usuario, $usuario);
         $stmt->execute();
-        $result = $stmt->get_result();
-        if ($row = $result->fetch_assoc()) {
-            if (hash('sha256', $contrasena) === $row['contrasena']) {
-                return $row;
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function login($usuario, $contrasena) {
+        $sql = "SELECT * FROM " . $this->table . " WHERE CONCAT(nombre, ' ', apellido) = :usuario OR correo = :usuario";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':usuario', $usuario);
+        $stmt->execute();
+        
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($user) {
+            if (hash('sha256', $contrasena) === $user['contrasena']) {
+                return $user;
             }
         }
         return false;
     }
+
+    // Obtener usuario por número de documento (para validar conductores)
+    public function getByDocumento($documento) {
+    $sql = "SELECT u.*, c.regis_vehic_id FROM " . $this->table . " u LEFT JOIN cond c ON c.id = u.id WHERE u.num_documento = :documento";
+    $stmt = $this->db->prepare($sql);
+    $stmt->bindParam(':documento', $documento);
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // Obtener todos los conductores de la tabla users
+    public function getConductores() {
+        $sql = "SELECT * FROM " . $this->table . " WHERE rol = 'conductor' ORDER BY nombre, apellido";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    // Obtener todos los conductores de la tabla cond (para órdenes de trabajo)
+    public function getConductoresCond() {
+        $sql = "SELECT id, cargo as nombre, descripcion FROM cond ORDER BY cargo";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Obtener usuario por ID
+    public function getById($id) {
+        $sql = "SELECT * FROM " . $this->table . " WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
+        
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // Contar usuarios con rol administrador
+    public function countAdministradores() {
+        $sql = "SELECT COUNT(*) as total FROM " . $this->table . " WHERE rol = 'admin'";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result['total'];
+    }
+
+    // Crear nuevo usuario
+    public function create($data) {
+        $sql = "INSERT INTO " . $this->table . " 
+                (num_documento, tipo_documento, nombre, apellido, num_celular, correo, rol, contrasena) 
+                VALUES 
+                (:num_documento, :tipo_documento, :nombre, :apellido, :num_celular, :correo, :rol, :contrasena)";
+        
+        $stmt = $this->db->prepare($sql);
+        
+        // Encriptar contraseña
+        $hashedPassword = hash('sha256', $data['contrasena']);
+        
+        $stmt->bindParam(':num_documento', $data['num_documento']);
+        $stmt->bindParam(':tipo_documento', $data['tipo_documento']);
+        $stmt->bindParam(':nombre', $data['nombre']);
+        $stmt->bindParam(':apellido', $data['apellido']);
+        $stmt->bindParam(':num_celular', $data['num_celular']);
+        $stmt->bindParam(':correo', $data['correo']);
+        $stmt->bindParam(':rol', $data['rol']);
+        $stmt->bindParam(':contrasena', $hashedPassword);
+        
+        if ($stmt->execute()) {
+            return $this->db->lastInsertId();
+        }
+        return false;
+    }
+
+    // Actualizar usuario
+    public function update($id, $data) {
+        $sql = "UPDATE " . $this->table . " SET 
+                nombre = :nombre, 
+                apellido = :apellido, 
+                num_celular = :num_celular, 
+                correo = :correo, 
+                rol = :rol";
+
+        // Solo actualizar contraseña si se proporciona
+        if (!empty($data['contrasena'])) {
+            $sql .= ", contrasena = :contrasena";
+        }
+
+        $sql .= " WHERE id = :id";
+
+        $stmt = $this->db->prepare($sql);
+
+        $stmt->bindParam(':nombre', $data['nombre']);
+        $stmt->bindParam(':apellido', $data['apellido']);
+        $stmt->bindParam(':num_celular', $data['num_celular']);
+        $stmt->bindParam(':correo', $data['correo']);
+        $stmt->bindParam(':rol', $data['rol']);
+        $stmt->bindParam(':id', $id);
+
+        if (!empty($data['contrasena'])) {
+            $hashedPassword = hash('sha256', $data['contrasena']);
+            $stmt->bindParam(':contrasena', $hashedPassword);
+        }
+
+        return $stmt->execute();
+    }
+
+    // Eliminar usuario
+    public function delete($id) {
+        // Verificar si el usuario tiene órdenes de trabajo asociadas
+        $checkOrdenes = "SELECT COUNT(*) as total FROM ord_trabj WHERE users_id = :id";
+        $stmtCheck = $this->db->prepare($checkOrdenes);
+        $stmtCheck->bindParam(':id', $id);
+        $stmtCheck->execute();
+        $result = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+        
+        if ($result['total'] > 0) {
+            throw new Exception("No se puede eliminar el usuario porque tiene {$result['total']} orden(es) de trabajo asociada(s). Primero debe reasignar o eliminar las órdenes.");
+        }
+        
+        $sql = "DELETE FROM " . $this->table . " WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':id', $id);
+        
+        return $stmt->execute();
+    }
+    
+    // Verificar si el usuario tiene dependencias
+    public function checkDependencies($id) {
+        $dependencies = [];
+        
+        // Verificar órdenes de trabajo
+        $sql = "SELECT COUNT(*) as total FROM ord_trabj WHERE users_id = :id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
+        $ordenes = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($ordenes['total'] > 0) {
+            $dependencies['ord_trabj'] = $ordenes['total'];
+        }
+        
+        return $dependencies;
+    }
+
+    // Validar si un conductor existe y está activo
+    public function validateConductor($documento) {
+        $user = $this->getByDocumento($documento);
+        return $user && $user['rol'] === 'conductor';
+    }
+
+    // Obtener todos los usuarios
+    public function getAll() {
+        $sql = "SELECT * FROM " . $this->table . " ORDER BY nombre, apellido";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
+?>

@@ -48,20 +48,28 @@ CREATE TABLE regis_vehic (
     cert_matricula VARCHAR(50),
     tarje_propiedad VARCHAR(50),
     subcat_vehic_id INT,
-    FOREIGN KEY (subcat_vehic_id) REFERENCES subcat_vehic(id)
+    cond_id INT,
+    estado ENUM('Sin conductor','Asignado') DEFAULT 'Sin conductor'
 );
 
--- Conductores
-CREATE TABLE cond (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    cargo VARCHAR(50),
-    horas_trabajadas INT,
-    tareas_completadas INT,
-    efeciencia DECIMAL(5,2),
-    descripcion TEXT,
-    regis_vehic_id INT,
-    FOREIGN KEY (regis_vehic_id) REFERENCES regis_vehic(id)
-);
+    -- Conductores
+    CREATE TABLE cond (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        cargo VARCHAR(50),
+        horas_trabajadas INT,
+        tareas_completadas INT,
+        efeciencia DECIMAL(5,2),
+        descripcion TEXT,
+        regis_vehic_id INT
+    );
+
+    -- Agregar claves foráneas después de crear ambas tablas
+    ALTER TABLE regis_vehic
+        ADD FOREIGN KEY (subcat_vehic_id) REFERENCES subcat_vehic(id);
+    ALTER TABLE regis_vehic
+        ADD FOREIGN KEY (cond_id) REFERENCES cond(id);
+    ALTER TABLE cond
+        ADD FOREIGN KEY (regis_vehic_id) REFERENCES regis_vehic(id);
 
 -- Categoría y subcategoría de repuestos
 CREATE TABLE cat_repu (
@@ -83,7 +91,7 @@ CREATE TABLE subcat_repu (
 -- Proveedores
 CREATE TABLE proveedor (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nit_num_identi VARCHAR(50),
+    nit_num_identi DECIMAL(20,0),
     nom_proveedor VARCHAR(100),
     tel_contacto VARCHAR(30),
     carg_contacto VARCHAR(50),
@@ -97,9 +105,7 @@ CREATE TABLE proveedor (
     zon_cobertura VARCHAR(100),
     for_pago VARCHAR(50),
     cred_disponible VARCHAR(50),
-    cuen_bancaria VARCHAR(50),
-    cat_repu_id INT,
-    FOREIGN KEY (cat_repu_id) REFERENCES cat_repu(id)
+    cuen_bancaria VARCHAR(50)
 );
 
 -- Repuestos
@@ -107,7 +113,7 @@ CREATE TABLE repue (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     marca_repuesto VARCHAR(100),
-    proveedor_id INT,
+    proveedor_id INT NULL,
     cat_repu_id INT,
     subcat_repu_id INT,
     modelo VARCHAR(100),
@@ -131,7 +137,7 @@ CREATE TABLE repue (
     firma_verificacion VARCHAR(100),
     FOREIGN KEY (cat_repu_id) REFERENCES cat_repu(id),
     FOREIGN KEY (subcat_repu_id) REFERENCES subcat_repu(id),
-    FOREIGN KEY (proveedor_id) REFERENCES proveedor(id)
+    FOREIGN KEY (proveedor_id) REFERENCES proveedor(id) ON DELETE SET NULL
 );
 
 -- Órdenes de trabajo
@@ -155,14 +161,26 @@ CREATE TABLE ord_trabj (
 -- Alertas
 CREATE TABLE alert (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    fecha_hora DATETIME,
-    prioridad VARCHAR(20),
-    estado VARCHAR(20),
+    fecha_hora DATETIME DEFAULT CURRENT_TIMESTAMP,
+    prioridad ENUM('baja','media','alta','critica') DEFAULT 'media',
+    estado ENUM('activa','en_proceso','resuelta','cancelada') DEFAULT 'activa',
     descripcion TEXT,
+    tipo_alerta ENUM('llanta','motor','frenos','general') DEFAULT 'general',
+    posicion_llanta ENUM(
+        'direccion_izquierda','direccion_derecha',
+        'traccion1_izquierda','traccion1_derecha',
+        'traccion1_izquierda2','traccion1_derecha2',
+        'traccion2_izquierda','traccion2_derecha'
+    ),
+    codigo_conductor VARCHAR(20),
+    observaciones TEXT,
+    imagen_evidencia VARCHAR(255),
     ord_trabj_id INT,
     cond_id INT,
+    regis_vehic_id INT,
     FOREIGN KEY (ord_trabj_id) REFERENCES ord_trabj(id),
-    FOREIGN KEY (cond_id) REFERENCES cond(id)
+    FOREIGN KEY (cond_id) REFERENCES cond(id),
+    FOREIGN KEY (regis_vehic_id) REFERENCES regis_vehic(id)
 );
 
 -- Ahora sí, agregamos la relación circular de alert en ord_trabj
@@ -177,9 +195,13 @@ CREATE TABLE sali_repue (
     repue_id INT,
     ord_trabj_id INT,
     repor_id INT,
+    alerta_id INT,
+    sali_vehi_id INT,
     FOREIGN KEY (repue_id) REFERENCES repue(id),
     FOREIGN KEY (ord_trabj_id) REFERENCES ord_trabj(id)
     -- FOREIGN KEY (repor_id) se agrega después de crear repor
+    -- FOREIGN KEY (alerta_id) se agrega después de crear alert
+    -- FOREIGN KEY (sali_vehi_id) se agrega después de crear sali_vehi
 );
 
 -- Salida de vehículos
@@ -193,8 +215,12 @@ CREATE TABLE sali_vehi (
     gest_conductores VARCHAR(100),
     repor_id INT,
     ord_trabj_id INT,
+    alerta_id INT,
+    sali_repue_id INT,
     FOREIGN KEY (ord_trabj_id) REFERENCES ord_trabj(id)
     -- FOREIGN KEY (repor_id) se agrega después de crear repor
+    -- FOREIGN KEY (alerta_id) se agrega después de crear alert
+    -- FOREIGN KEY (sali_repue_id) se agrega después de crear sali_repue
 );
 
 -- Reportes
@@ -219,10 +245,21 @@ ALTER TABLE sali_repue
 ALTER TABLE sali_vehi
     ADD FOREIGN KEY (repor_id) REFERENCES repor(id);
 
+-- Relaciones nuevas para mejoras
+ALTER TABLE sali_repue
+    ADD FOREIGN KEY (alerta_id) REFERENCES alert(id),
+    ADD FOREIGN KEY (sali_vehi_id) REFERENCES sali_vehi(id);
+
+ALTER TABLE sali_vehi
+    ADD FOREIGN KEY (alerta_id) REFERENCES alert(id),
+    ADD FOREIGN KEY (sali_repue_id) REFERENCES sali_repue(id);
+
+
+
 -- Usuarios iniciales con contraseñas encriptadas (ejemplo usando SHA2)
 INSERT INTO users (num_documento, tipo_documento, nombre, apellido, num_celular, correo, rol, contrasena) VALUES
 ('1001', 'CC', 'Admin', 'Principal', '3000000000', 'admin@trucksisx.com', 'admin', SHA2('admin123',256)),
 ('1002', 'CC', 'Tecnico', 'Soporte', '3000000001', 'tecnico@trucksisx.com', 'tecnico', SHA2('tecn123',256)),
 ('1003', 'CC', 'Conductor', 'Operador', '3000000002', 'conduc@trucksisx.com', 'conductor', SHA2('conduc123',256));
 
--- Fin de la estructura
+-- Fin de la estructura 
