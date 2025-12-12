@@ -598,6 +598,11 @@ require_once '../controllers/CatRepuController.php';
 
         </div>
     </div>
+
+
+    <div class="mt-5 text-end">
+        <a href="gestiones.php" class="btn btn-outline-secondary">Volver al panel de Gestiones</a>
+    </div>
 </div>
 
 <!-- Modal para crear categoría -->

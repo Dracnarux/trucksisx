@@ -6,8 +6,8 @@ CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     num_documento VARCHAR(20) NOT NULL,
     tipo_documento VARCHAR(20) NOT NULL,
-    nombre VARCHAR(50) NOT NULL,
-    apellido VARCHAR(50) NOT NULL,
+    cargo VARCHAR(50) NOT NULL,
+    funcion VARCHAR(50) NOT NULL,
     num_celular VARCHAR(20),
     correo VARCHAR(100),
     rol ENUM('admin','tecnico','conductor') NOT NULL,
@@ -257,7 +257,7 @@ ALTER TABLE sali_vehi
 
 
 -- Usuarios iniciales con contraseñas encriptadas (ejemplo usando SHA2)
-INSERT INTO users (num_documento, tipo_documento, nombre, apellido, num_celular, correo, rol, contrasena) VALUES
+INSERT INTO users (num_documento, tipo_documento, cargo, funcion, num_celular, correo, rol, contrasena) VALUES
 ('1001', 'CC', 'Admin', 'Principal', '3000000000', 'admin@trucksisx.com', 'admin', SHA2('admin123',256)),
 ('1002', 'CC', 'Tecnico', 'Soporte', '3000000001', 'tecnico@trucksisx.com', 'tecnico', SHA2('tecn123',256)),
 ('1003', 'CC', 'Conductor', 'Operador', '3000000002', 'conduc@trucksisx.com', 'conductor', SHA2('conduc123',256));
