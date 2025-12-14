@@ -17,421 +17,751 @@ require_once '../controllers/CatRepuController.php';
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg-primary: #0F172A;
+            --bg-secondary: #1E293B;
+            --card-bg: #1E293B;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --border: #334155;
+            --accent: #F97316;
+            --accent-amber: #F59E0B;
+            --danger: #EF4444;
+            --success: #10B981;
+            --card-radius: 12px;
+        }
+
         body {
-            background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
-            color: #374151;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             font-size: 16px;
             line-height: 1.6;
             min-height: 100vh;
         }
-        h2, h3, h4, h5, h6 {
-            color: #1E3A8A;
-            font-weight: 600;
-        }
-        .container {
+
+        .container-fluid {
             max-width: 1280px;
             margin: 0 auto;
             padding: 2rem;
         }
-        .main-container {
-            background: #FFFFFF;
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.10);
-            margin-top: 2rem;
-            margin-bottom: 2rem;
+
+        /* Sidebar visual igual al dashboard */
+        .sidebar {
+            background: var(--card-bg);
+            color: var(--text-primary);
+            border-right: 1px solid var(--border);
+            box-shadow: 4px 0 20px rgba(2,6,23,0.3);
+            height: 100vh;
+            min-width: 220px;
+            max-width: 340px;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            z-index: 1050;
+            border-radius: 0 1rem 1rem 0;
+            transform: translateX(-100%);
+            transition: transform 0.25s;
         }
-        .header-section {
-            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
-            color: #fff !important;
-            border-radius: 20px 20px 0 0;
-            box-shadow: 0 10px 25px rgba(30, 58, 138, 0.2);
+
+        .sidebar.show-mobile {
+            transform: translateX(0) !important;
+        }
+
+        .sidebar .nav-link {
+            color: var(--text-primary) !important;
+            font-weight: 500;
+            border-radius: 8px;
+            margin-bottom: 0.25rem;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s;
+        }
+
+        .sidebar .nav-link:hover {
+            background: rgba(249,115,22,0.1);
+            color: var(--accent) !important;
+        }
+
+        .sidebar .nav-link.active, .sidebar .nav-link.bg-primary, .sidebar .nav-link.text-white {
+            background: var(--accent);
+            color: #FFFFFF !important;
+            font-weight: 600;
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 0.75rem;
+            width: 20px;
+        }
+
+        .sidebar .btn-outline-secondary {
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
+        }
+
+        .sidebar .btn-outline-secondary:hover {
+            background: var(--text-secondary);
+            color: var(--bg-primary);
+        }
+
+        .sidebar h5 {
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .sidebar .nav-link.text-danger {
+            color: var(--danger) !important;
+        }
+
+        .sidebar .nav-link.text-danger:hover {
+            background: rgba(239,68,68,0.1);
+            color: var(--danger) !important;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                position: fixed !important;
+                top: 0; left: 0; bottom: 0;
+                width: 85vw;
+                max-width: 340px;
+                height: 100vh;
+                z-index: 1050;
+                border-radius: 0 1rem 1rem 0;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+                transform: translateX(-100%);
+                transition: transform 0.25s;
+            }
+            .sidebar.show-mobile {
+                transform: translateX(0);
+            }
+        }
+
+        .main-header {
+            background: linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(17,24,39,0.85) 100%);
+            border-radius: var(--card-radius);
+            box-shadow: 0 18px 50px rgba(2,6,23,0.6);
+            color: var(--text-primary);
+            margin-bottom: 2rem;
             padding: 2rem;
             position: relative;
             overflow: hidden;
         }
-        .header-section h2 {
-            color: #fff !important;
-            font-weight: 700;
+
+        .main-header h2 {
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
         }
-        .header-section p {
-            color: rgba(255, 255, 255, 0.9) !important;
+
+        .main-header .lead {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            color: var(--text-secondary);
         }
-        .header-section .btn-light {
-            background: #fff !important;
-            color: #1E3A8A !important;
-            border: none;
-            font-weight: 600;
+
+        .card, .form-section {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid var(--border);
+            border-radius: var(--card-radius);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
         }
-        .header-section .btn-light:hover {
-            background: #F3F4F6 !important;
-            color: #3B82F6 !important;
+
+        .card:hover, .form-section:hover {
+            box-shadow: 0 8px 32px rgba(249, 115, 22, 0.15);
+            transform: translateY(-2px);
+            border-color: var(--accent);
         }
-        .content-section {
-            padding: 2rem;
-        }
-        .card, .main-container {
-            border-radius: 16px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-            border: 1px solid rgba(209, 213, 219, 0.3);
-            background: #fff;
-        }
+
         .card-header {
-            background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
-            border-bottom: 1px solid #D1D5DB;
-            color: #1E3A8A;
-            font-weight: 600;
+            background: var(--accent);
+            color: #fff;
+            font-weight: bold;
             padding: 1.25rem;
         }
+
         .card-body {
             padding: 1.5rem;
         }
+
+        .form-label {
+            color: #000;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control, .form-select {
+            background: #FFFFFF;
+            border: 2px solid #D1D5DB;
+            border-radius: 8px;
+            color: #000;
+            font-size: 16px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+            outline: none;
+        }
+
+        .form-section {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid var(--border);
+            border-radius: var(--card-radius);
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+        }
+
+        .form-section h6 {
+            border-bottom: 2px solid var(--accent);
+            color: #000;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+        }
+
         .btn {
             border-radius: 8px;
             border: none;
             cursor: pointer;
             font-size: 0.95rem;
-            font-weight: 500;
+            font-weight: 600;
             min-height: 44px;
             padding: 0.75rem 1.5rem;
             position: relative;
             text-decoration: none;
             transition: all 0.3s ease;
         }
+
         .btn-primary {
-            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
-            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
-            color: #1E3A8A !important;
-            font-weight: 600;
+            background: var(--accent);
+            color: white;
         }
+
         .btn-primary:hover {
-            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
-            color: #1E3A8A !important;
-            transform: translateY(-2px);
+            background: #E65100;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
         }
-        .btn-outline-primary, .btn-secondary {
+
+        .btn-outline-primary {
             background: #FFFFFF;
-            border: 2px solid #1E3A8A;
-            color: #1E3A8A !important;
+            border: 2px solid var(--accent);
+            color: var(--accent) !important;
         }
-        .btn-outline-primary:hover, .btn-secondary:hover {
-            background: #1E3A8A;
+
+        .btn-outline-primary:hover {
+            background: var(--accent);
             color: #FFFFFF !important;
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
-        .btn-success {
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-            color: #FFFFFF !important;
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--text-secondary);
+            color: var(--text-secondary);
         }
-        .btn-success:hover {
-            background: linear-gradient(135deg, #059669 0%, #10B981 100%);
-            color: #fff !important;
+
+        .btn-secondary:hover {
+            background: var(--text-secondary);
+            color: var(--bg-primary);
         }
+
         .btn-warning {
-            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
-            color: #1E3A8A !important;
-        }
-        .btn-warning:hover {
-            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-            color: #1E3A8A !important;
-        }
-        .btn-danger {
-            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            background: var(--accent-amber);
             color: #FFFFFF !important;
         }
-        .btn-danger:hover {
-            background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
-            color: #fff !important;
+
+        .btn-danger {
+            background: var(--danger);
+            color: #FFFFFF !important;
         }
+
+        .btn-info {
+            background: var(--text-secondary);
+            color: #FFFFFF !important;
+        }
+
+        .btn-info:hover {
+            background: var(--accent);
+            color: #FFFFFF !important;
+        }
+
+        .btn-dark {
+            background: var(--text-secondary);
+            color: #FFFFFF !important;
+        }
+
+        .btn-dark:hover {
+            background: var(--accent);
+            color: #FFFFFF !important;
+        }
+
         .table-responsive {
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-            overflow: hidden;
+            border-radius: var(--card-radius);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+            overflow-y: hidden;
+            max-width: 100%;
         }
-        .table {
-            margin-bottom: 0;
-            font-size: 13px;
-        }
+
         .table thead th {
-            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            background: var(--accent);
             border: none;
             color: #FFFFFF;
-            font-weight: 700;
-            padding: 0.7rem 0.5rem;
+            font-weight: 600;
+            padding: 0.75rem;
             position: sticky;
             top: 0;
             z-index: 10;
+            white-space: nowrap;
+            min-width: 120px;
         }
+
         .table tbody td {
-            border-bottom: 1px solid #E5E7EB;
-            color: #374151;
-            padding: 0.6rem 0.5rem;
+            border-bottom: 1px solid var(--border);
+            color: #000;
+            padding: 0.75rem;
             vertical-align: middle;
+            white-space: nowrap;
+            min-width: 120px;
         }
+
+        .table tbody td.wrap-text {
+            white-space: normal;
+            max-width: 200px;
+            word-wrap: break-word;
+        }
+
         .table-hover tbody tr:hover {
-            background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(30, 58, 138, 0.08) 100%);
+            background: rgba(249, 115, 22, 0.05);
         }
-        .table td.text-center .btn {
-            font-size: 12px;
-            padding: 0.3rem 0.6rem;
-            margin: 0 2px;
-        }
+
         .badge {
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 500;
             padding: 0.5rem 1rem;
         }
-        .badge.bg-success {
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
-        }
-        .badge.bg-warning {
-            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%) !important;
-            color: #1E3A8A !important;
-        }
-        .badge.bg-danger {
-            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
-        }
-        .badge.bg-info {
-            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
-        }
-        .modal-content {
-            border-radius: 20px;
-            border: none;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-        }
-        .modal-header {
-            border-radius: 20px 20px 0 0;
-            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
-            color: #fff;
-        }
-        .modal-header.bg-success {
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
-            color: #fff !important;
-        }
-        .modal-header.bg-warning {
-            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%) !important;
-            color: #1E3A8A !important;
-        }
-        .modal-header.bg-danger {
-            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
-            color: #fff !important;
-        }
-        .modal-header.bg-info {
-            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
-            color: #fff !important;
-        }
-        .form-control, .form-select {
-            border-radius: 10px;
-            border: 2px solid #e9ecef;
-            padding: 0.75rem;
-            transition: all 0.3s ease;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: #1E3A8A;
-            box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.15);
-        }
-        .form-label {
-            color: #1E3A8A;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-        }
-        /* Animaciones */
-        @keyframes slideInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-slide-up { animation: slideInUp 0.6s ease-out; }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
-        /* Responsive y utilidades igual que antes... */
-        /* ...existing code... */
 
-        /* Mejoras para móviles */
+        .badge.bg-success {
+            background: var(--success) !important;
+        }
+
+        .badge.bg-warning {
+            background: var(--accent-amber) !important;
+            color: #FFFFFF !important;
+        }
+
+        .badge.bg-danger {
+            background: var(--danger) !important;
+        }
+
+        .badge.bg-info {
+            background: var(--text-secondary) !important;
+        }
+
+        .badge.bg-secondary {
+            background: #6B7280 !important;
+        }
+
+        .alert {
+            border: none;
+            border-radius: var(--card-radius);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .alert-info {
+            background: rgba(249, 115, 22, 0.1);
+            color: var(--accent);
+        }
+
+        .btn-sm {
+            font-size: 0.8rem;
+            padding: 0.5rem 0.75rem;
+            min-height: auto;
+        }
+
+        .d-flex.flex-column.gap-1 .btn + .btn {
+            margin-top: 0.25rem;
+        }
+
+        /* Scroll horizontal personalizado */
+        .table-container {
+            position: relative;
+        }
+
+        .table-responsive::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .table-responsive::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 10px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: #E65100;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            background: rgba(249, 115, 22, 0.8);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 50%;
+            z-index: 5;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* Vista móvil para tabla */
+        .mobile-card-view {
+            display: none;
+        }
+
         @media (max-width: 768px) {
             .container {
-                padding: 16px;
-                margin-top: 16px;
+                padding: 0.5rem !important;
             }
-            
-            .main-container {
-                margin-top: 1rem;
+            .main-header {
+                padding: 1rem;
+                text-align: center;
+            }
+            .card-body {
+                padding: 1rem;
+            }
+
+            /* Ocultar tabla en móvil y mostrar cards */
+            .table-container {
+                display: none;
+            }
+            .mobile-card-view {
+                display: block;
+            }
+
+            /* Estilos para las cards móviles */
+            .mobile-vehicle-card {
+                background: rgba(255, 255, 255, 0.95);
+                border: 1px solid var(--border);
+                border-radius: var(--card-radius);
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
                 margin-bottom: 1rem;
+                overflow: hidden;
             }
-            
-            .header-section {
-                padding: 1.5rem;
+
+            .mobile-card-header {
+                background: var(--accent);
+                color: white;
+                padding: 1rem;
+                font-weight: 600;
             }
-            
-            .header-section .d-flex {
+
+            .mobile-card-body {
+                padding: 1rem;
+            }
+
+            .mobile-info-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                padding: 0.5rem 0;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .mobile-info-row:last-child {
+                border-bottom: none;
+            }
+
+            .mobile-info-label {
+                font-weight: 500;
+                color: var(--text-secondary);
+                font-size: 0.85rem;
+                flex: 0 0 40%;
+            }
+
+            .mobile-info-value {
+                color: #000;
+                font-size: 0.85rem;
+                text-align: right;
+                flex: 1;
+                word-wrap: break-word;
+            }
+
+            .mobile-actions {
+                padding: 1rem;
+                background: rgba(255, 255, 255, 0.95);
+                border-top: 1px solid var(--border);
+            }
+
+            .mobile-actions .btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+                font-size: 0.85rem;
+                padding: 0.6rem;
+            }
+
+            .mobile-actions .btn:last-child {
+                margin-bottom: 0;
+            }
+
+            /* Ajustes generales para móvil */
+            .btn {
+                font-size: 14px;
+                min-height: 40px;
+            }
+
+            .form-control, .form-select {
+                font-size: 16px; /* Evita zoom en iOS */
+            }
+
+            /* Header responsive */
+            .d-flex.justify-content-between {
                 flex-direction: column;
                 gap: 1rem;
-                text-align: center;
             }
-            
-            .content-section {
-                padding: 1rem;
-            }
-            
-            /* Filtros responsivos */
-            .row.mb-4 .col-md-8 {
-                margin-bottom: 1rem;
-            }
-            
-            .row.mb-4 .col-md-4 {
-                text-align: center;
-            }
-            
-            .row.g-2 .col-md-4,
-            .row.g-2 .col-md-2 {
-                margin-bottom: 0.5rem;
-            }
-            
-            /* Tabla responsiva mejorada */
-            .table-responsive {
-                border-radius: 8px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            }
-            
-            .table {
-                font-size: 0.85rem;
-            }
-            
-            .table th,
-            .table td {
-                padding: 0.5rem 0.25rem;
-                white-space: nowrap;
-            }
-            
-            .table th:nth-child(4),
-            .table td:nth-child(4) {
-                max-width: 120px;
-                white-space: normal;
-                word-break: break-word;
-            }
-            
-            /* Ocultar algunas columnas en móvil */
-            .table th:nth-child(1),
-            .table td:nth-child(1) {
-                display: none;
-            }
-            
-            .table th:nth-child(5),
-            .table td:nth-child(5) {
-                display: none;
-            }
-            
-            /* Botones de acción más pequeños en móvil */
-            .btn-group-sm .btn {
-                padding: 0.25rem 0.5rem;
-                font-size: 0.75rem;
-            }
-            
-            .btn-group-sm .btn i {
-                font-size: 0.75rem;
-            }
-            
-            /* Modales en móvil */
-            .modal-dialog {
-                margin: 0.5rem;
-            }
-            
-            .modal-dialog.modal-lg {
-                max-width: none;
-                margin: 0.5rem;
-            }
-            
-            .modal-body {
-                padding: 1rem;
-            }
-            
-            .modal-body .row .col-md-6 {
-                margin-bottom: 1rem;
-            }
-            
-            /* Cards en modales más compactas */
-            .modal-body .card {
-                margin-bottom: 1rem;
-            }
-            
-            .modal-body .card .card-body {
-                padding: 0.75rem;
-            }
-            
-            /* Botones de modal apilados */
-            .modal-footer {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-            
-            .modal-footer .btn {
+
+            .d-flex.justify-content-between .btn {
                 width: 100%;
+            }
+
+            /* Filtros responsivos */
+            .row.g-3.mb-3 {
                 margin: 0;
             }
+
+            .row.g-3.mb-3 .col-md-2 {
+                margin-bottom: 0.5rem;
+            }
         }
-        
-        @media (max-width: 480px) {
-            .header-section h2 {
+
+        @media (max-width: 576px) {
+            .container {
+                padding: 0.5rem !important;
+            }
+            h2, h4 {
                 font-size: 1.25rem;
             }
-            
-            .header-section p {
-                font-size: 0.875rem;
+            .btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
             }
-            
-            .table {
-                font-size: 0.75rem;
+
+            /* Cards móviles más compactas */
+            .mobile-vehicle-card {
+                margin-bottom: 0.75rem;
             }
-            
-            /* En móviles muy pequeños, mostrar como tarjetas */
-            .table thead {
-                display: none;
+
+            .mobile-card-header {
+                padding: 0.75rem;
+                font-size: 0.9rem;
             }
-            
-            .table tbody tr {
-                display: block;
-                border: 1px solid #dee2e6;
-                border-radius: 8px;
-                margin-bottom: 1rem;
-                padding: 1rem;
-                background: white;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+            .mobile-card-body {
+                padding: 0.75rem;
             }
-            
-            .table tbody td {
-                display: block;
-                text-align: left !important;
-                border: none;
-                padding: 0.25rem 0;
-                white-space: normal;
+
+            .mobile-info-row {
+                padding: 0.4rem 0;
             }
-            
-            .table tbody td:before {
-                content: attr(data-label) ": ";
-                font-weight: bold;
-                color: #64748b;
+
+            .mobile-info-label, .mobile-info-value {
+                font-size: 0.8rem;
             }
-            
-            .table tbody td:nth-child(1):before { content: "ID: "; }
-            .table tbody td:nth-child(2):before { content: "Tipo: "; }
-            .table tbody td:nth-child(3):before { content: "Nombre: "; }
-            .table tbody td:nth-child(4):before { content: "Características: "; }
-            .table tbody td:nth-child(5):before { content: "Repuestos: "; }
-            .table tbody td:nth-child(6):before { content: "Acciones: "; }
-            
-            .table tbody td:nth-child(1),
-            .table tbody td:nth-child(5) {
-                display: block;
+
+            .mobile-actions {
+                padding: 0.75rem;
             }
+
+            .mobile-actions .btn {
+                padding: 0.5rem;
+                font-size: 0.8rem;
+                margin-bottom: 0.4rem;
+            }
+
+            /* Filtros más compactos */
+            .card-body {
+                padding: 0.75rem;
+            }
+
+            .form-label {
+                font-size: 0.85rem;
+                margin-bottom: 0.25rem;
+            }
+
+            .form-control {
+                padding: 0.5rem 0.75rem;
+                font-size: 14px;
+            }
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1060;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-dialog-custom {
+            background: var(--card-bg);
+            border-radius: var(--card-radius);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9) translateY(-20px);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border);
+        }
+
+        .modal-overlay.active .modal-dialog-custom {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header-custom {
+            padding: 1.5rem 1.5rem 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header-custom h5 {
+            margin: 0;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .modal-close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 0.375rem;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .modal-body-custom {
+            padding: 1.5rem;
+        }
+
+        .modal-footer-custom {
+            padding: 1rem 1.5rem 1.5rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        .modal-active {
+            overflow: hidden;
+        }
+
+        /* Toast Notification */
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--card-radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 1070;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .toast-notification.show {
+            transform: translateX(0);
+        }
+
+        .toast-notification i {
+            font-size: 1.5rem;
+        }
+
+        /* Bootstrap Modal Styles */
+        .modal-content {
+            background: white;
+            color: black;
+            border-radius: var(--card-radius);
+            border: 1px solid #dee2e6;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            background: white;
+            color: black;
+            border-bottom: 1px solid #e2c108ff;
+            border-radius: var(--card-radius) var(--card-radius) 0 0;
+        }
+
+        .modal-header .btn-close {
+            /* Sin filtro, ya que el fondo es blanco */
+        }
+
+        .modal-body {
+            background: white;
+            color: black;
+        }
+
+        .modal-footer {
+            background: white;
+            border-top: 1px solid #dee2e6;
+            border-radius: 0 0 var(--card-radius) var(--card-radius);
+        }
+
+        .modal-backdrop {
+            background: rgba(0, 0, 0, 0.5);
         }
     </style>
 </head>
 <body>
-<div class="container">
+<div class="container"> 
     <div class="main-container">
         <!-- Header Section -->
         <div class="header-section">
@@ -492,7 +822,6 @@ require_once '../controllers/CatRepuController.php';
                     <thead class="table-light">
                         <tr>
                             <th><i class="bi bi-hash"></i> ID</th>
-                            <th><i class="bi bi-tag"></i> Tipo de Repuesto</th>
                             <th><i class="bi bi-bookmarks"></i> Nombre</th>
                             <th><i class="bi bi-list-ul"></i> Características</th>
                             <th><i class="bi bi-box"></i> Repuestos</th>
@@ -532,7 +861,7 @@ require_once '../controllers/CatRepuController.php';
                     if (empty($categorias_filtradas)):
                     ?>
                         <tr>
-                            <td colspan="6" class="text-center py-4">
+                            <td colspan="5" class="text-center py-4">
                                 <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.5;"></i>
                                 <p class="mt-2 text-muted">No se encontraron categorías</p>
                             </td>
@@ -548,13 +877,6 @@ require_once '../controllers/CatRepuController.php';
                         ?>
                             <tr>
                                 <td><strong>#<?= $row['id'] ?></strong></td>
-                                <td>
-                                    <?php if (!empty($row['tipo_repuesto'])): ?>
-                                        <span class="badge" style="background-color: #64748b;"><?= htmlspecialchars($row['tipo_repuesto']) ?></span>
-                                    <?php else: ?>
-                                        <small class="text-muted">Sin especificar</small>
-                                    <?php endif; ?>
-                                </td>
                                 <td><strong><?= htmlspecialchars($row['nombre']) ?></strong></td>
                                 <td>
                                     <?php if (!empty($row['caracteristicas'])): ?>
@@ -621,25 +943,7 @@ require_once '../controllers/CatRepuController.php';
             <div class="modal-body">
                 <form method="post" action="" id="formCrearCategoria">
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="tipo_repuesto_create" class="form-label">
-                                <i class="bi bi-tag"></i> Tipo de Repuesto
-                            </label>
-                            <select class="form-select" id="tipo_repuesto_create" name="tipo_repuesto">
-                                <option value="">Seleccionar tipo...</option>
-                                <option value="Motor">Motor</option>
-                                <option value="Transmisión">Transmisión</option>
-                                <option value="Frenos">Frenos</option>
-                                <option value="Suspensión">Suspensión</option>
-                                <option value="Eléctrico">Eléctrico</option>
-                                <option value="Carrocería">Carrocería</option>
-                                <option value="Neumáticos">Neumáticos</option>
-                                <option value="Filtros">Filtros</option>
-                                <option value="Lubricantes">Lubricantes</option>
-                                <option value="Otros">Otros</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-12 mb-3">
                             <label for="nombre_create" class="form-label">
                                 <i class="bi bi-bookmarks"></i> Nombre de la Categoría *
                             </label>
@@ -678,29 +982,28 @@ require_once '../controllers/CatRepuController.php';
 <div class="modal fade" id="modalVerCategoria" tabindex="-1" aria-labelledby="modalVerCategoriaLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header bg-info text-white">
+            <div class="modal-header bg-light text-dark">
                 <h5 class="modal-title" id="modalVerCategoriaLabel">
                     <i class="bi bi-eye"></i> Detalles de la Categoría
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
                 <div class="row">
                     <div class="col-md-6">
                         <div class="card h-100">
-                            <div class="card-header bg-light">
+                            <div class="card-header bg-dark text-white">
                                 <i class="bi bi-info-circle"></i> Información General
                             </div>
                             <div class="card-body">
                                 <p><strong>ID:</strong> <span id="ver_id"></span></p>
                                 <p><strong>Nombre:</strong> <span id="ver_nombre"></span></p>
-                                <p><strong>Tipo de Repuesto:</strong> <span id="ver_tipo"></span></p>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="card h-100">
-                            <div class="card-header bg-light">
+                            <div class="card-header bg-dark text-white">
                                 <i class="bi bi-list-ul"></i> Características
                             </div>
                             <div class="card-body">
@@ -734,25 +1037,7 @@ require_once '../controllers/CatRepuController.php';
                     <input type="hidden" name="id" id="editar_id">
                     
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="editar_tipo_repuesto" class="form-label">
-                                <i class="bi bi-tag"></i> Tipo de Repuesto
-                            </label>
-                            <select class="form-select" id="editar_tipo_repuesto" name="tipo_repuesto">
-                                <option value="">Seleccionar tipo...</option>
-                                <option value="Motor">Motor</option>
-                                <option value="Transmisión">Transmisión</option>
-                                <option value="Frenos">Frenos</option>
-                                <option value="Suspensión">Suspensión</option>
-                                <option value="Eléctrico">Eléctrico</option>
-                                <option value="Carrocería">Carrocería</option>
-                                <option value="Neumáticos">Neumáticos</option>
-                                <option value="Filtros">Filtros</option>
-                                <option value="Lubricantes">Lubricantes</option>
-                                <option value="Otros">Otros</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-12 mb-3">
                             <label for="editar_nombre" class="form-label">
                                 <i class="bi bi-bookmarks"></i> Nombre de la Categoría *
                             </label>
@@ -829,9 +1114,6 @@ require_once '../controllers/CatRepuController.php';
 function verCategoria(categoria) {
     document.getElementById('ver_id').textContent = '#' + categoria.id;
     document.getElementById('ver_nombre').textContent = categoria.nombre;
-    document.getElementById('ver_tipo').innerHTML = categoria.tipo_repuesto 
-        ? '<span class="badge" style="background-color: #64748b;">' + categoria.tipo_repuesto + '</span>'
-        : '<span class="text-muted">Sin especificar</span>';
     document.getElementById('ver_caracteristicas').textContent = categoria.caracteristicas || 'Sin características especificadas';
 }
 
@@ -839,8 +1121,17 @@ function verCategoria(categoria) {
 function editarCategoria(categoria) {
     document.getElementById('editar_id').value = categoria.id;
     document.getElementById('editar_nombre').value = categoria.nombre;
-    document.getElementById('editar_tipo_repuesto').value = categoria.tipo_repuesto || '';
     document.getElementById('editar_caracteristicas').value = categoria.caracteristicas || '';
+    // --- Solución accesibilidad: quitar aria-hidden si existe ---
+    const modal = document.getElementById('modalEditarCategoria');
+    if (modal.hasAttribute('aria-hidden')) {
+        modal.removeAttribute('aria-hidden');
+    }
+    // Mostrar el modal usando Bootstrap (si no se usa data-bs-toggle)
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        const modalInstance = bootstrap.Modal.getOrCreateInstance(modal);
+        modalInstance.show();
+    }
 }
 
 // Función para configurar modal de eliminación

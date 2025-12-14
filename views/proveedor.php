@@ -38,20 +38,6 @@ if (isset($_GET['success'])) {
             break;
     }
 }
-
-if (isset($_GET['error'])) {
-    switch ($_GET['error']) {
-        case 'no_eliminar':
-            $mensaje_error = 'No se pudo eliminar el proveedor';
-            break;
-        case 'error_eliminar':
-            $mensaje_error = 'Error al eliminar el proveedor';
-            break;
-        default:
-            $mensaje_error = urldecode($_GET['error']);
-            break;
-    }
-}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -64,157 +50,473 @@ if (isset($_GET['error'])) {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        :root {
+            --bg-primary: #0F172A;
+            --bg-secondary: #1E293B;
+            --card-bg: #1E293B;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --border: #334155;
+            --accent: #F97316;
+            --accent-amber: #F59E0B;
+            --danger: #EF4444;
+            --success: #10B981;
+            --card-radius: 12px;
         }
+
         body {
-            background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
-            color: #374151;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             font-size: 16px;
             line-height: 1.6;
             min-height: 100vh;
         }
-        h1, h2, h3, h4, h5, h6 {
-            color: #1E3A8A;
-            font-weight: 600;
-            line-height: 1.3;
-            margin-bottom: 1rem;
-        }
-        h1 {
-            font-size: clamp(1.75rem, 4vw, 2.5rem);
-            font-weight: 700;
-        }
+
         .container-fluid {
             max-width: 1280px;
             margin: 0 auto;
             padding: 2rem;
         }
+
         .main-header {
-            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(30, 58, 138, 0.2);
-            color: #FFFFFF;
+            background: linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(17,24,39,0.85) 100%);
+            border-radius: var(--card-radius);
+            box-shadow: 0 18px 50px rgba(2,6,23,0.6);
+            color: var(--text-primary);
             margin-bottom: 2rem;
             padding: 2rem;
             position: relative;
             overflow: hidden;
         }
-        .main-header::before {
-            background: url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"40\" fill=\"none\" stroke=\"rgba(255,255,255,0.1)\" stroke-width=\"2\"/></svg>');
-            content: '';
-            height: 200px;
-            opacity: 0.1;
-            position: absolute;
-            right: -50px;
-            top: -50px;
-            width: 200px;
-        }
-        .main-header h1 {
-            color: #FFFFFF;
+
+        .main-header h1, .main-header h2 {
+            color: var(--text-primary);
             margin-bottom: 0.5rem;
-            position: relative;
-            z-index: 2;
         }
+
         .main-header .lead {
             font-size: 1.1rem;
             opacity: 0.9;
-            position: relative;
-            z-index: 2;
+            color: var(--text-secondary);
         }
-        .card, .table-responsive {
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+
+        .card, .form-section {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid var(--border);
+            border-radius: var(--card-radius);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
             margin-bottom: 1.5rem;
             overflow: hidden;
             transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
         }
+
+        .card:hover, .form-section:hover {
+            box-shadow: 0 8px 32px rgba(249, 115, 22, 0.15);
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+
         .card-header {
-            background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
-            border-bottom: 1px solid #D1D5DB;
-            color: #1E3A8A;
-            font-weight: 600;
+            background: var(--accent);
+            color: #fff;
+            font-weight: bold;
             padding: 1.25rem;
         }
+
         .card-body {
             padding: 1.5rem;
         }
+
+        .form-label {
+            color: #000;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control, .form-select {
+            background: #FFFFFF;
+            border: 2px solid #D1D5DB;
+            border-radius: 8px;
+            color: #000;
+            font-size: 16px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+            outline: none;
+        }
+
+        .form-section {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid var(--border);
+            border-radius: var(--card-radius);
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+        }
+
+        .form-section h6 {
+            border-bottom: 2px solid var(--accent);
+            color: #000;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+        }
+
         .btn {
             border-radius: 8px;
             border: none;
             cursor: pointer;
             font-size: 0.95rem;
-            font-weight: 500;
+            font-weight: 600;
             min-height: 44px;
             padding: 0.75rem 1.5rem;
             position: relative;
             text-decoration: none;
             transition: all 0.3s ease;
         }
-        .btn:focus {
-            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.3);
-            outline: none;
-        }
+
         .btn-primary {
-            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
-            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
-            color: #1E3A8A !important;
-            font-weight: 600;
+            background: var(--accent);
+            color: white;
         }
+
         .btn-primary:hover {
-            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
-            color: #1E3A8A !important;
-            transform: translateY(-2px);
+            background: #E65100;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
         }
-        .btn-outline-primary, .btn-secondary {
+
+        .btn-outline-primary {
             background: #FFFFFF;
-            border: 2px solid #1E3A8A;
-            color: #1E3A8A !important;
+            border: 2px solid var(--accent);
+            color: var(--accent) !important;
         }
-        .btn-outline-primary:hover, .btn-secondary:hover {
-            background: #1E3A8A;
+
+        .btn-outline-primary:hover {
+            background: var(--accent);
             color: #FFFFFF !important;
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
-        .btn-success {
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-            color: #FFFFFF !important;
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--text-secondary);
+            color: var(--text-secondary);
         }
+
+        .btn-secondary:hover {
+            background: var(--text-secondary);
+            color: var(--bg-primary);
+        }
+
         .btn-warning {
-            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
-            color: #1E3A8A !important;
+            background: var(--accent-amber);
+            color: #FFFFFF !important;
         }
+
         .btn-danger {
-            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            background: var(--danger);
             color: #FFFFFF !important;
         }
+
         .btn-info {
-            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            background: var(--text-secondary);
             color: #FFFFFF !important;
         }
-        .btn:hover {
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-            transform: translateY(-2px);
+
+        .table-responsive {
+            border-radius: var(--card-radius);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+            overflow-y: hidden;
+            max-width: 100%;
         }
-        .form-control, .form-select {
-            background: #FFFFFF;
-            border: 2px solid #D1D5DB;
-            border-radius: 8px;
-            color: #374151;
-            font-size: 16px;
-            padding: 0.75rem 1rem;
+
+        .table thead th {
+            background: var(--accent);
+            border: none;
+            color: #FFFFFF;
+            font-weight: 600;
+            padding: 0.75rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            white-space: nowrap;
+            min-width: 120px;
+        }
+
+        .table tbody td {
+            border-bottom: 1px solid var(--border);
+            color: #000;
+            padding: 0.75rem;
+            vertical-align: middle;
+            white-space: nowrap;
+            min-width: 120px;
+        }
+
+        .table tbody td.wrap-text {
+            white-space: normal;
+            max-width: 200px;
+            word-wrap: break-word;
+        }
+
+        .table-hover tbody tr:hover {
+            background: rgba(249, 115, 22, 0.05);
+        }
+
+        .badge {
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+        }
+
+        .badge.bg-success {
+            background: var(--success) !important;
+        }
+
+        .badge.bg-warning {
+            background: var(--accent-amber) !important;
+            color: #FFFFFF !important;
+        }
+
+        .badge.bg-danger {
+            background: var(--danger) !important;
+        }
+
+        .badge.bg-info {
+            background: var(--text-secondary) !important;
+        }
+
+        .badge.bg-secondary {
+            background: #6B7280 !important;
+        }
+
+        .alert {
+            border: none;
+            border-radius: var(--card-radius);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .alert-info {
+            background: rgba(249, 115, 22, 0.1);
+            color: var(--accent);
+        }
+
+        .btn-sm {
+            font-size: 0.8rem;
+            padding: 0.5rem 0.75rem;
+            min-height: auto;
+        }
+
+        .d-flex.flex-column.gap-1 .btn + .btn {
+            margin-top: 0.25rem;
+        }
+
+        /* Scroll horizontal personalizado */
+        .table-container {
+            position: relative;
+        }
+
+        .table-responsive::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .table-responsive::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 10px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: #E65100;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            background: rgba(249, 115, 22, 0.8);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 50%;
+            z-index: 5;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* Vista móvil para tabla */
+        .mobile-card-view {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 0.5rem !important; }
+            .main-header { padding: 1rem; text-align: center; }
+            .card-body { padding: 1rem; }
+
+            /* Ocultar tabla en móvil y mostrar cards */
+            .table-container { display: none; }
+            .mobile-card-view { display: block; }
+
+            .mobile-vehicle-card {
+                background: rgba(255, 255, 255, 0.95);
+                border: 1px solid var(--border);
+                border-radius: var(--card-radius);
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+                margin-bottom: 1rem;
+                overflow: hidden;
+            }
+
+            .mobile-card-header { background: var(--accent); color: white; padding: 1rem; font-weight: 600; }
+            .mobile-card-body { padding: 1rem; }
+            .mobile-info-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+            .mobile-info-row:last-child { border-bottom: none; }
+            .mobile-info-label { font-weight: 500; color: var(--text-secondary); font-size: 0.85rem; flex: 0 0 40%; }
+            .mobile-info-value { color: #000; font-size: 0.85rem; text-align: right; flex: 1; word-wrap: break-word; }
+            .mobile-actions { padding: 1rem; background: rgba(255, 255, 255, 0.95); border-top: 1px solid var(--border); }
+            .mobile-actions .btn { width: 100%; margin-bottom: 0.5rem; font-size: 0.85rem; padding: 0.6rem; }
+            .mobile-actions .btn:last-child { margin-bottom: 0; }
+            .btn { font-size: 14px; min-height: 40px; }
+            .form-control, .form-select { font-size: 16px; }
+            .d-flex.justify-content-between { flex-direction: column; gap: 1rem; }
+            .d-flex.justify-content-between .btn { width: 100%; }
+            .row.g-3.mb-3 { margin: 0; }
+            .row.g-3.mb-3 .col-md-2 { margin-bottom: 0.5rem; }
+        }
+
+        @media (max-width: 576px) {
+            .container { padding: 0.5rem !important; }
+            h2, h4 { font-size: 1.25rem; }
+            .btn { padding: 0.6rem 1rem; font-size: 0.9rem; }
+            .mobile-vehicle-card { margin-bottom: 0.75rem; }
+            .mobile-card-header { padding: 0.75rem; font-size: 0.9rem; }
+            .mobile-card-body { padding: 0.75rem; }
+            .mobile-info-row { padding: 0.4rem 0; }
+            .mobile-info-label, .mobile-info-value { font-size: 0.8rem; }
+            .mobile-actions { padding: 0.75rem; }
+            .mobile-actions .btn { padding: 0.5rem; font-size: 0.8rem; margin-bottom: 0.4rem; }
+            .card-body { padding: 0.75rem; }
+            .form-label { font-size: 0.85rem; margin-bottom: 0.25rem; }
+            .form-control { padding: 0.5rem 0.75rem; font-size: 14px; }
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1060;
+            opacity: 0;
+            visibility: hidden;
             transition: all 0.3s ease;
+            backdrop-filter: blur(4px);
         }
-        .form-control:focus, .form-select:focus {
-            border-color: #1E3A8A;
-            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
-            outline: none;
+
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+
+        .modal-dialog-custom {
+            background: var(--card-bg);
+            border-radius: var(--card-radius);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9) translateY(-20px);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border);
         }
+
+        .modal-overlay.active .modal-dialog-custom { transform: scale(1) translateY(0); }
+
+        .modal-header-custom {
+            padding: 1.5rem 1.5rem 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header-custom h5 { margin: 0; color: var(--text-primary); font-weight: 600; font-size: 1.25rem; }
+
+        .modal-close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 0.375rem;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close-btn:hover { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+
+        .modal-body-custom { padding: 1.5rem; }
+
+        .modal-footer-custom { padding: 1rem 1.5rem 1.5rem; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 0.75rem; }
+
+        .modal-active { overflow: hidden; }
+
+        /* Toast Notification */
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--card-radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 1070;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .toast-notification.show { transform: translateX(0); }
+
+        .toast-notification i { font-size: 1.5rem; }
+
+        /* Bootstrap Modal Styles */
+        .modal-content { background: white; color: black; border-radius: var(--card-radius); border: 1px solid #dee2e6; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); }
+
+        .modal-header { background: white; color: black; border-bottom: 1px solid #e2c108ff; border-radius: var(--card-radius) var(--card-radius) 0 0; }
+
+        .modal-header .btn-close { }
+
+        .modal-body { background: white; color: black; }
+
+        .modal-footer { background: white; border-top: 1px solid #dee2e6; border-radius: 0 0 var(--card-radius) var(--card-radius); }
+
+        .modal-backdrop { background: rgba(0, 0, 0, 0.5); }
         .form-label {
-            color: #1E3A8A;
+            color: #475569;
             font-weight: 500;
             margin-bottom: 0.5rem;
         }
@@ -226,8 +528,8 @@ if (isset($_GET['error'])) {
             padding: 1.5rem;
         }
         .form-section h6 {
-            border-bottom: 2px solid #FBBF24;
-            color: #1E3A8A;
+            border-bottom: 2px solid #475569;
+            color: #334155;
             font-weight: 600;
             margin-bottom: 1rem;
             padding-bottom: 0.5rem;
@@ -242,7 +544,7 @@ if (isset($_GET['error'])) {
             font-size: 13px;
         }
         .table thead th {
-            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
             border: none;
             color: #FFFFFF;
             font-weight: 700;
@@ -258,7 +560,7 @@ if (isset($_GET['error'])) {
             vertical-align: middle;
         }
         .table-hover tbody tr:hover {
-            background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(30, 58, 138, 0.08) 100%);
+            background: linear-gradient(135deg, rgba(71, 85, 105, 0.08) 0%, rgba(51, 65, 85, 0.08) 100%);
         }
         .table td.text-center .btn {
             font-size: 12px;
@@ -425,7 +727,7 @@ if (isset($_GET['error'])) {
         }
     </style>
 </head>
-<body class="bg-light">
+<body>
 
 <div class="container-fluid py-4">
     <div class="main-header">
@@ -504,79 +806,81 @@ if (isset($_GET['error'])) {
     <div class="card">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>NIT</th>
-                            <th>Contacto</th>
-                            <th>Ciudad</th>
-                            <th>País</th>
-                            <th>Tipo Repuesto</th>
-                            <th>Repuestos</th>
-                            <?php if (!$rol_conductor): ?>
-                            <th class="text-center" width="180">Acciones</th>
-                            <?php endif; ?>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <?php 
-                    $controller = new ProveedorController();
-                    $filtros = [
-                        'nom_proveedor' => $_GET['nom_proveedor'] ?? '',
-                        'mar_distribuye' => $_GET['mar_distribuye'] ?? '',
-                        'ciudad_depar' => $_GET['ciudad_depar'] ?? '',
-                        'pais' => $_GET['pais'] ?? ''
-                    ];
-                    $proveedores = $controller->index($filtros);
-                    while ($row = $proveedores->fetch_assoc()): ?>
-                        <tr>
-                            <td><?= $row['id'] ?></td>
-                            <td>
-                                <strong><?= htmlspecialchars($row['nom_proveedor']) ?></strong>
-                                <?php if (!empty($row['mar_distribuye'])): ?>
-                                <br><small class="text-muted"><?= htmlspecialchars($row['mar_distribuye']) ?></small>
+                <div style="overflow-x:auto;">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>NIT</th>
+                                <th>Contacto</th>
+                                <th>Ciudad</th>
+                                <th>País</th>
+                                <th>Tipo Repuesto</th>
+                                <th>Repuestos</th>
+                                <?php if (!$rol_conductor): ?>
+                                <th class="text-center" width="180">Acciones</th>
                                 <?php endif; ?>
-                            </td>
-                            <td><?= htmlspecialchars($row['nit_num_identi']) ?></td>
-                            <td>
-                                <?php if (!empty($row['tel_contacto'])): ?>
-                                <i class="bi bi-telephone"></i> <?= htmlspecialchars($row['tel_contacto']) ?><br>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <?php 
+                        $controller = new ProveedorController();
+                        $filtros = [
+                            'nom_proveedor' => $_GET['nom_proveedor'] ?? '',
+                            'mar_distribuye' => $_GET['mar_distribuye'] ?? '',
+                            'ciudad_depar' => $_GET['ciudad_depar'] ?? '',
+                            'pais' => $_GET['pais'] ?? ''
+                        ];
+                        $proveedores = $controller->index($filtros);
+                        while ($row = $proveedores->fetch_assoc()): ?>
+                            <tr>
+                                <td><?= $row['id'] ?></td>
+                                <td>
+                                    <strong><?= htmlspecialchars($row['nom_proveedor']) ?></strong>
+                                    <?php if (!empty($row['mar_distribuye'])): ?>
+                                    <br><small class="text-muted"><?= htmlspecialchars($row['mar_distribuye']) ?></small>
+                                    <?php endif; ?>
+                                </td>
+                                <td><?= htmlspecialchars($row['nit_num_identi']) ?></td>
+                                <td>
+                                    <?php if (!empty($row['tel_contacto'])): ?>
+                                    <i class="bi bi-telephone"></i> <?= htmlspecialchars($row['tel_contacto']) ?><br>
+                                    <?php endif; ?>
+                                    <?php if (!empty($row['correo'])): ?>
+                                    <i class="bi bi-envelope"></i> <?= htmlspecialchars($row['correo']) ?>
+                                    <?php endif; ?>
+                                </td>
+                                <td><?= htmlspecialchars($row['ciudad_depar']) ?></td>
+                                <td><?= htmlspecialchars($row['pais']) ?></td>
+                                <td><?= htmlspecialchars($row['tip_repuesto']) ?></td>
+                                <td>
+                                    <?php 
+                                    $totalRepuestos = $row['total_repuestos'] ?? 0;
+                                    if ($totalRepuestos > 0): ?>
+                                        <span class="badge bg-success"><?= $totalRepuestos ?> repuesto(s)</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-secondary">Sin repuestos</span>
+                                    <?php endif; ?>
+                                </td>
+                                <?php if (!$rol_conductor): ?>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-info btn-sm me-1" onclick="viewProvider(<?= $row['id'] ?>)" title="Ver">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-warning btn-sm me-1" onclick="editProvider(<?= $row['id'] ?>)" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="deleteProvider(<?= $row['id'] ?>, '<?= htmlspecialchars($row['nom_proveedor'], ENT_QUOTES) ?>')" title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
                                 <?php endif; ?>
-                                <?php if (!empty($row['correo'])): ?>
-                                <i class="bi bi-envelope"></i> <?= htmlspecialchars($row['correo']) ?>
-                                <?php endif; ?>
-                            </td>
-                            <td><?= htmlspecialchars($row['ciudad_depar']) ?></td>
-                            <td><?= htmlspecialchars($row['pais']) ?></td>
-                            <td><?= htmlspecialchars($row['tip_repuesto']) ?></td>
-                            <td>
-                                <?php 
-                                $totalRepuestos = $row['total_repuestos'] ?? 0;
-                                if ($totalRepuestos > 0): ?>
-                                    <span class="badge bg-success"><?= $totalRepuestos ?> repuesto(s)</span>
-                                <?php else: ?>
-                                    <span class="badge bg-secondary">Sin repuestos</span>
-                                <?php endif; ?>
-                            </td>
-                            <?php if (!$rol_conductor): ?>
-                            <td class="text-center">
-                                <button type="button" class="btn btn-info btn-sm me-1" onclick="viewProvider(<?= $row['id'] ?>)" title="Ver">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                                <button type="button" class="btn btn-warning btn-sm me-1" onclick="editProvider(<?= $row['id'] ?>)" title="Editar">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button type="button" class="btn btn-danger btn-sm" onclick="deleteProvider(<?= $row['id'] ?>, '<?= htmlspecialchars($row['nom_proveedor'], ENT_QUOTES) ?>')" title="Eliminar">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </td>
-                            <?php endif; ?>
-                        </tr>
-                    <?php endwhile; ?>
-                    </tbody>
-                </table>
+                            </tr>
+                        <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -589,7 +893,7 @@ if (isset($_GET['error'])) {
 </div>
 
 <!-- Modal Crear -->
-<div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
+<div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-modal="true" role="dialog">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
@@ -607,20 +911,16 @@ if (isset($_GET['error'])) {
                                 <label for="create_nit_num_identi" class="form-label">NIT/Identificación <span class="text-danger">*</span></label>
                                 <input type="text" id="create_nit_num_identi" name="nit_num_identi" class="form-control" required placeholder="123456789-0">
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label for="create_nom_proveedor" class="form-label">Nombre del Proveedor <span class="text-danger">*</span></label>
                                 <input type="text" id="create_nom_proveedor" name="nom_proveedor" class="form-control" required placeholder="Nombre de la empresa">
                             </div>
-                            <div class="col-md-4">
-                                <label for="create_tip_repuesto" class="form-label">Tipo de Repuesto</label>
-                                <input type="text" id="create_tip_repuesto" name="tip_repuesto" class="form-control" placeholder="Motor, frenos, transmisión...">
-                            </div>
-                        </div>
-                        <div class="row">
                             <div class="col-md-6">
                                 <label for="create_mar_distribuye" class="form-label">Marca que Distribuye</label>
                                 <input type="text" id="create_mar_distribuye" name="mar_distribuye" class="form-control" placeholder="Toyota, Ford, Chevrolet...">
                             </div>
+                        </div>
+                        <div class="row">
                             <div class="col-md-6">
                                 <label for="create_zon_cobertura" class="form-label">Zonas de Cobertura</label>
                                 <input type="text" id="create_zon_cobertura" name="zon_cobertura" class="form-control" placeholder="Nacional, Regional, Local...">
@@ -707,6 +1007,85 @@ if (isset($_GET['error'])) {
                             </div>
                         </div>
                     </div>
+                    
+                    <div class="form-section">
+                        <h6><i class="bi bi-box-seam"></i> Repuestos Disponibles Sin Asignar</h6>
+                        <div class="alert alert-info mb-3">
+                            <i class="bi bi-info-circle"></i> Seleccione los repuestos que este proveedor podrá suministrar
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="repuestos-grid" style="max-height: 300px; overflow-y: auto; border: 2px solid #D1D5DB; border-radius: 8px; padding: 1rem; background: #f9fafb;">
+                                    <?php
+                                    // Obtener repuestos sin proveedor asignado o disponibles
+                                    require_once '../config/db.php';
+                                    $db = conectarDB();
+                                    $query = "SELECT r.id, r.nombre, r.marca_repuesto, r.modelo, r.cant_stock, 
+                                                     cr.nombre as categoria, scr.nombre as subcategoria
+                                              FROM repue r
+                                              LEFT JOIN cat_repu cr ON r.cat_repu_id = cr.id
+                                              LEFT JOIN subcat_repu scr ON r.subcat_repu_id = scr.id
+                                              WHERE r.proveedor_id IS NULL OR r.proveedor_id = 0
+                                              ORDER BY r.nombre ASC";
+                                    $result = $db->query($query);
+                                    
+                                    if ($result && $result->num_rows > 0):
+                                        while ($repuesto = $result->fetch_assoc()):
+                                    ?>
+                                        <div class="form-check mb-2 p-3" style="background: white; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                            <input class="form-check-input repuesto-checkbox" type="checkbox" name="repuestos_vinculados[]" 
+                                                   value="<?= $repuesto['id'] ?>" id="repuesto_<?= $repuesto['id'] ?>" onchange="actualizarContadorRepuestos()">
+                                            <label class="form-check-label" for="repuesto_<?= $repuesto['id'] ?>" style="width: 100%;">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div>
+                                                        <strong><?= htmlspecialchars($repuesto['nombre']) ?></strong>
+                                                        <?php if ($repuesto['marca_repuesto']): ?>
+                                                            <span class="badge bg-secondary ms-2"><?= htmlspecialchars($repuesto['marca_repuesto']) ?></span>
+                                                        <?php endif; ?>
+                                                        <?php if ($repuesto['modelo']): ?>
+                                                            <span class="badge bg-info ms-1"><?= htmlspecialchars($repuesto['modelo']) ?></span>
+                                                        <?php endif; ?>
+                                                        <br>
+                                                        <small class="text-muted">
+                                                            <?php if ($repuesto['categoria']): ?>
+                                                                📁 <?= htmlspecialchars($repuesto['categoria']) ?>
+                                                            <?php endif; ?>
+                                                            <?php if ($repuesto['subcategoria']): ?>
+                                                                / <?= htmlspecialchars($repuesto['subcategoria']) ?>
+                                                            <?php endif; ?>
+                                                        </small>
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <span class="badge <?= $repuesto['cant_stock'] > 0 ? 'bg-success' : 'bg-warning text-dark' ?>">
+                                                            Stock: <?= $repuesto['cant_stock'] ?? 0 ?>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    <?php 
+                                        endwhile;
+                                    else:
+                                    ?>
+                                        <div class="alert alert-warning mb-0">
+                                            <i class="bi bi-exclamation-triangle"></i> No hay repuestos disponibles sin asignar a un proveedor
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="seleccionarTodosRepuestos(true)">
+                                        <i class="bi bi-check-all"></i> Seleccionar Todos
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="seleccionarTodosRepuestos(false)">
+                                        <i class="bi bi-x"></i> Deseleccionar Todos
+                                    </button>
+                                    <span class="ms-3 text-muted">
+                                        <i class="bi bi-info-circle"></i> <span id="repuestos-seleccionados-count">0</span> repuestos seleccionados
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -722,7 +1101,7 @@ if (isset($_GET['error'])) {
 </div>
 
 <!-- Modal Ver -->
-<div class="modal fade" id="viewModal" tabindex="-1" aria-labelledby="viewModalLabel" aria-hidden="true">
+<div class="modal fade" id="viewModal" tabindex="-1" aria-labelledby="viewModalLabel" aria-modal="true" role="dialog">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
@@ -810,7 +1189,7 @@ if (isset($_GET['error'])) {
 </div>
 
 <!-- Modal Editar -->
-<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-modal="true" role="dialog">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
@@ -835,7 +1214,17 @@ if (isset($_GET['error'])) {
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Tipo de Repuesto</label>
-                                <input type="text" name="tip_repuesto" id="edit-tipo" class="form-control">
+                                <select name="tip_repuesto" id="edit-tipo" class="form-select">
+                                    <option value="">Seleccione un repuesto</option>
+                                    <?php
+                                    require_once '../models/Repue.php';
+                                    $repueModel = new Repue();
+                                    $repuestos = $repueModel->getAll();
+                                    while ($rep = $repuestos->fetch_assoc()) {
+                                        echo '<option value="' . htmlspecialchars($rep['nombre']) . '">' . htmlspecialchars($rep['nombre']) . ' (ID: ' . $rep['id'] . ')</option>';
+                                    }
+                                    ?>
+                                </select>
                             </div>
                         </div>
                         <div class="row">
@@ -981,7 +1370,16 @@ function editProvider(id) {
             document.getElementById('edit-id').value = data.id || '';
             document.getElementById('edit-nit').value = data.nit_num_identi || '';
             document.getElementById('edit-nombre').value = data.nom_proveedor || '';
-            document.getElementById('edit-tipo').value = data.tip_repuesto || '';
+            // Seleccionar el repuesto correspondiente en el menú desplegable
+            const editTipo = document.getElementById('edit-tipo');
+            if (editTipo) {
+                for (let i = 0; i < editTipo.options.length; i++) {
+                    if (editTipo.options[i].value === (data.tip_repuesto || '')) {
+                        editTipo.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
             document.getElementById('edit-marca').value = data.mar_distribuye || '';
             document.getElementById('edit-zona').value = data.zon_cobertura || '';
             document.getElementById('edit-direccion').value = data.direccion || '';
@@ -1044,6 +1442,56 @@ document.getElementById('editForm').addEventListener('submit', function(e) {
         alert('El nombre del proveedor es obligatorio');
         return false;
     }
+});
+
+// Función para seleccionar/deseleccionar todos los repuestos
+function seleccionarTodosRepuestos(seleccionar) {
+    const checkboxes = document.querySelectorAll('input[name="repuestos_vinculados[]"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = seleccionar;
+    });
+    actualizarContadorRepuestos();
+}
+
+// Función para actualizar el contador de repuestos seleccionados
+function actualizarContadorRepuestos() {
+    const checkboxes = document.querySelectorAll('input[name="repuestos_vinculados[]"]:checked');
+    const contador = document.getElementById('repuestos-seleccionados-count');
+    if (contador) {
+        contador.textContent = checkboxes.length;
+    }
+}
+
+// Inicializar contador al cargar
+document.addEventListener('DOMContentLoaded', function() {
+    actualizarContadorRepuestos();
+    
+    // Prevenir aria-hidden en modales para cumplir con accesibilidad
+    const modales = ['createModal', 'viewModal', 'editModal'];
+    modales.forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'aria-hidden') {
+                        if (modal.hasAttribute('aria-hidden')) {
+                            modal.removeAttribute('aria-hidden');
+                        }
+                    }
+                });
+            });
+            
+            observer.observe(modal, {
+                attributes: true,
+                attributeFilter: ['aria-hidden']
+            });
+            
+            modal.addEventListener('show.bs.modal', function() {
+                this.setAttribute('aria-modal', 'true');
+                this.setAttribute('role', 'dialog');
+            });
+        }
+    });
 });
 </script>
 

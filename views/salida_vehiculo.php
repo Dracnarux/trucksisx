@@ -38,144 +38,287 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root{
+            --bg-primary: #0F172A;
+            --card-bg: #111827;
+            --card-radius: 12px;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --border: #1E293B;
+            --accent: #F97316;
+            --accent-amber: #F59E0B;
+            --danger: #EF4444;
+            --success: #10B981;
+        }
+
         body {
-            background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
-            color: #374151;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             font-size: 16px;
             line-height: 1.6;
             min-height: 100vh;
         }
-        h2, h4, h5, h6 {
-            color: #1E3A8A;
-            font-weight: 600;
-        }
+
         .container-fluid {
             max-width: 1280px;
             margin: 0 auto;
             padding: 2rem;
         }
+
+        /* Sidebar visual igual al dashboard */
+        .sidebar {
+            background: var(--card-bg);
+            color: var(--text-primary);
+            border-right: 1px solid var(--border);
+            box-shadow: 4px 0 20px rgba(2,6,23,0.3);
+            height: 100vh;
+            min-width: 220px;
+            max-width: 340px;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            z-index: 1050;
+            border-radius: 0 1rem 1rem 0;
+            transform: translateX(-100%);
+            transition: transform 0.25s;
+        }
+
+        .sidebar.show-mobile {
+            transform: translateX(0) !important;
+        }
+
+        .sidebar .nav-link {
+            color: var(--text-primary) !important;
+            font-weight: 500;
+            border-radius: 8px;
+            margin-bottom: 0.25rem;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s;
+        }
+
+        .sidebar .nav-link:hover {
+            background: rgba(249,115,22,0.1);
+            color: var(--accent) !important;
+        }
+
+        .sidebar .nav-link.active, .sidebar .nav-link.bg-primary, .sidebar .nav-link.text-white {
+            background: var(--accent);
+            color: #FFFFFF !important;
+            font-weight: 600;
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 0.75rem;
+            width: 20px;
+        }
+
+        .sidebar .btn-outline-secondary {
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
+        }
+
+        .sidebar .btn-outline-secondary:hover {
+            background: var(--text-secondary);
+            color: var(--bg-primary);
+        }
+
+        .sidebar h5 {
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .sidebar .nav-link.text-danger {
+            color: var(--danger) !important;
+        }
+
+        .sidebar .nav-link.text-danger:hover {
+            background: rgba(239,68,68,0.1);
+            color: var(--danger) !important;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                position: fixed !important;
+                top: 0; left: 0; bottom: 0;
+                width: 85vw;
+                max-width: 340px;
+                height: 100vh;
+                z-index: 1050;
+                border-radius: 0 1rem 1rem 0;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+                transform: translateX(-100%);
+                transition: transform 0.25s;
+            }
+            .sidebar.show-mobile {
+                transform: translateX(0);
+            }
+        }
+
         .main-header {
-            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(30, 58, 138, 0.2);
-            color: #FFFFFF;
+            background: linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(17,24,39,0.85) 100%);
+            border-radius: var(--card-radius);
+            box-shadow: 0 18px 50px rgba(2,6,23,0.6);
+            color: var(--text-primary);
             margin-bottom: 2rem;
             padding: 2rem;
             position: relative;
             overflow: hidden;
         }
+
         .main-header h2 {
-            color: #fff;
+            color: var(--text-primary);
             margin-bottom: 0.5rem;
         }
+
         .main-header .lead {
             font-size: 1.1rem;
             opacity: 0.9;
+            color: var(--text-secondary);
         }
-        .card {
-            background: #FFFFFF;
-            border: 1px solid rgba(209, 213, 219, 0.3);
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+
+        .card, .form-section {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid var(--border);
+            border-radius: var(--card-radius);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
             margin-bottom: 1.5rem;
             overflow: hidden;
             transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
         }
+
+        .card:hover, .form-section:hover {
+            box-shadow: 0 8px 32px rgba(249, 115, 22, 0.15);
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+
         .card-header {
-            background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
-            border-bottom: 1px solid #D1D5DB;
-            color: #1E3A8A;
-            font-weight: 600;
+            background: var(--accent);
+            color: #fff;
+            font-weight: bold;
             padding: 1.25rem;
         }
+
         .card-body {
             padding: 1.5rem;
         }
+
+        .form-label {
+            color: #000;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control, .form-select {
+            background: #FFFFFF;
+            border: 2px solid #D1D5DB;
+            border-radius: 8px;
+            color: #000;
+            font-size: 16px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+            outline: none;
+        }
+
+        .form-section {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid var(--border);
+            border-radius: var(--card-radius);
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+        }
+
+        .form-section h6 {
+            border-bottom: 2px solid var(--accent);
+            color: #000;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+        }
+
         .btn {
             border-radius: 8px;
             border: none;
             cursor: pointer;
             font-size: 0.95rem;
-            font-weight: 500;
+            font-weight: 600;
             min-height: 44px;
             padding: 0.75rem 1.5rem;
             position: relative;
             text-decoration: none;
             transition: all 0.3s ease;
         }
+
         .btn-primary {
-            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
-            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
-            color: #1E3A8A !important;
-            font-weight: 600;
+            background: var(--accent);
+            color: white;
         }
+
         .btn-primary:hover {
-            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
-            color: #1E3A8A !important;
-            transform: translateY(-2px);
+            background: #E65100;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
         }
-        .btn-outline-primary, .btn-secondary {
+
+        .btn-outline-primary {
             background: #FFFFFF;
-            border: 2px solid #1E3A8A;
-            color: #1E3A8A !important;
+            border: 2px solid var(--accent);
+            color: var(--accent) !important;
         }
-        .btn-outline-primary:hover, .btn-secondary:hover {
-            background: #1E3A8A;
+
+        .btn-outline-primary:hover {
+            background: var(--accent);
             color: #FFFFFF !important;
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--text-secondary);
+            color: var(--text-secondary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--text-secondary);
+            color: var(--bg-primary);
+        }
+
         .btn-warning {
-            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
-            color: #1E3A8A !important;
-        }
-        .btn-danger {
-            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            background: var(--accent-amber);
             color: #FFFFFF !important;
         }
-        .form-control, .form-select {
-            background: #FFFFFF;
-            border: 2px solid #D1D5DB;
-            border-radius: 8px;
-            color: #374151;
-            font-size: 16px;
-            padding: 0.75rem 1rem;
-            transition: all 0.3s ease;
+
+        .btn-danger {
+            background: var(--danger);
+            color: #FFFFFF !important;
         }
-        .form-control:focus, .form-select:focus {
-            border-color: #1E3A8A;
-            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
-            outline: none;
+
+        .btn-info {
+            background: var(--text-secondary);
+            color: #FFFFFF !important;
         }
-        .form-label {
-            color: #1E3A8A;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
+
+        .btn-info:hover {
+            background: var(--accent);
+            color: #FFFFFF !important;
         }
-        .form-section {
-            background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
-            border: 1px solid #E5E7EB;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
-            padding: 1.5rem;
-        }
-        .form-section h6 {
-            border-bottom: 2px solid #FBBF24;
-            color: #1E3A8A;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-        }
+
         .table-responsive {
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            border-radius: var(--card-radius);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
             overflow-x: auto;
             overflow-y: hidden;
             max-width: 100%;
         }
+
         .table thead th {
-            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            background: var(--accent);
             border: none;
             color: #FFFFFF;
             font-weight: 600;
@@ -186,109 +329,122 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
             white-space: nowrap;
             min-width: 120px;
         }
+
         .table tbody td {
-            border-bottom: 1px solid #E5E7EB;
-            color: #374151;
+            border-bottom: 1px solid var(--border);
+            color: #000;
             padding: 0.75rem;
             vertical-align: middle;
             white-space: nowrap;
             min-width: 120px;
         }
+
         .table tbody td.wrap-text {
             white-space: normal;
             max-width: 200px;
             word-wrap: break-word;
         }
+
         .table-hover tbody tr:hover {
-            background: linear-gradient(135deg, rgba(251, 191, 36, 0.05) 0%, rgba(30, 58, 138, 0.05) 100%);
+            background: rgba(249, 115, 22, 0.05);
         }
+
         .badge {
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 500;
             padding: 0.5rem 1rem;
         }
+
         .badge.bg-success {
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+            background: var(--success) !important;
         }
+
         .badge.bg-warning {
-            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%) !important;
-            color: #1E3A8A !important;
+            background: var(--accent-amber) !important;
+            color: #FFFFFF !important;
         }
+
         .badge.bg-danger {
-            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
+            background: var(--danger) !important;
         }
+
         .badge.bg-info {
-            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
+            background: var(--text-secondary) !important;
         }
+
         .badge.bg-secondary {
-            background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%) !important;
+            background: #6B7280 !important;
         }
+
         .alert {
             border: none;
-            border-radius: 12px;
+            border-radius: var(--card-radius);
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
         }
+
         .alert-info {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.1) 100%);
-            color: #2563EB;
+            background: rgba(249, 115, 22, 0.1);
+            color: var(--accent);
         }
+
         .btn-sm {
             font-size: 0.8rem;
             padding: 0.5rem 0.75rem;
             min-height: auto;
         }
-        .btn-info {
-            background: linear-gradient(135deg, #06B6D4 0%, #0891B2 100%);
-            color: #FFFFFF !important;
-        }
-        .btn-info:hover {
-            background: linear-gradient(135deg, #0891B2 0%, #0E7490 100%);
-            color: #FFFFFF !important;
-        }
+
         .d-flex.flex-column.gap-1 .btn + .btn {
             margin-top: 0.25rem;
         }
+
         /* Scroll horizontal personalizado */
         .table-container {
             position: relative;
         }
+
         .table-responsive::-webkit-scrollbar {
             height: 8px;
         }
+
         .table-responsive::-webkit-scrollbar-track {
             background: #f1f1f1;
             border-radius: 10px;
         }
+
         .table-responsive::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            background: var(--accent);
             border-radius: 10px;
         }
+
         .table-responsive::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, #3B82F6 0%, #1E3A8A 100%);
+            background: #E65100;
         }
+
         .scroll-indicator {
             position: absolute;
             top: 50%;
             right: 10px;
             transform: translateY(-50%);
-            background: rgba(30, 58, 138, 0.8);
+            background: rgba(249, 115, 22, 0.8);
             color: white;
             padding: 0.5rem;
             border-radius: 50%;
             z-index: 5;
             animation: pulse 2s infinite;
         }
+
         @keyframes pulse {
             0% { opacity: 1; }
             50% { opacity: 0.5; }
             100% { opacity: 1; }
         }
+
         /* Vista móvil para tabla */
         .mobile-card-view {
             display: none;
         }
-        
+
         @media (max-width: 768px) {
             .container {
                 padding: 0.5rem !important;
@@ -300,7 +456,7 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
             .card-body {
                 padding: 1rem;
             }
-            
+
             /* Ocultar tabla en móvil y mostrar cards */
             .table-container {
                 display: none;
@@ -308,101 +464,102 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
             .mobile-card-view {
                 display: block;
             }
-            
+
             /* Estilos para las cards móviles */
             .mobile-vehicle-card {
-                background: #FFFFFF;
-                border: 1px solid rgba(209, 213, 219, 0.3);
-                border-radius: 12px;
-                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+                background: rgba(255, 255, 255, 0.95);
+                border: 1px solid var(--border);
+                border-radius: var(--card-radius);
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
                 margin-bottom: 1rem;
                 overflow: hidden;
             }
-            
+
             .mobile-card-header {
-                background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+                background: var(--accent);
                 color: white;
                 padding: 1rem;
                 font-weight: 600;
             }
-            
+
             .mobile-card-body {
                 padding: 1rem;
             }
-            
+
             .mobile-info-row {
                 display: flex;
                 justify-content: space-between;
                 align-items: flex-start;
                 padding: 0.5rem 0;
-                border-bottom: 1px solid #E5E7EB;
+                border-bottom: 1px solid var(--border);
             }
-            
+
             .mobile-info-row:last-child {
                 border-bottom: none;
             }
-            
+
             .mobile-info-label {
                 font-weight: 500;
-                color: #6B7280;
+                color: var(--text-secondary);
                 font-size: 0.85rem;
                 flex: 0 0 40%;
             }
-            
+
             .mobile-info-value {
-                color: #374151;
+                color: #000;
                 font-size: 0.85rem;
                 text-align: right;
                 flex: 1;
                 word-wrap: break-word;
             }
-            
+
             .mobile-actions {
                 padding: 1rem;
-                background: #F9FAFB;
-                border-top: 1px solid #E5E7EB;
+                background: rgba(255, 255, 255, 0.95);
+                border-top: 1px solid var(--border);
             }
-            
+
             .mobile-actions .btn {
                 width: 100%;
                 margin-bottom: 0.5rem;
                 font-size: 0.85rem;
                 padding: 0.6rem;
             }
-            
+
             .mobile-actions .btn:last-child {
                 margin-bottom: 0;
             }
-            
+
             /* Ajustes generales para móvil */
             .btn {
                 font-size: 14px;
                 min-height: 40px;
             }
-            
+
             .form-control, .form-select {
                 font-size: 16px; /* Evita zoom en iOS */
             }
-            
+
             /* Header responsive */
             .d-flex.justify-content-between {
                 flex-direction: column;
                 gap: 1rem;
             }
-            
+
             .d-flex.justify-content-between .btn {
                 width: 100%;
             }
-            
+
             /* Filtros responsivos */
             .row.g-3.mb-3 {
                 margin: 0;
             }
-            
+
             .row.g-3.mb-3 .col-md-2 {
                 margin-bottom: 0.5rem;
             }
         }
+
         @media (max-width: 576px) {
             .container {
                 padding: 0.5rem !important;
@@ -414,49 +571,49 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
                 padding: 0.6rem 1rem;
                 font-size: 0.9rem;
             }
-            
+
             /* Cards móviles más compactas */
             .mobile-vehicle-card {
                 margin-bottom: 0.75rem;
             }
-            
+
             .mobile-card-header {
                 padding: 0.75rem;
                 font-size: 0.9rem;
             }
-            
+
             .mobile-card-body {
                 padding: 0.75rem;
             }
-            
+
             .mobile-info-row {
                 padding: 0.4rem 0;
             }
-            
+
             .mobile-info-label, .mobile-info-value {
                 font-size: 0.8rem;
             }
-            
+
             .mobile-actions {
                 padding: 0.75rem;
             }
-            
+
             .mobile-actions .btn {
                 padding: 0.5rem;
                 font-size: 0.8rem;
                 margin-bottom: 0.4rem;
             }
-            
+
             /* Filtros más compactos */
             .card-body {
                 padding: 0.75rem;
             }
-            
+
             .form-label {
                 font-size: 0.85rem;
                 margin-bottom: 0.25rem;
             }
-            
+
             .form-control {
                 padding: 0.5rem 0.75rem;
                 font-size: 14px;
@@ -465,21 +622,28 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
     </style>
 </head>
 <body>
-<div class="container-fluid mt-4">
-    <div class="mb-3 d-flex justify-content-end">
-        <a href="dashboard.php" class="btn btn-secondary">Volver al dashboard</a>
-    </div>
-        <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2>Salidas de Vehículo</h2>
+<div class="container-fluid py-4">
+    <div class="main-header animate-fade-in mb-4">
+        <div class="d-flex flex-column flex-md-row align-items-center justify-content-between">
+            <div>
+                <h1 class="mb-2"><i class="bi bi-truck-front text-warning"></i> Salida de Vehículos</h1>
+                <span class="lead">Registro y gestión de salidas de vehículos del sistema</span>
+            </div>
+            <div class="d-flex gap-2 mt-3 mt-md-0">
+                <a href="dashboard.php" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left"></i> Volver al Dashboard
+                </a>
                 <?php if (!$rol_conductor): ?>
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalRegistrarSalida">
-                        <i class="fas fa-plus-circle me-1"></i> Registrar Salida de Vehículo
+                    <i class="bi bi-plus-circle"></i> Registrar Salida
                 </button>
                 <?php endif; ?>
+            </div>
         </div>
+    </div>
 
         <!-- Modal Registrar Salida de Vehículo -->
-        <div class="modal fade" id="modalRegistrarSalida" tabindex="-1" aria-labelledby="modalRegistrarSalidaLabel" aria-hidden="true">
+        <div class="modal fade" id="modalRegistrarSalida" tabindex="-1" aria-labelledby="modalRegistrarSalidaLabel" aria-modal="true" role="dialog">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -490,19 +654,36 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
                         <div class="modal-body">
                             <div class="row g-3">
                                 <div class="col-md-4">
-                                    <label for="sali_repue_id" class="form-label">ID Salida de Repuesto</label>
+                                    <label for="sali_repue_id" class="form-label">Salida de Repuesto</label>
                                     <select class="form-select" name="sali_repue_id" required>
                                         <option value="">Seleccione...</option>
-                                        <?php foreach ((new SaliRepue($db))->getAll() as $sr): ?>
-                                            <option value="<?= $sr['id'] ?>">#<?= $sr['id'] ?> - <?= $sr['fecha_salida'] ?> (<?= $sr['cantidad'] ?>)</option>
-                                        <?php endforeach; ?>
+                                        <?php 
+                                        // Obtener salidas de repuesto con el nombre del repuesto ordenadas por ID
+                                        $query_salidas = "SELECT sr.id, sr.fecha_salida, sr.cantidad, r.nombre as repuesto_nombre 
+                                                          FROM sali_repue sr 
+                                                          LEFT JOIN repue r ON sr.repue_id = r.id 
+                                                          ORDER BY sr.id ASC";
+                                        $result_salidas = $db->query($query_salidas);
+                                        while ($sr = $result_salidas->fetch_assoc()): 
+                                        ?>
+                                            <option value="<?= $sr['id'] ?>">
+                                                #<?= $sr['id'] ?> - <?= htmlspecialchars($sr['repuesto_nombre'] ?? 'Sin repuesto') ?> 
+                                                (Cant: <?= $sr['cantidad'] ?>) - <?= date('d/m/Y', strtotime($sr['fecha_salida'])) ?>
+                                            </option>
+                                        <?php endwhile; ?>
                                     </select>
                                 </div>
                                 <div class="col-md-4">
                                     <label for="ord_trabj_id" class="form-label">ID Orden de Trabajo</label>
                                     <select class="form-select" name="ord_trabj_id" required>
                                         <option value="">Seleccione...</option>
-                                        <?php foreach ($ordenes as $o): ?>
+                                        <?php 
+                                        // Ordenar órdenes de trabajo por ID ascendente
+                                        usort($ordenes, function($a, $b) {
+                                            return $a['id'] - $b['id'];
+                                        });
+                                        foreach ($ordenes as $o): 
+                                        ?>
                                             <option value="<?= $o['id'] ?>">#<?= $o['id'] ?> - <?= $o['nombre_trabajo'] ?></option>
                                         <?php endforeach; ?>
                                     </select>
@@ -511,7 +692,13 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
                                     <label for="alerta_id" class="form-label">ID Alerta</label>
                                     <select class="form-select" name="alerta_id" required>
                                         <option value="">Seleccione...</option>
-                                        <?php foreach ($alertas as $a): ?>
+                                        <?php 
+                                        // Ordenar alertas por ID ascendente
+                                        usort($alertas, function($a, $b) {
+                                            return $a['id'] - $b['id'];
+                                        });
+                                        foreach ($alertas as $a): 
+                                        ?>
                                             <option value="<?= $a['id'] ?>">#<?= $a['id'] ?> - <?= $a['descripcion'] ?></option>
                                         <?php endforeach; ?>
                                     </select>
@@ -550,6 +737,33 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
                                 <div class="col-md-6">
                                     <label for="gest_conductores" class="form-label">Gestión y Datos de Conductores</label>
                                     <input type="text" class="form-control" name="gest_conductores" required>
+                                </div>
+                            </div>
+                            
+                            <!-- Panel de información autocompletada -->
+                            <div id="info-vehiculo-autocompletado" class="mt-3" style="display: none;">
+                                <div class="alert alert-success">
+                                    <h6 class="mb-2"><i class="bi bi-check-circle"></i> Información Autocompletada del Vehículo</h6>
+                                    <div class="row g-2 small">
+                                        <div class="col-md-6" id="info-placa-container" style="display: none;">
+                                            <strong>🚛 Placa:</strong> <span id="info-placa"></span>
+                                        </div>
+                                        <div class="col-md-6" id="info-vehiculo-marca-container" style="display: none;">
+                                            <strong>🔧 Vehículo:</strong> <span id="info-vehiculo-marca"></span>
+                                        </div>
+                                        <div class="col-md-6" id="info-conductor-vehiculo-container" style="display: none;">
+                                            <strong>👤 Conductor:</strong> <span id="info-conductor-vehiculo"></span>
+                                        </div>
+                                        <div class="col-md-6" id="info-alerta-vehiculo-container" style="display: none;">
+                                            <strong>⚠️ Alerta Activa:</strong> <span id="info-alerta-vehiculo"></span>
+                                        </div>
+                                        <div class="col-md-6" id="info-orden-vehiculo-container" style="display: none;">
+                                            <strong>📋 Orden de Trabajo:</strong> <span id="info-orden-vehiculo"></span>
+                                        </div>
+                                        <div class="col-md-6" id="info-repuesto-vehiculo-container" style="display: none;">
+                                            <strong>🔩 Repuesto:</strong> <span id="info-repuesto-vehiculo"></span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -822,7 +1036,7 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
                                 <a href="ver_salida_vehiculo.php?id=<?= $sv['id'] ?>" class="btn btn-sm btn-info" title="Ver detalles">
                                     <i class="fas fa-eye"></i> Ver
                                 </a>
-                                <a href="editar_salida_vehiculo.php?id=<?= $sv['id'] ?>" class="btn btn-sm btn-warning" title="Editar">
+                                <a href="editar_salida_vehiculo.php?id=<?= $sv['id'] ?>" class="btn btn-sm btn-primary" title="Editar">
                                     <i class="fas fa-edit"></i> Editar
                                 </a>
                                 <a href="../controllers/SaliVehiController.php?action=eliminar&id=<?= $sv['id'] ?>" 
@@ -950,7 +1164,7 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
                     <a href="ver_salida_vehiculo.php?id=<?= $sv['id'] ?>" class="btn btn-info btn-sm">
                         <i class="fas fa-eye me-1"></i> Ver Detalles
                     </a>
-                    <a href="editar_salida_vehiculo.php?id=<?= $sv['id'] ?>" class="btn btn-warning btn-sm">
+                    <a href="editar_salida_vehiculo.php?id=<?= $sv['id'] ?>" class="btn btn-primary btn-sm">
                         <i class="fas fa-edit me-1"></i> Editar
                     </a>
                     <a href="../controllers/SaliVehiController.php?action=eliminar&id=<?= $sv['id'] ?>" 
@@ -972,6 +1186,278 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
 </body>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+// Abrir menú rápido al presionar el logo/nombre Trucksisx
+document.addEventListener('DOMContentLoaded', function () {
+    var brandSidebar = document.getElementById('brandSidebar');
+    if (brandSidebar) {
+        brandSidebar.addEventListener('click', function(e) {
+            e.preventDefault();
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (!sidebar || !overlay) return;
+            sidebar.classList.add('show-mobile');
+            overlay.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        });
+    }
+});
+// FAB para abrir menú rápido en desktop
+document.addEventListener('DOMContentLoaded', function () {
+    var fabSidebar = document.getElementById('fabSidebar');
+    if (fabSidebar) {
+        fabSidebar.addEventListener('click', function(e) {
+            e.preventDefault();
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (!sidebar || !overlay) return;
+            sidebar.classList.add('show-mobile');
+            overlay.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        });
+    }
+});
+// Sidebar - igual que dashboard.php
+document.addEventListener('DOMContentLoaded', function () {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const showSidebarBtn = document.getElementById('showSidebar');
+    const closeBtn = document.getElementById('closeSidebar');
+    function openSidebarMobile() {
+        if (!sidebar || !overlay) return;
+        sidebar.classList.add('show-mobile');
+        overlay.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    }
+    function closeSidebarMobile() {
+        if (!sidebar || !overlay) return;
+        sidebar.classList.remove('show-mobile');
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            openSidebarMobile();
+        });
+    }
+    if (showSidebarBtn) {
+        showSidebarBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            openSidebarMobile();
+        });
+    }
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            closeSidebarMobile();
+        });
+    }
+    if (overlay) {
+        overlay.addEventListener('click', closeSidebarMobile);
+    }
+    window.addEventListener('resize', function () {
+        if (window.innerWidth > 1024) {
+            closeSidebarMobile();
+        }
+    });
+});
+
+// Autocompletado de salida de vehículo
+document.addEventListener('DOMContentLoaded', function() {
+    const ordenSelect = document.querySelector('select[name="ord_trabj_id"]');
+    const vehiculoSelect = document.querySelector('select[name="id_flotas"]');
+    const alertaSelect = document.querySelector('select[name="alerta_id"]');
+    const salidaRepuestoSelect = document.querySelector('select[name="sali_repue_id"]');
+    
+    // Autocompletar al seleccionar Orden de Trabajo
+    if (ordenSelect) {
+        ordenSelect.addEventListener('change', function() {
+            const ordenId = this.value;
+            if (!ordenId) return;
+            
+            fetch(`../api/orden_trabajo_detalles.php?id=${ordenId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) return;
+                    
+                    // Autocompletar vehículo
+                    if (data.vehiculo_id && vehiculoSelect) {
+                        vehiculoSelect.value = data.vehiculo_id;
+                        // Trigger change event para cargar datos del vehículo
+                        vehiculoSelect.dispatchEvent(new Event('change'));
+                    }
+                    
+                    // Autocompletar alerta
+                    if (data.alerta_id && alertaSelect) {
+                        alertaSelect.value = data.alerta_id;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        });
+    }
+    
+    // Autocompletar al seleccionar Vehículo
+    if (vehiculoSelect) {
+        vehiculoSelect.addEventListener('change', function() {
+            const vehiculoId = this.value;
+            if (!vehiculoId) {
+                ocultarInfoVehiculo();
+                return;
+            }
+            
+            fetch(`../api/vehiculo_detalles.php?vehiculo_id=${vehiculoId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error(data.error);
+                        return;
+                    }
+                    
+                    // Autocompletar alerta si existe
+                    if (data.alerta_id && alertaSelect) {
+                        alertaSelect.value = data.alerta_id;
+                    }
+                    
+                    // Autocompletar orden de trabajo si existe
+                    if (data.orden_trabajo_id && ordenSelect) {
+                        ordenSelect.value = data.orden_trabajo_id;
+                    }
+                    
+                    // Autocompletar salida de repuesto si existe
+                    if (data.salida_repuesto_id && salidaRepuestoSelect) {
+                        salidaRepuestoSelect.value = data.salida_repuesto_id;
+                    } else if (data.salidas_repuesto_disponibles && data.salidas_repuesto_disponibles.length > 0) {
+                        // Si hay múltiples salidas, seleccionar la más reciente
+                        salidaRepuestoSelect.value = data.salidas_repuesto_disponibles[0].id;
+                    }
+                    
+                    // Autocompletar conductor en el campo de gestión
+                    const gestConductoresInput = document.querySelector('input[name="gest_conductores"]');
+                    if (data.conductor_nombre_completo && gestConductoresInput) {
+                        gestConductoresInput.value = data.conductor_nombre_completo;
+                    }
+                    
+                    // Mostrar información del vehículo
+                    mostrarInfoVehiculo(data);
+                })
+                .catch(error => {
+                    console.error('Error al obtener detalles del vehículo:', error);
+                });
+        });
+    }
+});
+
+function mostrarInfoVehiculo(data) {
+    const infoContainer = document.getElementById('info-vehiculo-autocompletado');
+    if (!infoContainer) return;
+    
+    let hasInfo = false;
+    
+    // Placa
+    if (data.placa) {
+        document.getElementById('info-placa').textContent = data.placa;
+        document.getElementById('info-placa-container').style.display = 'block';
+        hasInfo = true;
+    } else {
+        document.getElementById('info-placa-container').style.display = 'none';
+    }
+    
+    // Marca y modelo
+    if (data.marca_vehiculo || data.modelo) {
+        const vehiculoInfo = `${data.marca_vehiculo || ''} ${data.modelo || ''}`.trim();
+        document.getElementById('info-vehiculo-marca').textContent = vehiculoInfo;
+        document.getElementById('info-vehiculo-marca-container').style.display = 'block';
+        hasInfo = true;
+    } else {
+        document.getElementById('info-vehiculo-marca-container').style.display = 'none';
+    }
+    
+    // Conductor
+    if (data.conductor_nombre_completo) {
+        document.getElementById('info-conductor-vehiculo').textContent = data.conductor_nombre_completo;
+        document.getElementById('info-conductor-vehiculo-container').style.display = 'block';
+        hasInfo = true;
+    } else {
+        document.getElementById('info-conductor-vehiculo-container').style.display = 'none';
+    }
+    
+    // Alerta
+    if (data.alerta_id) {
+        const alertaInfo = `#${data.alerta_id} - ${data.alerta_descripcion || 'Sin descripción'}`;
+        const prioridadBadge = {
+            'baja': '<span class="badge bg-info">BAJA</span>',
+            'media': '<span class="badge bg-warning text-dark">MEDIA</span>',
+            'alta': '<span class="badge bg-danger">ALTA</span>',
+            'critica': '<span class="badge bg-dark">CRÍTICA</span>'
+        };
+        const badge = data.alerta_prioridad ? prioridadBadge[data.alerta_prioridad] : '';
+        document.getElementById('info-alerta-vehiculo').innerHTML = `${alertaInfo} ${badge}`;
+        document.getElementById('info-alerta-vehiculo-container').style.display = 'block';
+        hasInfo = true;
+    } else {
+        document.getElementById('info-alerta-vehiculo-container').style.display = 'none';
+    }
+    
+    // Orden de trabajo
+    if (data.orden_trabajo_id) {
+        const ordenInfo = `#${data.orden_trabajo_id} - ${data.nombre_trabajo || 'Sin nombre'}`;
+        document.getElementById('info-orden-vehiculo').textContent = ordenInfo;
+        document.getElementById('info-orden-vehiculo-container').style.display = 'block';
+        hasInfo = true;
+    } else {
+        document.getElementById('info-orden-vehiculo-container').style.display = 'none';
+    }
+    
+    // Repuesto
+    if (data.repuesto_nombre) {
+        const repuestoInfo = `${data.repuesto_nombre} (Cant: ${data.repuesto_cantidad || 'N/A'})`;
+        document.getElementById('info-repuesto-vehiculo').textContent = repuestoInfo;
+        document.getElementById('info-repuesto-vehiculo-container').style.display = 'block';
+        hasInfo = true;
+    } else {
+        document.getElementById('info-repuesto-vehiculo-container').style.display = 'none';
+    }
+    
+    // Mostrar u ocultar el contenedor
+    infoContainer.style.display = hasInfo ? 'block' : 'none';
+}
+
+function ocultarInfoVehiculo() {
+    const infoContainer = document.getElementById('info-vehiculo-autocompletado');
+    if (infoContainer) {
+        infoContainer.style.display = 'none';
+    }
+}
+</script>
+<script>
+// Corregir problema de aria-hidden con el modal
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('modalRegistrarSalida');
+    if (modal) {
+        // Prevenir que Bootstrap agregue aria-hidden
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'aria-hidden') {
+                    if (modal.hasAttribute('aria-hidden')) {
+                        modal.removeAttribute('aria-hidden');
+                    }
+                }
+            });
+        });
+        
+        observer.observe(modal, {
+            attributes: true,
+            attributeFilter: ['aria-hidden']
+        });
+        
+        modal.addEventListener('show.bs.modal', function() {
+            this.setAttribute('aria-modal', 'true');
+            this.setAttribute('role', 'dialog');
+        });
+    }
+});
+
 document.addEventListener('DOMContentLoaded', function() {
     const tableContainer = document.getElementById('tableContainer');
     const scrollIndicator = document.getElementById('scrollIndicator');

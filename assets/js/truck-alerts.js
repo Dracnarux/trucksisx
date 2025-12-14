@@ -1,7 +1,8 @@
 // TruckSISX Alert System v3.0 - Imagen de evidencia removida
 // Aplica la animación a las alertas recientes al agregarlas
 function displayRecentAlerts(alerts) {
-    const alertsList = document.getElementById('alerts-list');
+    const alertsList = document.getElementById('alerts-cards') || document.getElementById('alerts-list');
+    if (!alertsList) return;
     alertsList.innerHTML = '';
     alerts.forEach(alert => {
         const div = document.createElement('div');
@@ -31,9 +32,184 @@ class TruckAlertSystem {
         console.log('Selected tire:', this.selectedTire);
         this.showAlertModal();
     }
-    // Método vacío para evitar error JS y permitir funcionamiento del sistema
+
+    // Simple, guaranteed-to-work filter for alerts
     displayAlertsList(alerts) {
-        // Aquí puedes mostrar la lista de alertas si lo deseas
+        console.log('=== STARTING FILTER SETUP ===');
+        console.log('Alerts parameter received:', alerts);
+        console.log('this.alerts available:', this.alerts);
+        
+        const allAlerts = alerts || this.alerts || [];
+        console.log('Total alerts to work with:', allAlerts.length);
+        
+        // Show structure of first alert for debugging
+        if (allAlerts.length > 0) {
+            console.log('First alert structure:', {
+                id: allAlerts[0].id,
+                titulo: allAlerts[0].titulo,
+                descripcion: allAlerts[0].descripcion,
+                posicion_llanta: allAlerts[0].posicion_llanta,
+                vehiculo_placa: allAlerts[0].vehiculo_placa,
+                fecha: allAlerts[0].fecha,
+                fecha_hora: allAlerts[0].fecha_hora
+            });
+        } else {
+            console.log('⚠️  NO ALERTS FOUND - Check if backend is returning data');
+        }
+        
+        const alertsList = document.getElementById('alerts-list');
+        if (!alertsList) {
+            console.log('ERROR: alerts-list container not found');
+            return;
+        }
+        
+        // Remove existing filter
+        const existing = document.getElementById('simple-alert-filter');
+        if (existing) existing.remove();
+        
+        // Create simple working filter
+        const filterDiv = document.createElement('div');
+        filterDiv.id = 'simple-alert-filter';
+        filterDiv.style.cssText = 'margin-bottom:1rem; padding:1rem; background:rgba(255,255,255,0.9); border-radius:8px;';
+        filterDiv.innerHTML = `
+            <label style="display:block; color:black !important; margin-bottom:0.5rem; font-weight:bold;">Buscar alertas (${allAlerts.length} alertas disponibles):</label>
+            <input id="simple-search" type="text" placeholder="Escribe para buscar..." 
+                   style="width:100%; padding:0.5rem; border:1px solid #ccc; border-radius:4px; color:black;">
+            <button id="simple-clear" style="margin-left:0.5rem; padding:0.5rem; background:#dc3545; color:white; border:none; border-radius:4px;">Limpiar</button>
+            <div id="simple-results" style="margin-top:1rem;"></div>
+        `;
+        
+        alertsList.insertBefore(filterDiv, alertsList.firstChild);
+        
+        const searchInput = document.getElementById('simple-search');
+        const clearBtn = document.getElementById('simple-clear');
+        const resultsDiv = document.getElementById('simple-results');
+        const dashboardCards = document.getElementById('alerts-cards');
+        
+        // Simple search function
+        function doSearch(query) {
+            console.log('=== SEARCHING FOR:', query, '===');
+            
+            if (!query || query.trim() === '') {
+                console.log('Empty search - showing all alerts');
+                if (dashboardCards) dashboardCards.style.display = 'block';
+                
+                // Show all alerts when search is empty
+                if (allAlerts.length > 0) {
+                    let html = `<div style="color:black; margin-bottom:1rem; font-weight:bold; background:rgba(255,255,255,0.8); padding:0.5rem; border-radius:4px;"><strong>Todas las alertas disponibles (${allAlerts.length}):</strong></div>`;
+                    allAlerts.forEach(alert => {
+                        const name = alert.titulo || alert.posicion_llanta || alert.descripcion || 'Sin nombre';
+                        const desc = alert.descripcion || 'Sin descripción';
+                        const tipo = alert.tipo_alerta || 'Sin tipo';
+                        const estado = alert.estado || 'Sin estado';
+                        const date = alert.fecha_hora || alert.fecha || '';
+                        
+                        html += `
+                            <div style="background:rgba(255,255,255,0.9); margin:0.5rem 0; padding:1rem; border-radius:6px; border:1px solid #ddd;">
+                                <div style="color:black; font-weight:bold; margin-bottom:0.5rem;">${name}</div>
+                                <div style="color:#333; margin-bottom:0.5rem;">${desc}</div>
+                                <div style="color:#666; font-size:0.9em; margin-bottom:0.3rem;">
+                                    <span style="background:#e9ecef; padding:2px 6px; border-radius:3px; margin-right:0.5rem;">Tipo: ${tipo}</span>
+                                    <span style="background:#${estado === 'resuelta' ? 'd4edda' : estado === 'en_proceso' ? 'fff3cd' : 'f8d7da'}; padding:2px 6px; border-radius:3px;">Estado: ${estado}</span>
+                                </div>
+                                <div style="color:#888; font-size:0.9em;">${date}</div>
+                            </div>
+                        `;
+                    });
+                    resultsDiv.innerHTML = html;
+                } else {
+                    resultsDiv.innerHTML = '';
+                }
+                return;
+            }
+            
+            const searchTerm = query.toLowerCase().trim();
+            console.log('Normalized search term:', searchTerm);
+            console.log('Searching through', allAlerts.length, 'alerts');
+            
+            const matches = allAlerts.filter((alert, index) => {
+                // Check all possible name fields
+                const titulo = (alert.titulo || '').toLowerCase();
+                const descripcion = (alert.descripcion || '').toLowerCase(); 
+                const posicion = (alert.posicion_llanta || '').toLowerCase();
+                const placa = (alert.vehiculo_placa || '').toLowerCase();
+                const tipo = (alert.tipo_alerta || '').toLowerCase();
+                
+                console.log(`Alert ${index + 1}/${allAlerts.length} (ID: ${alert.id}):`);
+                console.log(`  - titulo: "${titulo}"`);
+                console.log(`  - descripcion: "${descripcion}"`);
+                console.log(`  - posicion_llanta: "${posicion}"`);
+                console.log(`  - vehiculo_placa: "${placa}"`);
+                console.log(`  - tipo_alerta: "${tipo}"`);
+                
+                const found = titulo.includes(searchTerm) || 
+                             descripcion.includes(searchTerm) || 
+                             posicion.includes(searchTerm) ||
+                             placa.includes(searchTerm) ||
+                             tipo.includes(searchTerm);
+                
+                if (found) {
+                    console.log(`  ✅ MATCH FOUND!`);
+                } else {
+                    console.log(`  ❌ No match`);
+                }
+                
+                return found;
+            });
+            
+            console.log(`SEARCH COMPLETE: ${matches.length} matches found out of ${allAlerts.length} total alerts`);
+            
+            // Hide dashboard, show results
+            if (dashboardCards) dashboardCards.style.display = 'none';
+            
+            if (matches.length === 0) {
+                resultsDiv.innerHTML = `<div style="color:black; padding:1rem; background:rgba(255,255,255,0.8); border-radius:4px;">No se encontraron alertas para "${query}". Revisa la consola para ver qué alertas están disponibles.</div>`;
+                return;
+            }
+            
+            // Display results
+            let html = `<div style="color:black; margin-bottom:1rem; font-weight:bold; background:rgba(255,255,255,0.8); padding:0.5rem; border-radius:4px;"><strong>Resultados (${matches.length}):</strong></div>`;
+            matches.forEach(alert => {
+                const name = alert.titulo || alert.posicion_llanta || alert.descripcion || 'Sin nombre';
+                const desc = alert.descripcion || 'Sin descripción';
+                const tipo = alert.tipo_alerta || 'Sin tipo';
+                const estado = alert.estado || 'Sin estado';
+                const date = alert.fecha_hora || alert.fecha || '';
+                
+                html += `
+                    <div style="background:rgba(255,255,255,0.9); margin:0.5rem 0; padding:1rem; border-radius:6px; border:1px solid #ddd;">
+                        <div style="color:black; font-weight:bold; margin-bottom:0.5rem;">${name}</div>
+                        <div style="color:#333; margin-bottom:0.5rem;">${desc}</div>
+                        <div style="color:#666; font-size:0.9em; margin-bottom:0.3rem;">
+                            <span style="background:#e9ecef; padding:2px 6px; border-radius:3px; margin-right:0.5rem;">Tipo: ${tipo}</span>
+                            <span style="background:#${estado === 'resuelta' ? 'd4edda' : estado === 'en_proceso' ? 'fff3cd' : 'f8d7da'}; padding:2px 6px; border-radius:3px;">Estado: ${estado}</span>
+                        </div>
+                        <div style="color:#888; font-size:0.9em;">${date}</div>
+                    </div>
+                `;
+            });
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        // Event listeners
+        searchInput.addEventListener('input', function() {
+            const value = this.value;
+            console.log('Input changed to:', value);
+            doSearch(value);
+        });
+        
+        clearBtn.addEventListener('click', function() {
+            console.log('Clear button clicked');
+            searchInput.value = '';
+            doSearch('');
+            searchInput.focus();
+        });
+        
+        console.log('=== FILTER SETUP COMPLETE ===');
+        
+        // Initialize
+        doSearch('');
     }
     // Método vacío para evitar error JS y permitir funcionamiento del diagrama
     updateTireDiagram() {
@@ -71,6 +247,8 @@ class TruckAlertSystem {
         this.setupEventListeners();
         this.createTruckDiagram();
     }
+
+
 
     // Crear el diagrama SVG del camión doble troque
     createTruckDiagram() {
@@ -194,7 +372,7 @@ class TruckAlertSystem {
             <div id="alert-modal" class="alert-modal">
                 <div class="alert-modal-content">
                     <div class="alert-modal-header">
-                        <h3 class="alert-modal-title">Registrar Alerta de Llanta</h3>
+                        <h3 class="alert-modal-title" style="color:#000 !important;">Registrar Alerta de Llanta</h3>
                         <span class="close">&times;</span>
                     </div>
                     <form id="alert-form">
@@ -229,19 +407,8 @@ class TruckAlertSystem {
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="tire-position">Posición de la Llanta:</label>
-                            <select id="tire-position" name="posicion_llanta">
-                                <option value="direccion_izquierda">Dirección Izquierda</option>
-                                <option value="direccion_derecha">Dirección Derecha</option>
-                                <option value="traccion1_izquierda">Tracción 1 - Izquierda</option>
-                                <option value="traccion1_derecha">Tracción 1 - Derecha</option>
-                                <option value="traccion1_izquierda2">Tracción 1 - Izquierda 2</option>
-                                <option value="traccion1_derecha2">Tracción 1 - Derecha 2</option>
-                                <option value="traccion2_izquierda">Tracción 2 - Izquierda</option>
-                                <option value="traccion2_derecha">Tracción 2 - Derecha</option>
-                                <option value="traccion2_derecha2">Tracción 2 - Derecha 2</option>
-                                <option value="traccion2_izquierda2">Tracción 2 - Izquierda 2</option>
-                            </select>
+                            <label for="tire-position">Nombre de la Alerta:</label>
+                            <input type="text" id="tire-position" name="posicion_llanta" placeholder="Ingrese el nombre de la alerta" required>
                         </div>
                         <div class="form-group">
                             <label for="cond-id">Conductor vinculado *</label>
@@ -302,11 +469,28 @@ class TruckAlertSystem {
             .then(function(data) {
                 if (data.success && Array.isArray(data.conductores)) {
                     var condSelect = document.getElementById('cond-id');
+                    var vehicleSelect = document.getElementById('vehicle-id');
+                    
                     data.conductores.forEach(function(cond) {
                         var option = document.createElement('option');
                         option.value = cond.id;
-                        option.textContent = cond.cargo + ' (ID: ' + cond.id + ')';
+                        option.dataset.vehicleId = cond.regis_vehic_id || '';
+                        option.textContent = cond.nombre_completo + ' (ID: ' + cond.id + ')';
                         condSelect.appendChild(option);
+                    });
+                    
+                    // Agregar listener para selección automática de vehículo
+                    condSelect.addEventListener('change', function() {
+                        var selectedOption = this.options[this.selectedIndex];
+                        var vehicleId = selectedOption.dataset.vehicleId;
+                        
+                        if (vehicleId && vehicleId !== '') {
+                            vehicleSelect.value = vehicleId;
+                            console.log('Auto-selecting vehicle ID:', vehicleId, 'for conductor:', selectedOption.textContent);
+                        } else {
+                            vehicleSelect.value = '';
+                            console.log('No vehicle assigned to conductor:', selectedOption.textContent);
+                        }
                     });
                 }
             });
@@ -347,7 +531,8 @@ class TruckAlertSystem {
 
         const positionInput = document.getElementById('tire-position');
         if (positionInput) {
-            positionInput.value = this.selectedTire.position;
+            positionInput.value = '';
+            positionInput.placeholder = 'Escriba la alerta que quiere crear';
         } else {
             console.log('Position input not found');
         }
@@ -450,12 +635,30 @@ class TruckAlertSystem {
             const data = await response.json();
             
             if (data.success) {
-                this.alerts = data.alerts;
+                this.alerts = data.alerts || [];
+                console.log('loadTireAlerts: received', Array.isArray(this.alerts) ? this.alerts.length : 0, 'alerts');
+                
+                // Debug: Show first alert to understand structure
+                if (this.alerts.length > 0) {
+                    console.log('=== DEBUG: First alert from backend ===');
+                    console.log('Alert object:', this.alerts[0]);
+                    console.log('titulo:', this.alerts[0].titulo);
+                    console.log('posicion_llanta:', this.alerts[0].posicion_llanta);
+                    console.log('descripcion:', this.alerts[0].descripcion);
+                    console.log('=== END DEBUG ===');
+                } else {
+                    console.log('⚠️  Backend returned no alerts');
+                }
+                
                 this.updateTireDiagram();
-                this.displayAlertsList(data.alerts);
+                this.displayAlertsList(this.alerts);
+            } else {
+                console.log('loadTireAlerts: backend returned success=false', data);
+                this.displayAlertsList([]); // Show filter even with no alerts
             }
         } catch (error) {
             console.error('Error loading tire alerts:', error);
+            this.displayAlertsList([]); // Show filter even with error
         }
     }
 

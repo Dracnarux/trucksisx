@@ -57,42 +57,44 @@
                 <a class="btn btn-success" id="descargar-excel" href="#"><i class="bi bi-file-earmark-excel"></i> Descargar Excel</a>
            </div>
            <div id="tabla-alertas" class="table-responsive">
+                <div class="mb-2 text-muted">Registros: <?= isset($alertas) ? count($alertas) : 0 ?></div>
                 <table class="table table-bordered table-hover">
                     <thead class="table-light">
                         <tr>
+                            <th>#</th>
                             <th>ID</th>
-                            <th>Vehículo</th>
+                            <th>Fecha / Hora</th>
                             <th>Tipo</th>
-                            <th>Descripción</th>
-                            <th>Fecha</th>
+                            <th>Prioridad</th>
                             <th>Estado</th>
+                            <th>Descripción</th>
+                            <th>Vehículo</th>
+                            <th>Orden</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (!empty($alertas)): ?>
-                            <?php foreach ($alertas as $alert): ?>
+                            <?php foreach ($alertas as $idx => $a): ?>
                                 <tr>
-                                    <td><?= htmlspecialchars($alert['id'] ?? ''); ?></td>
-                                    <td><?= htmlspecialchars($alert['vehiculo_placa'] ?? 'Sin vehículo'); ?></td>
-                                    <td><?= htmlspecialchars($alert['tipo_alerta'] ?? ''); ?></td>
-                                    <td><?= htmlspecialchars($alert['descripcion'] ?? ''); ?></td>
-                                    <td><?= htmlspecialchars($alert['fecha_hora'] ?? ''); ?></td>
-                                    <td><?= htmlspecialchars($alert['estado'] ?? ''); ?></td>
+                                    <td><?= htmlspecialchars($idx + 1); ?></td>
+                                    <td><?= htmlspecialchars($a['id'] ?? ''); ?></td>
+                                    <td><?= htmlspecialchars($a['fecha_hora'] ?? ''); ?></td>
+                                    <td><?= htmlspecialchars($a['tipo_alerta'] ?? ''); ?></td>
+                                    <td><?= htmlspecialchars($a['prioridad'] ?? ''); ?></td>
+                                    <td><?= htmlspecialchars($a['estado'] ?? ''); ?></td>
+                                    <td><?= htmlspecialchars($a['descripcion'] ?? ''); ?></td>
+                                    <td><?= htmlspecialchars($a['vehiculo_placa'] ?? 'Sin asignar'); ?></td>
+                                    <td><?= htmlspecialchars($a['orden'] ?? ''); ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="6" class="text-center">No hay resultados</td>
+                                <td colspan="9" class="text-center">No hay resultados</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
-           </div>
-           <a href="/trucksisx/reportes.php" class="btn btn-dark"><i class="bi bi-arrow-left"></i> Volver</a>
-       </div>
-   </div>
-</div>
-
+                <a href="/trucksisx/reportes.php" class="btn btn-dark mt-3"><i class="bi bi-arrow-left"></i> Módulos de reportes</a>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -126,7 +128,7 @@
     }
 
     .card-title {
-        color: #1E3A8A;
+        color: #475569;
         font-size: 1.75rem;
         font-weight: 700;
         margin-bottom: 1.5rem;
@@ -134,7 +136,7 @@
 
     .card-title i {
         margin-right: 0.5rem;
-        color: #3B82F6;
+        color: #475569;
     }
 
     .form-label {
@@ -144,7 +146,7 @@
         margin-bottom: 0.5rem;
     }
 
-    .form-control, .form-select {
+    .form-control {
         border: 1px solid #D1D5DB;
         border-radius: 8px;
         font-size: 0.95rem;
@@ -152,9 +154,9 @@
         transition: all 0.3s ease;
     }
 
-    .form-control:focus, .form-select:focus {
-        border-color: #3B82F6;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    .form-control:focus {
+        border-color: #475569;
+        box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.1);
         outline: none;
     }
 
@@ -174,26 +176,14 @@
     }
 
     .btn-primary {
-        background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+        background: linear-gradient(135deg, #475569 0%, #334155 100%);
         color: #FFFFFF;
-        box-shadow: 0 2px 8px rgba(30, 58, 138, 0.3);
+        box-shadow: 0 2px 8px rgba(71, 85, 105, 0.3);
     }
 
     .btn-primary:hover {
-        background: linear-gradient(135deg, #1E40AF 0%, #2563EB 100%);
-        box-shadow: 0 4px 12px rgba(30, 58, 138, 0.4);
-        transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-        background: linear-gradient(135deg, #6B7280 0%, #9CA3AF 100%);
-        color: #FFFFFF;
-        box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
-    }
-
-    .btn-secondary:hover {
-        background: linear-gradient(135deg, #4B5563 0%, #6B7280 100%);
-        box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
+        background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+        box-shadow: 0 4px 12px rgba(71, 85, 105, 0.4);
         transform: translateY(-1px);
     }
 
@@ -250,7 +240,7 @@
 
     .table thead th {
         border-bottom: 2px solid #D1D5DB;
-        color: #1E3A8A;
+        color: #475569;
         font-weight: 600;
         font-size: 0.9rem;
         padding: 1rem;

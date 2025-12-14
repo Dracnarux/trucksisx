@@ -21,13 +21,12 @@
                 <a class="btn btn-danger me-2" id="descargar-pdf" href="#"><i class="bi bi-file-earmark-pdf"></i> Descargar PDF</a>
                 <a class="btn btn-success" id="descargar-excel" href="#"><i class="bi bi-file-earmark-excel"></i> Descargar Excel</a>
            </div>
-           
            <div id="tabla-categorias" class="table-responsive">
                 <table class="table table-bordered table-hover">
                     <thead class="table-light">
                         <tr>
                             <th>Nombre</th>
-                            <th>Caracteristicas</th>
+                            <th>Características</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -40,7 +39,7 @@
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="2">No hay resultados (Total: <?= count($categorias ?? []); ?>)</td>
+                                <td colspan="2" class="text-center">No hay resultados</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -84,7 +83,7 @@
     }
 
     .card-title {
-        color: #1E3A8A;
+        color: #475569;
         font-size: 1.75rem;
         font-weight: 700;
         margin-bottom: 1.5rem;
@@ -92,7 +91,7 @@
 
     .card-title i {
         margin-right: 0.5rem;
-        color: #3B82F6;
+        color: #475569;
     }
 
     .form-label {
@@ -111,8 +110,8 @@
     }
 
     .form-control:focus {
-        border-color: #3B82F6;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        border-color: #475569;
+        box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.1);
         outline: none;
     }
 
@@ -132,14 +131,14 @@
     }
 
     .btn-primary {
-        background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+        background: linear-gradient(135deg, #475569 0%, #334155 100%);
         color: #FFFFFF;
-        box-shadow: 0 2px 8px rgba(30, 58, 138, 0.3);
+        box-shadow: 0 2px 8px rgba(71, 85, 105, 0.3);
     }
 
     .btn-primary:hover {
-        background: linear-gradient(135deg, #1E40AF 0%, #2563EB 100%);
-        box-shadow: 0 4px 12px rgba(30, 58, 138, 0.4);
+        background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+        box-shadow: 0 4px 12px rgba(71, 85, 105, 0.4);
         transform: translateY(-1px);
     }
 
@@ -196,7 +195,7 @@
 
     .table thead th {
         border-bottom: 2px solid #D1D5DB;
-        color: #1E3A8A;
+        color: #475569;
         font-weight: 600;
         font-size: 0.9rem;
         padding: 1rem;

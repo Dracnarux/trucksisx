@@ -5,6 +5,31 @@ if (!isset($_SESSION['usuario'])) {
     exit();
 }
 $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol'] === 'conductor';
+
+// Procesar peticiones AJAX antes de mostrar HTML
+require_once '../config/db.php';
+$conn = conectarDB();
+
+if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nombre'])) {
+    header('Content-Type: application/json');
+    try {
+        if (!empty($_POST['id'])) {
+            $sql = "UPDATE cat_vehic SET nombre = ? WHERE id = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param('si', $_POST['nombre'], $_POST['id']);
+            $stmt->execute();
+        } else {
+            $sql = "INSERT INTO cat_vehic (nombre) VALUES (?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param('s', $_POST['nombre']);
+            $stmt->execute();
+        }
+        echo json_encode(['success' => true]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -17,375 +42,848 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        :root {
+            --bg-primary: #0F172A;
+            --bg-secondary: #1E293B;
+            --card-bg: #1E293B;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --border: #334155;
+            --accent: #F97316;
+            --accent-amber: #F59E0B;
+            --danger: #EF4444;
+            --success: #10B981;
+            --card-radius: 12px;
         }
+
         body {
-            background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
-            color: #374151;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             font-size: 16px;
             line-height: 1.6;
             min-height: 100vh;
         }
-        h1, h2, h3, h4, h5, h6 {
-            color: #1E3A8A;
-            font-weight: 600;
-            line-height: 1.3;
-            margin-bottom: 1rem;
+
+        .container-fluid {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem;
         }
-        h1 {
-            font-size: clamp(1.75rem, 4vw, 2.5rem);
+
+        /* Sidebar visual igual al dashboard */
+        .sidebar {
+            background: var(--card-bg);
+            color: var(--text-primary);
+            border-right: 1px solid var(--border);
+            box-shadow: 4px 0 20px rgba(2,6,23,0.3);
+            height: 100vh;
+            min-width: 220px;
+            max-width: 340px;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            z-index: 1050;
+            border-radius: 0 1rem 1rem 0;
+            transform: translateX(-100%);
+            transition: transform 0.25s;
+        }
+
+        .sidebar.show-mobile {
+            transform: translateX(0) !important;
+        }
+
+        .sidebar .nav-link {
+            color: var(--text-primary) !important;
+            font-weight: 500;
+            border-radius: 8px;
+            margin-bottom: 0.25rem;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s;
+        }
+
+        .sidebar .nav-link:hover {
+            background: rgba(249,115,22,0.1);
+            color: var(--accent) !important;
+        }
+
+        .sidebar .nav-link.active, .sidebar .nav-link.bg-primary, .sidebar .nav-link.text-white {
+            background: var(--accent);
+            color: #FFFFFF !important;
+            font-weight: 600;
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 0.75rem;
+            width: 20px;
+        }
+
+        .sidebar .btn-outline-secondary {
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
+        }
+
+        .sidebar .btn-outline-secondary:hover {
+            background: var(--text-secondary);
+            color: var(--bg-primary);
+        }
+
+        .sidebar h5 {
+            color: var(--text-primary);
             font-weight: 700;
         }
-        .container {
-            max-width: 900px;
-            background: #FFFFFF;
-            border: 1px solid rgba(209, 213, 219, 0.3);
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-            margin-top: 2rem;
-            margin-bottom: 2rem;
-            padding: 2rem;
-            overflow: hidden;
-            transition: all 0.3s ease;
+
+        .sidebar .nav-link.text-danger {
+            color: var(--danger) !important;
         }
-        .container:hover {
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-            transform: translateY(-2px);
+
+        .sidebar .nav-link.text-danger:hover {
+            background: rgba(239,68,68,0.1);
+            color: var(--danger) !important;
         }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                position: fixed !important;
+                top: 0; left: 0; bottom: 0;
+                width: 85vw;
+                max-width: 340px;
+                height: 100vh;
+                z-index: 1050;
+                border-radius: 0 1rem 1rem 0;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+                transform: translateX(-100%);
+                transition: transform 0.25s;
+            }
+            .sidebar.show-mobile {
+                transform: translateX(0);
+            }
+        }
+
         .main-header {
-            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(30, 58, 138, 0.2);
-            color: #FFFFFF;
+            background: linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(17,24,39,0.85) 100%);
+            border-radius: var(--card-radius);
+            box-shadow: 0 18px 50px rgba(2,6,23,0.6);
+            color: var(--text-primary);
             margin-bottom: 2rem;
             padding: 2rem;
             position: relative;
             overflow: hidden;
         }
-        .main-header::before {
-            background: url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"40\" fill=\"none\" stroke=\"rgba(255,255,255,0.1)\" stroke-width=\"2\"/></svg>');
-            content: '';
-            height: 200px;
-            opacity: 0.1;
-            position: absolute;
-            right: -50px;
-            top: -50px;
-            width: 200px;
-        }
+
         .main-header h2 {
-            color: #FFFFFF;
+            color: var(--text-primary);
             margin-bottom: 0.5rem;
-            position: relative;
-            z-index: 2;
         }
+
         .main-header .lead {
             font-size: 1.1rem;
             opacity: 0.9;
-            position: relative;
-            z-index: 2;
+            color: var(--text-secondary);
         }
+
+        .card, .form-section {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid var(--border);
+            border-radius: var(--card-radius);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .card:hover, .form-section:hover {
+            box-shadow: 0 8px 32px rgba(249, 115, 22, 0.15);
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+
+        .card-header {
+            background: var(--accent);
+            color: #fff;
+            font-weight: bold;
+            padding: 1.25rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .form-label {
+            color: #000;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control, .form-select {
+            background: #FFFFFF;
+            border: 2px solid #D1D5DB;
+            border-radius: 8px;
+            color: #000;
+            font-size: 16px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+            outline: none;
+        }
+
+        .form-section {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid var(--border);
+            border-radius: var(--card-radius);
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+        }
+
+        .form-section h6 {
+            border-bottom: 2px solid var(--accent);
+            color: #000;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+        }
+
         .btn {
             border-radius: 8px;
             border: none;
             cursor: pointer;
             font-size: 0.95rem;
-            font-weight: 500;
+            font-weight: 600;
             min-height: 44px;
             padding: 0.75rem 1.5rem;
             position: relative;
             text-decoration: none;
             transition: all 0.3s ease;
         }
-        .btn:focus {
-            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.3);
-            outline: none;
-        }
+
         .btn-primary {
-            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
-            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
-            color: #1E3A8A !important;
-            font-weight: 600;
+            background: var(--accent);
+            color: white;
         }
+
         .btn-primary:hover {
-            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
-            color: #1E3A8A !important;
-            transform: translateY(-2px);
+            background: #E65100;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
         }
-        .btn-outline-primary, .btn-secondary {
+
+        .btn-outline-primary {
             background: #FFFFFF;
-            border: 2px solid #1E3A8A;
-            color: #1E3A8A !important;
+            border: 2px solid var(--accent);
+            color: var(--accent) !important;
         }
-        .btn-outline-primary:hover, .btn-secondary:hover {
-            background: #1E3A8A;
+
+        .btn-outline-primary:hover {
+            background: var(--accent);
             color: #FFFFFF !important;
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
-        .btn-success {
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-            color: #FFFFFF !important;
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--text-secondary);
+            color: var(--text-secondary);
         }
+
+        .btn-secondary:hover {
+            background: var(--text-secondary);
+            color: var(--bg-primary);
+        }
+
         .btn-warning {
-            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
-            color: #1E3A8A !important;
+            background: var(--accent-amber);
+            color: #FFFFFF !important;
         }
+
         .btn-danger {
-            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            background: var(--danger);
             color: #FFFFFF !important;
         }
+
         .btn-info {
-            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            background: var(--text-secondary);
             color: #FFFFFF !important;
         }
-        .btn:hover {
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-            transform: translateY(-2px);
+
+        .btn-info:hover {
+            background: var(--accent);
+            color: #FFFFFF !important;
         }
-        .form-control, .form-select {
-            background: #FFFFFF;
-            border: 2px solid #D1D5DB;
-            border-radius: 8px;
-            color: #374151;
-            font-size: 16px;
-            padding: 0.75rem 1rem;
-            transition: all 0.3s ease;
+
+        .btn-dark {
+            background: var(--text-secondary);
+            color: #FFFFFF !important;
         }
-        .form-control:focus, .form-select:focus {
-            border-color: #1E3A8A;
-            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
-            outline: none;
+
+        .btn-dark:hover {
+            background: var(--accent);
+            color: #FFFFFF !important;
         }
-        .form-label {
-            color: #1E3A8A;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-        }
-        .form-section {
-            background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
-            border: 1px solid #E5E7EB;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
-            padding: 1.5rem;
-        }
-        .form-section h6 {
-            border-bottom: 2px solid #FBBF24;
-            color: #1E3A8A;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-        }
+
         .table-responsive {
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-            overflow: hidden;
+            border-radius: var(--card-radius);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+            overflow-y: hidden;
+            max-width: 100%;
         }
-        .table {
-            margin-bottom: 0;
-            font-size: 13px;
-        }
+
         .table thead th {
-            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            background: var(--accent);
             border: none;
             color: #FFFFFF;
-            font-weight: 700;
-            padding: 0.7rem 0.5rem;
+            font-weight: 600;
+            padding: 0.75rem;
             position: sticky;
             top: 0;
             z-index: 10;
+            white-space: nowrap;
+            min-width: 120px;
         }
+
         .table tbody td {
-            border-bottom: 1px solid #E5E7EB;
-            color: #374151;
-            padding: 0.6rem 0.5rem;
+            border-bottom: 1px solid var(--border);
+            color: #000;
+            padding: 0.75rem;
             vertical-align: middle;
+            white-space: nowrap;
+            min-width: 120px;
         }
+
+        .table tbody td.wrap-text {
+            white-space: normal;
+            max-width: 200px;
+            word-wrap: break-word;
+        }
+
         .table-hover tbody tr:hover {
-            background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(30, 58, 138, 0.08) 100%);
+            background: rgba(249, 115, 22, 0.05);
         }
-        .table td.text-center .btn {
-            font-size: 12px;
-            padding: 0.3rem 0.6rem;
-            margin: 0 2px;
-        }
-        .table td.text-center .btn-info {
-            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-            color: #fff !important;
-        }
-        .table td.text-center .btn-warning {
-            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
-            color: #1E3A8A !important;
-        }
-        .table td.text-center .btn-danger {
-            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
-            color: #fff !important;
-        }
+
         .badge {
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 500;
             padding: 0.5rem 1rem;
         }
+
         .badge.bg-success {
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+            background: var(--success) !important;
         }
+
         .badge.bg-warning {
-            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%) !important;
-            color: #1E3A8A !important;
+            background: var(--accent-amber) !important;
+            color: #FFFFFF !important;
         }
+
         .badge.bg-danger {
-            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
+            background: var(--danger) !important;
         }
+
         .badge.bg-info {
-            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
+            background: var(--text-secondary) !important;
         }
-        .modal-content {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+
+        .badge.bg-secondary {
+            background: #6B7280 !important;
         }
-        .modal-header {
-            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
-            border-radius: 12px 12px 0 0;
-            color: #FFFFFF;
-        }
-        .modal-body {
-            padding: 2rem;
-        }
-        .modal-footer {
-            border-top: 1px solid #E5E7EB;
-            padding: 1.5rem 2rem;
-        }
+
         .alert {
             border: none;
-            border-radius: 12px;
+            border-radius: var(--card-radius);
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
         }
-        .alert-success {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
-            color: #059669;
+
+        .alert-info {
+            background: rgba(249, 115, 22, 0.1);
+            color: var(--accent);
         }
-        .alert-warning {
-            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
-            color: #D97706;
+
+        .btn-sm {
+            font-size: 0.8rem;
+            padding: 0.5rem 0.75rem;
+            min-height: auto;
         }
-        .alert-danger {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%);
-            color: #DC2626;
+
+        .d-flex.flex-column.gap-1 .btn + .btn {
+            margin-top: 0.25rem;
         }
+
+        /* Scroll horizontal personalizado */
+        .table-container {
+            position: relative;
+        }
+
+        .table-responsive::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .table-responsive::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 10px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: #E65100;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            background: rgba(249, 115, 22, 0.8);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 50%;
+            z-index: 5;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* Vista móvil para tabla */
+        .mobile-card-view {
+            display: none;
+        }
+
         @media (max-width: 768px) {
             .container {
-                padding: 1rem;
+                padding: 0.5rem !important;
             }
             .main-header {
-                padding: 1.5rem;
+                padding: 1rem;
                 text-align: center;
             }
+            .card-body {
+                padding: 1rem;
+            }
+
+            /* Ocultar tabla en móvil y mostrar cards */
+            .table-container {
+                display: none;
+            }
+            .mobile-card-view {
+                display: block;
+            }
+
+            /* Estilos para las cards móviles */
+            .mobile-vehicle-card {
+                background: rgba(255, 255, 255, 0.95);
+                border: 1px solid var(--border);
+                border-radius: var(--card-radius);
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+                margin-bottom: 1rem;
+                overflow: hidden;
+            }
+
+            .mobile-card-header {
+                background: var(--accent);
+                color: white;
+                padding: 1rem;
+                font-weight: 600;
+            }
+
+            .mobile-card-body {
+                padding: 1rem;
+            }
+
+            .mobile-info-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                padding: 0.5rem 0;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .mobile-info-row:last-child {
+                border-bottom: none;
+            }
+
+            .mobile-info-label {
+                font-weight: 500;
+                color: var(--text-secondary);
+                font-size: 0.85rem;
+                flex: 0 0 40%;
+            }
+
+            .mobile-info-value {
+                color: #000;
+                font-size: 0.85rem;
+                text-align: right;
+                flex: 1;
+                word-wrap: break-word;
+            }
+
+            .mobile-actions {
+                padding: 1rem;
+                background: rgba(255, 255, 255, 0.95);
+                border-top: 1px solid var(--border);
+            }
+
+            .mobile-actions .btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+                font-size: 0.85rem;
+                padding: 0.6rem;
+            }
+
+            .mobile-actions .btn:last-child {
+                margin-bottom: 0;
+            }
+
+            /* Ajustes generales para móvil */
             .btn {
-                font-size: 16px;
-                min-height: 44px;
+                font-size: 14px;
+                min-height: 40px;
+            }
+
+            .form-control, .form-select {
+                font-size: 16px; /* Evita zoom en iOS */
+            }
+
+            /* Header responsive */
+            .d-flex.justify-content-between {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .d-flex.justify-content-between .btn {
                 width: 100%;
             }
-            .btn + .btn {
-                margin-top: 0.5rem;
+
+            /* Filtros responsivos */
+            .row.g-3.mb-3 {
+                margin: 0;
             }
-            .table-responsive {
-                font-size: 14px;
-            }
-            .form-section {
-                padding: 1rem;
-            }
-            .modal-body {
-                padding: 1rem;
-            }
-            .d-flex.gap-2 {
-                flex-direction: column;
-            }
-            .d-flex.gap-2 > * {
+
+            .row.g-3.mb-3 .col-md-2 {
                 margin-bottom: 0.5rem;
             }
         }
+
         @media (max-width: 576px) {
             .container {
-                padding: 0.5rem;
+                padding: 0.5rem !important;
             }
-            h1 {
-                font-size: 1.5rem;
-            }
-            .main-header {
-                padding: 1rem;
-            }
-            .table thead th,
-            .table tbody td {
-                font-size: 12px;
-                padding: 0.5rem;
+            h2, h4 {
+                font-size: 1.25rem;
             }
             .btn {
-                padding: 0.75rem 1rem;
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            /* Cards móviles más compactas */
+            .mobile-vehicle-card {
+                margin-bottom: 0.75rem;
+            }
+
+            .mobile-card-header {
+                padding: 0.75rem;
+                font-size: 0.9rem;
+            }
+
+            .mobile-card-body {
+                padding: 0.75rem;
+            }
+
+            .mobile-info-row {
+                padding: 0.4rem 0;
+            }
+
+            .mobile-info-label, .mobile-info-value {
+                font-size: 0.8rem;
+            }
+
+            .mobile-actions {
+                padding: 0.75rem;
+            }
+
+            .mobile-actions .btn {
+                padding: 0.5rem;
+                font-size: 0.8rem;
+                margin-bottom: 0.4rem;
+            }
+
+            /* Filtros más compactos */
+            .card-body {
+                padding: 0.75rem;
+            }
+
+            .form-label {
+                font-size: 0.85rem;
+                margin-bottom: 0.25rem;
+            }
+
+            .form-control {
+                padding: 0.5rem 0.75rem;
+                font-size: 14px;
             }
         }
-        .gradient-bg {
-            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1060;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(4px);
         }
-        .text-corporate {
-            color: #1E3A8A !important;
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
         }
-        .text-accent {
-            color: #FBBF24 !important;
+
+        .modal-dialog-custom {
+            background: var(--card-bg);
+            border-radius: var(--card-radius);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9) translateY(-20px);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border);
         }
-        .border-corporate {
-            border-color: #1E3A8A !important;
+
+        .modal-overlay.active .modal-dialog-custom {
+            transform: scale(1) translateY(0);
         }
-        .shadow-corporate {
-            box-shadow: 0 4px 16px rgba(30, 58, 138, 0.15) !important;
+
+        .modal-header-custom {
+            padding: 1.5rem 1.5rem 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+
+        .modal-header-custom h5 {
+            margin: 0;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1.25rem;
         }
-        .animate-slide-up {
-            animation: slideInUp 0.6s ease-out;
+
+        .modal-close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 0.375rem;
+            transition: all 0.2s ease;
         }
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
+
+        .modal-close-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
         }
-        .animate-fade-in {
-            animation: fadeIn 0.4s ease-out;
+
+        .modal-body-custom {
+            padding: 1.5rem;
+        }
+
+        .modal-footer-custom {
+            padding: 1rem 1.5rem 1.5rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        .modal-active {
+            overflow: hidden;
+        }
+
+        /* Toast Notification */
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--card-radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 1070;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .toast-notification.show {
+            transform: translateX(0);
+        }
+
+        .toast-notification i {
+            font-size: 1.5rem;
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-0">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="dashboard.php"><i class="bi bi-truck"></i> Trucksisx</a>
-            <span class="navbar-text">Categoría de Vehículos</span>
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-brand">
+            <div class="brand-icon">🚚</div>
+            <div class="brand-text">TruckSisX</div>
+        </div>
+        <button class="sidebar-toggle" onclick="toggleSidebar()" title="Colapsar menú">
+            <span id="toggleIcon">←</span>
+        </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <div class="nav-section">
+            <div class="nav-section-title">Principal</div>
+            <a href="dashboard.php" class="nav-item">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                </span>
+                <span class="nav-item-text">Dashboard</span>
+                <span class="nav-item-tooltip">Dashboard</span>
+            </a>
+            <a href="truck_alerts.php" class="nav-item">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                </span>
+                <span class="nav-item-text">Sistema de Alertas</span>
+                <span class="nav-item-tooltip">Sistema de Alertas</span>
+            </a>
+            <a href="orden_trabajo.php" class="nav-item">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                </span>
+                <span class="nav-item-text">Órdenes de Trabajo</span>
+                <span class="nav-item-tooltip">Órdenes de Trabajo</span>
+            </a>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">Gestiones</div>
+            <a href="gestion_vehicular.php" class="nav-item">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 18h-1.5a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5H18"></path><path d="M6 18H4.5a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5H6"></path><path d="M2 14h20"></path><path d="M22 11V7.414a2 2 0 0 0-.586-1.414l-1.414-1.414A2 2 0 0 0 18.586 4H5.414A2 2 0 0 0 4 4.586L2.586 6A2 2 0 0 0 2 7.414V11"></path><circle cx="6" cy="18" r="2"></circle><circle cx="18" cy="18" r="2"></circle></svg>
+                </span>
+                <span class="nav-item-text">Gestión Vehicular</span>
+                <span class="nav-item-tooltip">Gestión Vehicular</span>
+            </a>
+            <a href="regis_vehic.php" class="nav-item">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                </span>
+                <span class="nav-item-text">Registro Vehículos</span>
+                <span class="nav-item-tooltip">Registro Vehículos</span>
+            </a>
+            <a href="cond.php" class="nav-item">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </span>
+                <span class="nav-item-text">Conductores</span>
+                <span class="nav-item-tooltip">Conductores</span>
+            </a>
+            <a href="repue.php" class="nav-item">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+                </span>
+                <span class="nav-item-text">Repuestos</span>
+                <span class="nav-item-tooltip">Repuestos</span>
+            </a>
+            <a href="proveedor.php" class="nav-item">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                </span>
+                <span class="nav-item-text">Proveedores</span>
+                <span class="nav-item-tooltip">Proveedores</span>
+            </a>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">Registros</div>
+            <a href="salida_vehiculo.php" class="nav-item">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                </span>
+                <span class="nav-item-text">Salida Vehículos</span>
+                <span class="nav-item-tooltip">Salida Vehículos</span>
+            </a>
+            <a href="salida_repuesto.php" class="nav-item">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                </span>
+                <span class="nav-item-text">Salida Repuestos</span>
+                <span class="nav-item-tooltip">Salida Repuestos</span>
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">Configuración</div>
+            <a href="cat_vehiculo.php" class="nav-item active">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                </span>
+                <span class="nav-item-text">Categorías</span>
+                <span class="nav-item-tooltip">Categorías</span>
+            </a>
+            <a href="crear_usuario.php" class="nav-item">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                </span>
+                <span class="nav-item-text">Usuarios</span>
+                <span class="nav-item-tooltip">Usuarios</span>
+            </a>
+            <a href="../logout.php" class="nav-item">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                </span>
+                <span class="nav-item-text">Cerrar Sesión</span>
+                <span class="nav-item-tooltip">Cerrar Sesión</span>
+            </a>
         </div>
     </nav>
+</aside>
+
+<!-- Sidebar Overlay (Mobile) -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebarMobile()"></div>
+
     <div class="container py-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fw-bold mb-0"><i class="bi bi-truck"></i> Categoría de Vehículos</h2>
             <?php if (!$rol_conductor): ?>
-            <a href="cat_vehiculo.php?form=1" class="btn btn-success"><i class="bi bi-plus-circle"></i> Agregar Categoría</a>
+            <button type="button" class="btn btn-success" onclick="openCategoryModal()"><i class="bi bi-plus-circle"></i> Agregar Categoría</button>
             <?php endif; ?>
         </div>
         <?php
-        require_once '../config/db.php';
-        $conn = conectarDB();
         $filtro = isset($_GET['filtro_nombre']) ? $_GET['filtro_nombre'] : '';
         $sql = "SELECT * FROM cat_vehic WHERE nombre LIKE ? ORDER BY id DESC";
         $stmt = $conn->prepare($sql);
@@ -423,7 +921,7 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
                             <td><?= htmlspecialchars($row['nombre']) ?></td>
                             <td class="text-center">
                                 <?php if (!$rol_conductor): ?>
-                                <a href="cat_vehiculo.php?form=1&id=<?= $row['id'] ?>" class="btn btn-warning btn-sm mx-1"><i class="bi bi-pencil-square"></i> Editar</a>
+                                <button type="button" class="btn btn-warning btn-sm mx-1" onclick="editCategory(<?= $row['id'] ?>, '<?= htmlspecialchars($row['nombre'], ENT_QUOTES) ?>')"><i class="bi bi-pencil-square"></i> Editar</button>
                                 <a href="cat_vehiculo.php?delete=<?= $row['id'] ?>" class="btn btn-danger btn-sm mx-1" onclick="return confirm('¿Eliminar categoría?')"><i class="bi bi-trash"></i> Eliminar</a>
                                 <?php endif; ?>
                             </td>
@@ -438,60 +936,58 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
                 </table>
             </div>
         </div>
-        <?php
-        // Formulario alta/edición
-        if (isset($_GET['form']) && !$rol_conductor):
-            $editData = [];
-            if (isset($_GET['id'])) {
-                $sql = "SELECT * FROM cat_vehic WHERE id = ?";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param('i', $_GET['id']);
-                $stmt->execute();
-                $editData = $stmt->get_result()->fetch_assoc();
-            }
-        ?>
-        <div class="card mt-4">
-            <div class="card-body">
-                <h5 class="card-title"><i class="bi bi-pencil-square"></i> <?= isset($editData['id']) ? 'Editar' : 'Agregar' ?> Categoría</h5>
-                <form method="post" action="cat_vehiculo.php">
-                    <input type="hidden" name="id" value="<?= $editData['id'] ?? '' ?>">
-                    <div class="mb-3">
-                        <label class="form-label">Nombre</label>
-                        <input type="text" name="nombre" class="form-control" required value="<?= htmlspecialchars($editData['nombre'] ?? '') ?>">
+
+        <!-- Modal para Agregar/Editar Categoría -->
+        <div class="modal-overlay" id="categoryModal">
+            <div class="modal-dialog-custom">
+                <div class="modal-header-custom">
+                    <h5><i class="bi bi-grid-3x3"></i> <span id="modalTitle">Agregar Categoría</span></h5>
+                    <button type="button" class="modal-close-btn" onclick="closeCategoryModal()">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <form id="categoryForm">
+                    <input type="hidden" name="id" id="categoryId">
+                    <div class="modal-body-custom">
+                        <div class="mb-3">
+                            <label class="form-label">Nombre de la Categoría <span class="text-danger">*</span></label>
+                            <input 
+                                type="text" 
+                                name="nombre" 
+                                id="categoryName"
+                                class="form-control" 
+                                required 
+                                placeholder="Ej: Camión de carga"
+                            >
+                            <div class="invalid-feedback" id="nameError">El nombre es obligatorio</div>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-success"><i class="bi bi-check-lg"></i> Guardar</button>
-                    <a href="cat_vehiculo.php" class="btn btn-secondary mx-2"><i class="bi bi-x-lg"></i> Cancelar</a>
+                    <div class="modal-footer-custom">
+                        <button type="button" class="btn btn-secondary" onclick="closeCategoryModal()">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="saveBtn" disabled>
+                            <i class="bi bi-check-lg"></i> Guardar
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
-        <?php endif; ?>
+
+        <!-- Toast Notification -->
+        <div class="toast-notification" id="successToast">
+            <i class="bi bi-check-circle-fill"></i>
+            <div>
+                <div class="fw-bold">¡Éxito!</div>
+                <div class="small">Categoría guardada correctamente</div>
+            </div>
+        </div>
         <?php
-        // Guardar/editar categoría
+        // Eliminar categoría
         if (!$rol_conductor) {
-            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nombre'])) {
-                if (!empty($_POST['id'])) {
-                    $sql = "UPDATE cat_vehic SET nombre = ? WHERE id = ?";
-                    $stmt = $conn->prepare($sql);
-                    $stmt->bind_param('si', $_POST['nombre'], $_POST['id']);
-                    $stmt->execute();
-                } else {
-                    $sql = "INSERT INTO cat_vehic (nombre) VALUES (?)";
-                    $stmt = $conn->prepare($sql);
-                    $stmt->bind_param('s', $_POST['nombre']);
-                    $stmt->execute();
-                }
-                echo '<script>window.location="cat_vehiculo.php";</script>';
-                exit;
-            }
-            // Eliminar categoría
             if (isset($_GET['delete'])) {
                 try {
                     $categoria_id = $_GET['delete'];
-                    
-                    // Iniciar transacción
-                    $conn->autocommit(false);
-                    $conn->begin_transaction();
-                    
                     // Verificar si hay subcategorías asociadas
                     $check_sql = "SELECT COUNT(*) as count FROM subcat_vehic WHERE cat_vehic_id = ?";
                     $check_stmt = $conn->prepare($check_sql);
@@ -500,97 +996,227 @@ $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol
                     $result = $check_stmt->get_result();
                     $row = $result->fetch_assoc();
                     $subcategorias_count = $row['count'];
-                    
-                    if ($subcategorias_count > 0) {
-                        // PASO 1: Obtener IDs de subcategorías para verificar registros de vehículos
-                        $get_subcat_sql = "SELECT id FROM subcat_vehic WHERE cat_vehic_id = ?";
-                        $get_subcat_stmt = $conn->prepare($get_subcat_sql);
-                        $get_subcat_stmt->bind_param('i', $categoria_id);
-                        $get_subcat_stmt->execute();
-                        $subcat_result = $get_subcat_stmt->get_result();
-                        
-                        $subcat_ids = [];
-                        while ($subcat_row = $subcat_result->fetch_assoc()) {
-                            $subcat_ids[] = $subcat_row['id'];
-                        }
-                        
-                        // PASO 2: Eliminar registros de vehículos que referencian estas subcategorías
-                        $total_registros_eliminados = 0;
-                        foreach ($subcat_ids as $subcat_id) {
-                            // Verificar cuántos registros hay para esta subcategoría
-                            $check_regis_sql = "SELECT COUNT(*) as count FROM regis_vehic WHERE subcat_vehic_id = ?";
-                            $check_regis_stmt = $conn->prepare($check_regis_sql);
-                            $check_regis_stmt->bind_param('i', $subcat_id);
-                            $check_regis_stmt->execute();
-                            $regis_result = $check_regis_stmt->get_result();
-                            $regis_row = $regis_result->fetch_assoc();
-                            $registros_count = $regis_row['count'];
-                            
-                            if ($registros_count > 0) {
-                                // Eliminar registros de vehículos de esta subcategoría
-                                $delete_regis_sql = "DELETE FROM regis_vehic WHERE subcat_vehic_id = ?";
-                                $delete_regis_stmt = $conn->prepare($delete_regis_sql);
-                                $delete_regis_stmt->bind_param('i', $subcat_id);
-                                $delete_regis_stmt->execute();
-                                
-                                $total_registros_eliminados += $registros_count;
-                                error_log("cat_vehiculo.php: Eliminados $registros_count registros de vehículos de subcategoría $subcat_id");
-                            }
-                        }
-                        
-                        if ($total_registros_eliminados > 0) {
-                            error_log("cat_vehiculo.php: Total de registros de vehículos eliminados: $total_registros_eliminados");
-                        }
-                        
-                        // PASO 3: Ahora eliminar las subcategorías (ya sin FK constraints de regis_vehic)
-                        $delete_subcat_sql = "DELETE FROM subcat_vehic WHERE cat_vehic_id = ?";
-                        $delete_subcat_stmt = $conn->prepare($delete_subcat_sql);
-                        $delete_subcat_stmt->bind_param('i', $categoria_id);
-                        $delete_subcat_stmt->execute();
-                        
-                        error_log("cat_vehiculo.php: Eliminadas $subcategorias_count subcategorías de la categoría $categoria_id");
+                                        if ($subcategorias_count > 0) {
+                                                echo "<script>
+                                                        function showModalErrorCat() {
+                                                                var modalHtml = `<div class=\"modal fade\" id=\"modalErrorCat\" tabindex=\"-1\" aria-labelledby=\"modalErrorCatLabel\" aria-hidden=\"true\">
+                                                                    <div class=\"modal-dialog modal-dialog-centered\">
+                                                                        <div class=\"modal-content\">
+                                                                            <div class=\"modal-header bg-danger text-white\">
+                                                                                <h5 class=\"modal-title\" id=\"modalErrorCatLabel\">No se puede eliminar la categoría</h5>
+                                                                                <button type=\"button\" class=\"btn-close\" data-bs-dismiss=\"modal\" aria-label=\"Cerrar\"></button>
+                                                                            </div>
+                                                                            <div class=\"modal-body\">
+                                                                                <p>La categoría seleccionada tiene <b>$subcategorias_count</b> subcategoría(s) asociada(s).<br><br>Para poder eliminar esta categoría, primero debe eliminar o reasignar todas las subcategorías desde el módulo de subcategorías de vehículo.</p>
+                                                                            </div>
+                                                                            <div class=\"modal-footer\">
+                                                                                <button type=\"button\" class=\"btn btn-danger\" data-bs-dismiss=\"modal\">Cerrar</button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>`;
+                                                                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                                                                var modal = new bootstrap.Modal(document.getElementById('modalErrorCat'));
+                                                                modal.show();
+                                                                var modalEl = document.getElementById('modalErrorCat');
+                                                                modalEl.addEventListener('hidden.bs.modal', function () {
+                                                                        window.location.href = 'cat_vehiculo.php';
+                                                                });
+                                                        }
+                                                        if (typeof bootstrap === 'undefined') {
+                                                                var script = document.createElement('script');
+                                                                script.src = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js';
+                                                                script.onload = showModalErrorCat;
+                                                                document.head.appendChild(script);
+                                                        } else {
+                                                                showModalErrorCat();
+                                                        }
+                                                </script>";
+                                                exit;
                     }
-                    
-                    // Ahora eliminar la categoría
+                    // Si no hay subcategorías asociadas, proceder a eliminar
+                    $conn->autocommit(false);
+                    $conn->begin_transaction();
                     $sql = "DELETE FROM cat_vehic WHERE id = ?";
                     $stmt = $conn->prepare($sql);
                     $stmt->bind_param('i', $categoria_id);
                     $stmt->execute();
-                    
-                    // Confirmar transacción
                     $conn->commit();
                     $conn->autocommit(true);
-                    
                     error_log("cat_vehiculo.php: Categoría $categoria_id eliminada exitosamente");
-                    
-                    // Mensaje informativo sobre lo que se eliminó
-                    $mensaje = "Categoría eliminada correctamente.";
-                    if ($subcategorias_count > 0) {
-                        $mensaje .= "\\n- $subcategorias_count subcategorías eliminadas";
-                        if (isset($total_registros_eliminados) && $total_registros_eliminados > 0) {
-                            $mensaje .= "\\n- $total_registros_eliminados registros de vehículos eliminados";
-                        }
-                    }
-                    
-                    echo '<script>alert("' . $mensaje . '"); window.location="cat_vehiculo.php";</script>';
+                    echo '<script>alert("Categoría eliminada correctamente."); window.location="cat_vehiculo.php";</script>';
                     exit;
-                    
                 } catch (Exception $e) {
-                    // Revertir transacción en caso de error
                     $conn->rollback();
                     $conn->autocommit(true);
-                    
-                    error_log("cat_vehiculo.php: Error al eliminar categoría: " . $e->getMessage());
-                    echo '<script>alert("Error al eliminar la categoría: ' . addslashes($e->getMessage()) . '"); window.location="cat_vehiculo.php";</script>';
+                    $errorMsg = $e->getMessage();
+                    error_log("cat_vehiculo.php: Error al eliminar categoría: " . $errorMsg);
+                    // Detectar error de clave foránea (MySQL error 1451)
+                    if (strpos($errorMsg, '1451') !== false || stripos($errorMsg, 'foreign key constraint') !== false) {
+                        echo '<script>alert("No se puede eliminar la categoría porque está vinculada a una o más subcategorías.\n\nPrimero debe eliminar o reasignar las subcategorías asociadas desde el módulo de subcategorías de vehículo."); window.location=\'cat_vehiculo.php\';</script>';
+                    } else {
+                        echo '<script>alert("Error al eliminar la categoría: ' . addslashes($errorMsg) . '"); window.location="cat_vehiculo.php";</script>';
+                    }
                     exit;
                 }
             }
         }
         ?>
         <div class="mt-5 text-end">
-            <a href="dashboard.php" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver al Dashboard</a>
+            <a href="gestion_vehicular.php" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver a Gestión</a>
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const categoryModal = document.getElementById('categoryModal');
+        const categoryForm = document.getElementById('categoryForm');
+        const categoryId = document.getElementById('categoryId');
+        const categoryName = document.getElementById('categoryName');
+        const modalTitle = document.getElementById('modalTitle');
+        const saveBtn = document.getElementById('saveBtn');
+        const successToast = document.getElementById('successToast');
+
+        // Abrir modal para nueva categoría
+        function openCategoryModal() {
+            categoryId.value = '';
+            categoryName.value = '';
+            modalTitle.innerHTML = '<i class="bi bi-plus-circle"></i> Agregar Categoría';
+            categoryModal.classList.add('active');
+            document.body.classList.add('modal-active');
+            setTimeout(() => categoryName.focus(), 300);
+            validateForm();
+        }
+
+        // Abrir modal para editar
+        function editCategory(id, nombre) {
+            categoryId.value = id;
+            categoryName.value = nombre;
+            modalTitle.innerHTML = '<i class="bi bi-pencil-square"></i> Editar Categoría';
+            categoryModal.classList.add('active');
+            document.body.classList.add('modal-active');
+            setTimeout(() => categoryName.focus(), 300);
+            validateForm();
+        }
+
+        // Cerrar modal
+        function closeCategoryModal() {
+            categoryModal.classList.remove('active');
+            document.body.classList.remove('modal-active');
+            setTimeout(() => {
+                categoryForm.reset();
+                categoryName.classList.remove('is-invalid');
+            }, 300);
+        }
+
+        // Cerrar modal al hacer clic fuera
+        categoryModal.addEventListener('click', function(e) {
+            if (e.target === categoryModal) {
+                closeCategoryModal();
+            }
+        });
+
+        // Cerrar con ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && categoryModal.classList.contains('active')) {
+                closeCategoryModal();
+            }
+        });
+
+        // Validación en tiempo real
+        categoryName.addEventListener('input', validateForm);
+        categoryName.addEventListener('blur', function() {
+            if (categoryName.value.trim() === '') {
+                categoryName.classList.add('is-invalid');
+            } else {
+                categoryName.classList.remove('is-invalid');
+            }
+        });
+
+        function validateForm() {
+            const isValid = categoryName.value.trim() !== '';
+            saveBtn.disabled = !isValid;
+            return isValid;
+        }
+
+        // Mostrar toast
+        function showToast() {
+            successToast.classList.add('show');
+            setTimeout(() => {
+                successToast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Enviar formulario con AJAX
+        categoryForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!validateForm()) return;
+
+            const formData = new FormData(categoryForm);
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+
+            fetch('cat_vehiculo.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeCategoryModal();
+                    showToast();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 500);
+                } else {
+                    alert('Error al guardar: ' + (data.error || 'Error desconocido'));
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<i class="bi bi-check-lg"></i> Guardar';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al guardar la categoría');
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="bi bi-check-lg"></i> Guardar';
+            });
+        });
+    </script>
+    <script>
+        // Sidebar functions
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('show-mobile');
+                const overlay = document.getElementById('sidebar-overlay');
+                if (overlay) {
+                    overlay.style.display = sidebar.classList.contains('show-mobile') ? 'block' : 'none';
+                }
+                document.body.style.overflow = sidebar.classList.contains('show-mobile') ? 'hidden' : '';
+            }
+        }
+
+        function closeSidebarMobile() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar) {
+                sidebar.classList.remove('show-mobile');
+            }
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+            document.body.style.overflow = '';
+        }
+
+        // Initialize sidebar on load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 1024) {
+                    closeSidebarMobile();
+                }
+            });
+        });
+    </script>
 </body>
 </html>

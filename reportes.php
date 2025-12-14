@@ -16,7 +16,7 @@ $reporte = $_GET['reporte'] ?? 'index';
 $filtros = $_GET;
 
 switch ($reporte) {
-    // Categorías
+    // Categorías de repuestos
     case 'categorias':
         $controller->categorias($filtros);
         break;
@@ -27,7 +27,18 @@ switch ($reporte) {
         $controller->descargarCategoriasExcel($filtros);
         break;
     
-    // Subcategorías
+    // Categorías de vehículos
+    case 'categoriasVehiculos':
+        $controller->categoriasVehiculos($filtros);
+        break;
+    case 'descargarCategoriasVehiculosPDF':
+        $controller->descargarCategoriasVehiculosPDF($filtros);
+        break;
+    case 'descargarCategoriasVehiculosExcel':
+        $controller->descargarCategoriasVehiculosExcel($filtros);
+        break;
+    
+    // Subcategorías de repuestos
     case 'subcategorias':
         $controller->subcategorias($filtros);
         break;
@@ -36,6 +47,17 @@ switch ($reporte) {
         break;
     case 'descargarSubcategoriasExcel':
         $controller->descargarSubcategoriasExcel($filtros);
+        break;
+    
+    // Subcategorías de vehículos
+    case 'subcategoriasVehiculos':
+        $controller->subcategoriasVehiculos($filtros);
+        break;
+    case 'descargarSubcategoriasVehiculosPDF':
+        $controller->descargarSubcategoriasVehiculosPDF($filtros);
+        break;
+    case 'descargarSubcategoriasVehiculosExcel':
+        $controller->descargarSubcategoriasVehiculosExcel($filtros);
         break;
     
     // Repuestos

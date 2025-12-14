@@ -31,12 +31,7 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
     $fields = ['cargo','horas_trabajadas','tareas_completadas','efeciencia','descripcion','regis_vehic_id'];
     $values = [];
     foreach ($fields as $f) {
-        if ($f === 'cargo') {
-            // Siempre guardar el id del usuario conductor
-            $values[] = $_POST['cargo'] ?? '';
-        } else {
-            $values[] = $_POST[$f] ?? '';
-        }
+        $values[] = $_POST[$f] ?? '';
     }
     
     if (!empty($_POST['id'])) {
@@ -82,174 +77,66 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
     <meta charset="UTF-8">
     <title>Gestión de Conductores</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="../assets/css/trucksisx-main.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container py-5">
     <style>
-        :root {
-            --bg-primary: #0F172A;
-            --bg-secondary: #1E293B;
-            --card-bg: #1E293B;
-            --text-primary: #F1F5F9;
-            --text-secondary: #94A3B8;
-            --border: #334155;
-            --accent: #F97316;
-            --accent-amber: #F59E0B;
-            --danger: #EF4444;
-            --success: #10B981;
-            --card-radius: 12px;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            background: var(--bg-primary);
-            color: var(--text-primary);
+            background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
+            color: #1f2937;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             font-size: 16px;
             line-height: 1.6;
             min-height: 100vh;
         }
-        .container-fluid {
-            max-width: 1280px;
+        h1, h2, h3, h4, h5, h6 {
+            color: #334155;
+            font-weight: 600;
+            line-height: 1.3;
+            margin-bottom: 1rem;
+        }
+        h2 { font-size: clamp(1.5rem, 3vw, 2rem); }
+        .container {
+            max-width: 1100px;
             margin: 0 auto;
             padding: 2rem;
         }
-
-        /* Sidebar visual igual al dashboard */
-        .sidebar {
-            background: var(--card-bg);
-            color: var(--text-primary);
-            border-right: 1px solid var(--border);
-            box-shadow: 4px 0 20px rgba(2,6,23,0.3);
-            height: 100vh;
-            min-width: 220px;
-            max-width: 340px;
-            position: fixed;
-            top: 0; left: 0; bottom: 0;
-            z-index: 1050;
-            border-radius: 0 1rem 1rem 0;
-            transform: translateX(-100%);
-            transition: transform 0.25s;
-        }
-
-        .sidebar.show-mobile {
-            transform: translateX(0) !important;
-        }
-
-        .sidebar .nav-link {
-            color: var(--text-primary) !important;
-            font-weight: 500;
-            border-radius: 8px;
-            margin-bottom: 0.25rem;
-            padding: 0.75rem 1rem;
-            transition: all 0.3s;
-        }
-
-        .sidebar .nav-link:hover {
-            background: rgba(249,115,22,0.1);
-            color: var(--accent) !important;
-        }
-
-        .sidebar .nav-link.active, .sidebar .nav-link.bg-primary, .sidebar .nav-link.text-white {
-            background: var(--accent);
-            color: #FFFFFF !important;
-            font-weight: 600;
-        }
-
-        .sidebar .nav-link i {
-            margin-right: 0.75rem;
-            width: 20px;
-        }
-
-        .sidebar .btn-outline-secondary {
-            color: var(--text-primary);
-            border-color: var(--text-secondary);
-        }
-
-        .sidebar .btn-outline-secondary:hover {
-            background: var(--text-secondary);
-            color: var(--bg-primary);
-        }
-
-        .sidebar .nav-link.text-danger {
-            color: var(--danger) !important;
-        }
-
-        .sidebar .nav-link.text-danger:hover {
-            background: rgba(239,68,68,0.1);
-            color: var(--danger) !important;
-        }
-
-        .sidebar h5 {
-            color: var(--text-primary);
-            font-weight: 700;
-        }
-
-        @media (max-width: 1024px) {
-            .sidebar {
-                position: fixed !important;
-                top: 0; left: 0; bottom: 0;
-                width: 85vw;
-                max-width: 340px;
-                height: 100vh;
-                z-index: 1050;
-                border-radius: 0 1rem 1rem 0;
-                box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-                transform: translateX(-100%);
-                transition: transform 0.25s;
-            }
-            .sidebar.show-mobile {
-                transform: translateX(0);
-            }
-        }
         .main-header {
-            background: linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(17,24,39,0.85) 100%);
-            border-radius: var(--card-radius);
-            box-shadow: 0 18px 50px rgba(2,6,23,0.6);
-            color: var(--text-primary);
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(71, 85, 105, 0.2);
+            color: #FFFFFF;
             margin-bottom: 2rem;
             padding: 2rem;
             position: relative;
             overflow: hidden;
         }
-
-        .main-header h1 {
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .main-header .lead {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
+        .main-header h2 { color: #fff; margin-bottom: 0.5rem; position: relative; z-index: 2; }
+        .main-header .lead { font-size: 1.1rem; opacity: 0.9; position: relative; z-index: 2; }
         .card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: var(--card-radius);
-            box-shadow: 0 8px 32px rgba(2,6,23,0.3);
+            background: #FFFFFF;
+            border: 1px solid rgba(209, 213, 219, 0.3);
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
             margin-bottom: 1.5rem;
             overflow: hidden;
             transition: all 0.3s ease;
         }
-
         .card:hover {
-            box-shadow: 0 12px 48px rgba(2,6,23,0.4);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
             transform: translateY(-2px);
         }
-
         .card-header {
-            background: linear-gradient(135deg, rgba(30,41,59,0.9) 0%, rgba(51,65,85,0.8) 100%);
-            border-bottom: 1px solid var(--border);
-            color: var(--text-primary);
+            background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+            border-bottom: 1px solid #D1D5DB;
+            color: #334155;
             font-weight: 600;
             padding: 1.25rem;
         }
-
-        .card-body {
-            padding: 1.5rem;
-        }
-
+        .card-body { padding: 1.5rem; }
         .btn {
             border-radius: 8px;
             border: none;
@@ -262,297 +149,231 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
             text-decoration: none;
             transition: all 0.3s ease;
         }
-
         .btn:focus {
-            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.3);
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.3);
             outline: none;
         }
-
         .btn-primary {
-            background: linear-gradient(135deg, var(--accent) 0%, #EA580C 100%);
-            box-shadow: 0 4px 16px rgba(249,115,22,0.3);
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            box-shadow: 0 4px 12px rgba(71, 85, 105, 0.3);
             color: #FFFFFF !important;
             font-weight: 600;
         }
-
         .btn-primary:hover {
-            background: linear-gradient(135deg, #EA580C 0%, #DC2626 100%);
-            box-shadow: 0 6px 24px rgba(249,115,22,0.4);
+            background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+            box-shadow: 0 6px 20px rgba(71, 85, 105, 0.4);
             color: #FFFFFF !important;
             transform: translateY(-2px);
         }
-
-        .btn-outline-primary {
-            background: transparent;
-            border: 2px solid var(--accent);
-            color: var(--accent) !important;
+        .btn-outline-primary, .btn-secondary {
+            background: #FFFFFF;
+            border: 2px solid #475569;
+            color: #475569 !important;
         }
-
-        .btn-outline-primary:hover {
-            background: var(--accent);
+        .btn-outline-primary:hover, .btn-secondary:hover {
+            background: #475569;
             color: #FFFFFF !important;
             transform: translateY(-2px);
         }
-
         .btn-success {
-            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
             color: #FFFFFF !important;
         }
-
         .btn-warning {
-            background: linear-gradient(135deg, var(--accent-amber) 0%, #D97706 100%);
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
             color: #FFFFFF !important;
         }
-
         .btn-danger {
-            background: linear-gradient(135deg, var(--danger) 0%, #DC2626 100%);
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
             color: #FFFFFF !important;
         }
-
         .btn-info {
-            background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%);
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
             color: #FFFFFF !important;
         }
-
         .btn:hover {
-            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
             transform: translateY(-2px);
         }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
         .form-control, .form-select {
             background: #FFFFFF;
             border: 2px solid #D1D5DB;
             border-radius: 8px;
-            color: #000000;
-            font-size: 1rem;
+            color: #1f2937;
+            font-size: 16px;
             padding: 0.75rem 1rem;
             transition: all 0.3s ease;
-            width: 100%;
         }
-
         .form-control:focus, .form-select:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+            border-color: #475569;
+            box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.1);
             outline: none;
         }
-
-        .form-control::placeholder, .form-select::placeholder {
-            color: #6B7280;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
         .form-label {
-            color: #000000;
-            display: block;
+            color: #334155;
             font-weight: 500;
             margin-bottom: 0.5rem;
         }
-
-        .table {
-            background: var(--card-bg);
-            border-collapse: collapse;
-            border-radius: var(--card-radius);
-            box-shadow: 0 8px 32px rgba(2,6,23,0.3);
-            margin-bottom: 2rem;
+        .form-section {
+            background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+        }
+        .form-section h6 {
+            border-bottom: 2px solid #94a3b8;
+            color: #334155;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+        }
+        .table-responsive {
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
             overflow: hidden;
-            width: 100%;
         }
-
-        .table th {
-            background: linear-gradient(135deg, rgba(30,41,59,0.9) 0%, rgba(51,65,85,0.8) 100%);
-            border-bottom: 2px solid var(--border);
-            color: var(--text-primary);
-            font-weight: 600;
-            padding: 1rem;
-            text-align: left;
+        .table {
+            margin-bottom: 0;
+            font-size: 13px;
         }
-
-        .table td {
-            border-bottom: 1px solid var(--border);
-            color: #111111;
-            padding: 1rem;
+        .table thead th {
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            border: none;
+            color: #FFFFFF;
+            font-weight: 700;
+            padding: 0.7rem 0.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 1;
         }
-
+        .table tbody tr {
+            background: #FFFFFF;
+            border-bottom: 1px solid #E5E7EB;
+            transition: background 0.2s;
+        }
         .table tbody tr:hover {
-            background: rgba(249,115,22,0.05);
+            background: #F3F4F6;
         }
-
-        .table tbody tr:last-child td {
-            border-bottom: none;
+        .table td, .table th {
+            vertical-align: middle;
+            padding: 0.7rem 0.5rem;
         }
-
-        .badge {
-            border-radius: 20px;
-            display: inline-block;
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 0.25rem 0.75rem;
-            text-transform: uppercase;
-        }
-
-        .badge-success {
-            background: var(--success);
-            color: #FFFFFF;
-        }
-
-        .badge-warning {
-            background: var(--accent-amber);
-            color: #FFFFFF;
-        }
-
-        .badge-danger {
-            background: var(--danger);
-            color: #FFFFFF;
-        }
-
-        .badge-info {
-            background: #6B7280;
-            color: #FFFFFF;
-        }
-
-        .badge.bg-secondary {
-            background: #6B7280 !important;
-        }
-
+        
         /* Modal Styles */
         .modal-overlay {
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            display: flex;
-            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1050;
             align-items: center;
-            z-index: 1060;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
+            justify-content: center;
             backdrop-filter: blur(4px);
         }
-
         .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
+            display: flex;
         }
-
         .modal-dialog-custom {
             background: #FFFFFF;
-            border-radius: var(--card-radius);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-            max-width: 900px;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
-            transform: scale(0.9) translateY(-20px);
-            transition: all 0.3s ease;
-            border: 1px solid var(--border);
-            color: #000000;
+            animation: modalSlideIn 0.3s ease-out;
+            transform: translateZ(0);
+            backface-visibility: hidden;
         }
-
-        .modal-overlay.active .modal-dialog-custom {
-            transform: scale(1) translateY(0);
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
         }
-
         .modal-header-custom {
-            padding: 1.5rem 1.5rem 1rem;
-            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            color: #FFFFFF;
+            padding: 1.5rem;
+            border-radius: 12px 12px 0 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #F9FAFB;
         }
-
         .modal-header-custom h5 {
             margin: 0;
-            color: #000000;
+            color: #FFFFFF;
             font-weight: 600;
-            font-size: 1.25rem;
         }
-
         .modal-close-btn {
             background: none;
             border: none;
-            color: var(--text-secondary);
-            font-size: 1.25rem;
+            color: #FFFFFF;
+            font-size: 1.5rem;
             cursor: pointer;
-            padding: 0.25rem;
-            border-radius: 0.375rem;
-            transition: all 0.2s ease;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: background 0.2s;
         }
-
         .modal-close-btn:hover {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger);
+            background: rgba(255, 255, 255, 0.1);
         }
-
         .modal-body-custom {
-            padding: 1.5rem;
-            color: #000000;
+            padding: 2rem;
         }
-
-        .modal-body-custom .text-muted {
-            color: #6B7280 !important;
-        }
-
         .modal-footer-custom {
-            padding: 1rem 1.5rem 1.5rem;
-            border-top: 1px solid var(--border);
+            padding: 1rem 2rem;
+            background: #F9FAFB;
+            border-radius: 0 0 12px 12px;
             display: flex;
             justify-content: flex-end;
             gap: 0.75rem;
-            background: #F9FAFB;
         }
-
-        .modal-active {
-            overflow: hidden;
+        
+        /* Toast Notification */
+        .toast-notification {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: #FFFFFF;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 2000;
+            animation: slideInRight 0.4s ease-out;
+            font-weight: 500;
         }
-
-        .alert {
-            border: none;
-            border-radius: var(--card-radius);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
-
-        .alert-info {
-            background: rgba(249, 115, 22, 0.1);
-            color: var(--accent);
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-            .main-header {
-                padding: 1.5rem;
-                text-align: center;
-            }
-            .card-body {
-                padding: 1rem;
-            }
-            .modal-dialog-custom {
-                width: 95%;
-                margin: 1rem;
-            }
+        .toast-notification i {
+            font-size: 1.25rem;
         }
     </style>
-</head>
-<body>
-    <div class="container-fluid">
         <?php
         require_once '../config/db.php';
         $conn = conectarDB();
@@ -575,23 +396,14 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
         
         // Si es conductor, solo mostrar su propia información
         if ($rol_conductor) {
-            $user_id = $_SESSION['usuario']['id'];
-            $sql = "SELECT c.*, v.placa, v.marca_vehiculo, u.nombre, u.apellido FROM cond c " .
-                   "LEFT JOIN regis_vehic v ON c.regis_vehic_id = v.id " .
-                   "LEFT JOIN users u ON c.user_id = u.id WHERE c.user_id = ?";
-            $params = [$user_id];
-            $types = 'i';
+            $nombre_usuario = $_SESSION['usuario']['nombre'];
+            $sql = "SELECT c.*, v.placa, v.marca_vehiculo FROM cond c JOIN regis_vehic v ON c.regis_vehic_id = v.id WHERE c.cargo = ?";
+            $params = [$nombre_usuario];
+            $types = 's';
         } else {
-            $sql = "SELECT c.*, v.placa, v.marca_vehiculo, u.nombre, u.apellido FROM cond c " .
-                   "LEFT JOIN regis_vehic v ON c.regis_vehic_id = v.id " .
-                   "LEFT JOIN users u ON c.user_id = u.id WHERE 1=1";
-            $params = [];
-            $types = '';
-            if ($filtro_cargo) {
-                $sql .= " AND u.nombre LIKE ?";
-                $params[] = "%$filtro_cargo%";
-                $types .= 's';
-            }
+            $sql = "SELECT c.*, v.placa, v.marca_vehiculo FROM cond c JOIN regis_vehic v ON c.regis_vehic_id = v.id WHERE c.cargo LIKE ?";
+            $params = ["%$filtro_cargo%"];
+            $types = 's';
             if ($filtro_vehic) {
                 $sql .= " AND v.id = ?";
                 $params[] = $filtro_vehic;
@@ -600,16 +412,14 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
         }
         $sql .= " ORDER BY c.id DESC";
         $stmt = $conn->prepare($sql);
-        if (!empty($types)) {
-            $stmt->bind_param($types, ...$params);
-        }
+        $stmt->bind_param($types, ...$params);
         $stmt->execute();
         $conductores = $stmt->get_result();
         ?>
         
         <div class="main-header">
-            <h1><i class="bi bi-person-badge"></i> <?= $rol_conductor ? 'Mi Perfil de Conductor' : 'Conductores' ?></h1>
-            <p class="lead">Gestión de conductores y asignación de vehículos</p>
+            <h2><i class="bi bi-person-badge"></i> <?= $rol_conductor ? 'Mi Perfil de Conductor' : 'Conductores' ?></h2>
+            <p class="lead mb-0">Gestión de conductores y asignación de vehículos</p>
         </div>
         
         <?php if ($rol_conductor): ?>
@@ -628,7 +438,7 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
             
         <?php if (!$rol_conductor): ?>
             <div class="card-body">
-                <form class="row" method="get" style="gap: 1rem;">
+                <form class="row g-3" method="get">
             <div class="col-md-4">
                 <input type="text" name="filtro_cargo" class="form-control" placeholder="Buscar por cargo" value="<?= htmlspecialchars($filtro_cargo) ?>">
             </div>
@@ -641,10 +451,10 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
                 </select>
             </div>
             <div class="col-md-2">
-                <button type="submit" class="btn btn-primary" style="width: 100%;"><i class="bi bi-funnel"></i> Filtrar</button>
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel"></i> Filtrar</button>
             </div>
             <div class="col-md-2">
-                <a href="cond.php" class="btn btn-outline-primary" style="width: 100%;"><i class="bi bi-arrow-clockwise"></i> Limpiar</a>
+                <a href="cond.php" class="btn btn-outline-secondary w-100"><i class="bi bi-arrow-clockwise"></i> Limpiar</a>
             </div>
                 </form>
             </div>
@@ -655,7 +465,6 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
                     <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Nombre</th>
                                 <th>Cargo</th>
                                 <th>Horas Trabajadas</th>
                                 <th>Tareas Completadas</th>
@@ -670,12 +479,6 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
                             <?php while ($row = $conductores->fetch_assoc()): ?>
                             <tr>
                                 <td><?= $row['id'] ?></td>
-                                <td>
-                                    <?php
-                                    $nombreCompleto = trim(($row['nombre'] ?? '') . ' ' . ($row['apellido'] ?? ''));
-                                    echo htmlspecialchars($nombreCompleto);
-                                    ?>
-                                </td>
                                 <td><?= htmlspecialchars($row['cargo']) ?></td>
                                 <td><?= htmlspecialchars($row['horas_trabajadas']) ?></td>
                                 <td><?= htmlspecialchars($row['tareas_completadas']) ?></td>
@@ -716,7 +519,7 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
                     <input type="hidden" id="conductor_id" name="id">
                     <input type="hidden" name="ajax" value="1">
                     <div class="modal-body-custom">
-                        <div class="row" style="gap: 1rem;">
+                        <div class="row g-3">
                             <div class="col-md-6" style="position: relative;">
                                 <label for="conductor_search" class="form-label">Nombre del Conductor *</label>
                                 <input type="text" id="conductor_search" class="form-control" placeholder="Buscar conductor..." autocomplete="off">
@@ -728,21 +531,23 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
                                     $conductoresUsuarios = $userModel->getConductores();
                                     foreach ($conductoresUsuarios as $conductor) {
                                         $nombreCompleto = htmlspecialchars($conductor['nombre'] . ' ' . $conductor['apellido']);
-                                        echo '<option value="' . htmlspecialchars($conductor['id']) . '" data-fullname="' . $nombreCompleto . '">' . $nombreCompleto . '</option>';
+                                        echo '<option value="' . htmlspecialchars($conductor['nombre']) . '" data-fullname="' . $nombreCompleto . '">' . $nombreCompleto . '</option>';
                                     }
                                     ?>
                                 </select>
                                 <small class="text-muted">Debe coincidir con el usuario registrado</small>
                             </div>
-                            <div class="col-md-6">
-                                <label for="regis_vehic_id" class="form-label">Vehículo Asignado *</label>
-                                <select id="regis_vehic_id" name="regis_vehic_id" class="form-select" required>
-                                    <option value="">Selecciona un vehículo</option>
+                            <div class="col-md-6" style="position: relative;">
+                                <label for="vehiculo_search" class="form-label">Vehículo Asignado (Opcional)</label>
+                                <input type="text" id="vehiculo_search" class="form-control" placeholder="Buscar vehículo..." autocomplete="off">
+                                <input type="hidden" id="regis_vehic_id" name="regis_vehic_id">
+                                <select id="vehiculo_dropdown" class="form-select" size="5" style="display:none; position:absolute; z-index:1000; width:100%; max-height:200px; overflow-y:auto;">
+                                    <option value="">Sin asignar</option>
                                     <?php foreach ($vehiculosDisponibles as $vd): ?>
-                                        <option value="<?= $vd['id'] ?>"><?= htmlspecialchars($vd['placa'] . ' - ' . $vd['marca_vehiculo']) ?></option>
+                                        <option value="<?= $vd['id'] ?>" data-desc="<?= htmlspecialchars($vd['placa'] . ' - ' . $vd['marca_vehiculo']) ?>"><?= htmlspecialchars($vd['placa'] . ' - ' . $vd['marca_vehiculo']) ?></option>
                                     <?php endforeach; ?>
                                 </select>
-                                <small class="text-muted">Debes asignar un vehículo disponible</small>
+                                <small class="text-muted">Solo vehículos sin conductor asignado</small>
                             </div>
                             <div class="col-md-4">
                                 <label for="horas_trabajadas" class="form-label">Horas Trabajadas *</label>
@@ -763,7 +568,7 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
                         </div>
                     </div>
                     <div class="modal-footer-custom">
-                        <button type="button" class="btn btn-outline-primary" onclick="closeModal()">Cancelar</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
                         <button type="submit" class="btn btn-primary" id="saveBtn">Guardar</button>
                     </div>
                 </form>
@@ -925,7 +730,7 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
         }
         ?>
         <div class="mt-5 text-end">
-            <a href="gestion_vehicular.php" class="btn btn-outline-primary"><i class="bi bi-arrow-left"></i> Volver a Gestión</a>
+            <a href="gestion_vehicular.php" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver a Gestión</a>
         </div>
     </div>
     
@@ -953,20 +758,29 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
                 .then(data => {
                     document.getElementById('conductor_id').value = data.id;
                     document.getElementById('cargo').value = data.cargo;
-                    // Buscar el nombre completo del conductor en el dropdown por id
+                    
+                    // Buscar el nombre completo del conductor en el dropdown
                     const conductorDropdown = document.getElementById('conductor_dropdown');
                     const allOptions = Array.from(conductorDropdown.options);
-                    const matchingOption = allOptions.find(opt => opt.value == data.cargo);
+                    const matchingOption = allOptions.find(opt => opt.value === data.cargo);
                     if (matchingOption) {
                         document.getElementById('conductor_search').value = matchingOption.getAttribute('data-fullname');
-                    } else {
-                        document.getElementById('conductor_search').value = '';
                     }
+                    
                     document.getElementById('horas_trabajadas').value = data.horas_trabajadas;
                     document.getElementById('tareas_completadas').value = data.tareas_completadas;
                     document.getElementById('efeciencia').value = data.efeciencia;
                     document.getElementById('descripcion').value = data.descripcion || '';
                     document.getElementById('regis_vehic_id').value = data.regis_vehic_id;
+                    
+                    // Buscar la descripción del vehículo en el dropdown
+                    const vehiculoDropdown = document.getElementById('vehiculo_dropdown');
+                    const allVehiculoOptions = Array.from(vehiculoDropdown.options);
+                    const matchingVehiculo = allVehiculoOptions.find(opt => opt.value == data.regis_vehic_id);
+                    if (matchingVehiculo) {
+                        document.getElementById('vehiculo_search').value = matchingVehiculo.getAttribute('data-desc');
+                    }
+                    
                     document.getElementById('modalTitle').textContent = 'Editar Conductor';
                     document.getElementById('conductorModal').classList.add('active');
                 })
@@ -1181,67 +995,36 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
         
 
         function verConductor(row) {
-            document.getElementById('verc_id').textContent = row.id || '';
-            // Mostrar nombre completo si existe, si no mostrar vacío
-            let nombreCompleto = '';
-            if (row.nombre || row.apellido) {
-                nombreCompleto = ((row.nombre || '') + ' ' + (row.apellido || '')).trim();
-            }
-            // No mostrar cargo como nombre, solo nombre y apellido reales
-            document.getElementById('verc_nombre').textContent = nombreCompleto;
-            document.getElementById('verc_cargo').textContent = row.cargo || '';
-            document.getElementById('verc_horas').textContent = row.horas_trabajadas || '';
-            document.getElementById('verc_tareas').textContent = row.tareas_completadas || '';
-            document.getElementById('verc_eficiencia').textContent = row.efeciencia || '';
-            document.getElementById('verc_descripcion').textContent = row.descripcion || '';
-            document.getElementById('verc_vehiculo').textContent = row.placa ? (row.placa + ' (' + (row.marca_vehiculo || '') + ')') : '';
-  
-            const modal = document.getElementById('modalVerConductor');
-  
-            // Esperar un frame para asegurar que el DOM está listo
-            requestAnimationFrame(() => {
-                modal.style.display = 'block';
-                modal.classList.add('show');
-                modal.setAttribute('aria-modal', 'true');
-                modal.removeAttribute('aria-hidden');
-                document.body.classList.add('modal-open');
-    
-                // Crear backdrop
-                if (!document.querySelector('.modal-backdrop')) {
-                    const backdrop = document.createElement('div');
-                    backdrop.className = 'modal-backdrop fade show';
-                    document.body.appendChild(backdrop);
-                }
-            });
-        }
-
-function cerrarModalVer() {
+  document.getElementById('verc_id').textContent = row.id || '';
+  document.getElementById('verc_cargo').textContent = row.cargo || '';
+  document.getElementById('verc_horas').textContent = row.horas_trabajadas || '';
+  document.getElementById('verc_tareas').textContent = row.tareas_completadas || '';
+  document.getElementById('verc_eficiencia').textContent = row.efeciencia || '';
+  document.getElementById('verc_descripcion').textContent = row.descripcion || '';
+  document.getElementById('verc_vehiculo').textContent = row.placa ? (row.placa + ' (' + (row.marca_vehiculo || '') + ')') : '';
+  // Accesibilidad: quitar aria-hidden si existe
   const modal = document.getElementById('modalVerConductor');
-  modal.style.display = 'none';
-  modal.classList.remove('show');
-  modal.removeAttribute('aria-modal');
-  document.body.classList.remove('modal-open');
-  
-  // Remover backdrop
-  const backdrop = document.querySelector('.modal-backdrop');
-  if (backdrop) {
-    backdrop.remove();
+  if (modal.hasAttribute('aria-hidden')) {
+    modal.removeAttribute('aria-hidden');
+  }
+  if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+    const modalInstance = bootstrap.Modal.getOrCreateInstance(modal);
+    modalInstance.show();
   }
 }
     </script>
 
     <!-- Modal Ver Conductor -->
-<div class="modal fade" id="modalVerConductor" tabindex="-1" aria-labelledby="modalVerConductorLabel" style="display: none;">
+<div class="modal fade" id="modalVerConductor" tabindex="-1" aria-labelledby="modalVerConductorLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
-      <div class="modal-header" style="background-color: #F97316; color: white;">
+      <div class="modal-header bg-info text-white">
         <h5 class="modal-title" id="modalVerConductorLabel"><i class="bi bi-eye"></i> Detalles del Conductor</h5>
-        <button type="button" class="btn-close btn-close-white" onclick="cerrarModalVer()" aria-label="Cerrar"></button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
-      <div class="modal-body" style="color: black;">
+      <div class="modal-body">
         <div class="row">
           <div class="col-md-6 mb-2"><strong>ID:</strong> <span id="verc_id"></span></div>
-          <div class="col-md-6 mb-2"><strong>Nombre:</strong> <span id="verc_nombre"></span></div>
           <div class="col-md-6 mb-2"><strong>Cargo:</strong> <span id="verc_cargo"></span></div>
           <div class="col-md-6 mb-2"><strong>Horas Trabajadas:</strong> <span id="verc_horas"></span></div>
           <div class="col-md-6 mb-2"><strong>Tareas Completadas:</strong> <span id="verc_tareas"></span></div>
@@ -1251,7 +1034,7 @@ function cerrarModalVer() {
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-outline-primary" onclick="cerrarModalVer()"><i class="bi bi-x-circle"></i> Cerrar</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-circle"></i> Cerrar</button>
       </div>
     </div>
   </div>

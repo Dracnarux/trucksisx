@@ -38,4 +38,19 @@
         text-decoration: none;
         color: inherit;
     }
+<style>
+        :root{
+            --bg-primary: #0F172A;
+            --card-bg: #111827;
+            --card-radius: 12px;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --border: #1E293B;
+            --accent: #F97316;
+            --accent-amber: #F59E0B;
+        }
+
+        .report-card{ background: #fff; padding:1rem; border-radius:12px; border:1px solid var(--border); }
+        .report-card h3{ color: var(--accent); }
+        .report-stat{ font-size:1.5rem; font-weight:700; }
 </style>

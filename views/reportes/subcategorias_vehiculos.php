@@ -1,27 +1,19 @@
 <div class="container py-4">
    <div class="card shadow-sm mb-4">
        <div class="card-body">
-           <h2 class="card-title text-primary"><i class="bi bi-folder-2-open"></i> Reporte de proveedores</h2>
+           <h2 class="card-title text-primary"><i class="bi bi-diagram-3"></i> Reportes de subcategorias de vehiculos</h2>
            <form method="GET" action="/trucksisx/reportes.php" class="row g-3 align-items-center mb-3">
-                 <input type="hidden" name="reporte" value="proveedores">
-                 
+                 <input type="hidden" name="reporte" value="subcategoriasVehiculos">
                  <div class="col-auto">
-                    <label for="nombre" class="form-label">Filtrar por nombre</label>
+                    <label for="categoria" class="form-label">Filtrar por categoría</label>
                  </div>
                  <div class="col-auto">
-                     <input type="text" id="nombre" name="nombre" class="form-control" placeholder="Nombre del proveedor" value="<?= htmlspecialchars($_GET['nombre'] ?? '') ?>">
-                 </div>
-
-                 <div class="col-auto">
-                    <label for="producto" class="form-label">Filtrar por tipo de repuesto</label>
-                 </div>
-                 <div class="col-auto">
-                    <select id="producto" name="producto" class="form-select">
-                        <option value="">Todos</option>
-                        <?php if (!empty($tiposRepuesto)): ?>
-                            <?php foreach ($tiposRepuesto as $tipo): ?>
-                                <option value="<?= htmlspecialchars($tipo['tip_repuesto']) ?>" <?= (isset($_GET['producto']) && $_GET['producto'] == $tipo['tip_repuesto']) ? 'selected' : ''; ?>>
-                                    <?= htmlspecialchars($tipo['tip_repuesto']); ?>
+                    <select id="categoria" name="categoria" class="form-select">
+                        <option value="">Todas</option>
+                        <?php if (!empty($categorias)): ?>
+                            <?php foreach ($categorias as $cat): ?>
+                                <option value="<?= htmlspecialchars($cat['id']) ?>" <?= (isset($_GET['categoria']) && $_GET['categoria'] == $cat['id']) ? 'selected' : ''; ?>>
+                                    <?= htmlspecialchars($cat['nombre']); ?>
                                 </option>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -31,42 +23,37 @@
                         <button type="submit" class="btn btn-primary">Filtrar</button>
                  </div>
                 <div class="col-auto">
-                    <a href="/trucksisx/reportes.php?reporte=proveedores" class="btn btn-primary">Reporte total</a>
+                          <a href="/trucksisx/reportes.php?reporte=subcategoriasVehiculos" class="btn btn-primary">Reporte total</a>
                 </div>
            </form>
-
            <div class="mb-3">
                 <a class="btn btn-danger me-2" id="descargar-pdf" href="#"><i class="bi bi-file-earmark-pdf"></i> Descargar PDF</a>
                 <a class="btn btn-success" id="descargar-excel" href="#"><i class="bi bi-file-earmark-excel"></i> Descargar Excel</a>
            </div>
-
-           <div id="tabla-proveedores" class="table-responsive">
+           <div id="tabla-subcategorias" class="table-responsive">
                 <table class="table table-bordered table-hover">
                     <thead class="table-light">
                         <tr>
                             <th>Nombre</th>
-                            <th>Contacto</th>
-                            <th>Repuesto</th>
+                            <th>Categoria</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (!empty($proveedores)): ?>
-                            <?php foreach ($proveedores as $prov): ?>
+                        <?php if (!empty($subcategorias)): ?>
+                            <?php foreach ($subcategorias as $sub): ?>
                                 <tr>
-                                    <td><?= htmlspecialchars($prov['nom_proveedor'] ?? ''); ?></td>
-                                    <td><?= htmlspecialchars($prov['tel_contacto'] ?? ''); ?></td>
-                                    <td><?= htmlspecialchars($prov['tip_repuesto'] ?? ''); ?></td>
+                                    <td><?= htmlspecialchars($sub['nombre']); ?></td>
+                                    <td><?= htmlspecialchars($sub['categoria'] ?? ''); ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="3">No hay resultados</td>
+                                <td colspan="2">No hay resultados</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
            </div>
-
            <a href="/trucksisx/reportes.php" class="btn btn-dark"><i class="bi bi-arrow-left"></i> Volver</a>
        </div>
    </div>
@@ -155,7 +142,7 @@
     .btn-primary {
         background: linear-gradient(135deg, #475569 0%, #334155 100%);
         color: #FFFFFF;
-        box-shadow: 0 2px 8px rgba(30, 58, 138, 0.3);
+        box-shadow: 0 2px 8px rgba(71, 85, 105, 0.3);
     }
 
     .btn-primary:hover {
@@ -253,24 +240,16 @@
 <script>
     document.getElementById('descargar-pdf').onclick = function(e) {
         e.preventDefault();
-        const nombre = document.getElementById('nombre').value;
-        const producto = document.getElementById('producto').value;
-        
-        let url = '/trucksisx/reportes.php?reporte=descargarProveedoresPDF';
-        if (nombre) url += '&nombre=' + encodeURIComponent(nombre);
-        if (producto) url += '&producto=' + encodeURIComponent(producto);
-        
+        const categoria = document.getElementById('categoria').value;
+        let url = '/trucksisx/reportes.php?reporte=descargarSubcategoriasVehiculosPDF';
+        if (categoria) url += '&categoria=' + encodeURIComponent(categoria); 
         window.location.href = url;
     };
     document.getElementById('descargar-excel').onclick = function(e) {
         e.preventDefault();
-        const nombre = document.getElementById('nombre').value;
-        const producto = document.getElementById('producto').value;
-        
-        let url = '/trucksisx/reportes.php?reporte=descargarProveedoresExcel';
-        if (nombre) url += '&nombre=' + encodeURIComponent(nombre);
-        if (producto) url += '&producto=' + encodeURIComponent(producto);
-        
+        const categoria = document.getElementById('categoria').value;
+        let url = '/trucksisx/reportes.php?reporte=descargarSubcategoriasVehiculosExcel';
+        if (categoria) url += '&categoria=' + encodeURIComponent(categoria); 
         window.location.href = url;
     };
 </script>

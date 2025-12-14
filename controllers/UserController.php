@@ -65,6 +65,14 @@ switch ($action) {
                     redirectWithMessage(false, 'La contraseña debe tener al menos 6 caracteres');
                 }
                 
+                // Validar que solo haya un Administrador
+                if ($data['rol'] === 'admin') {
+                    $adminCount = $userModel->countAdministradores();
+                    if ($adminCount >= 1) {
+                        redirectWithMessage(false, 'Ya existe un usuario Administrador en el sistema. Solo se permite uno activo');
+                    }
+                }
+                
                 $userId = $userModel->create($data);
                 if ($userId) {
                     $nombreCompleto = $data['nombre'] . ' ' . $data['apellido'];
@@ -104,6 +112,15 @@ switch ($action) {
                     'rol' => $_POST['rol']
                 ];
                 
+                // Validar que solo haya un Administrador (solo si se está cambiando el rol a admin)
+                $usuarioActual = $userModel->getById($id);
+                if ($data['rol'] === 'admin' && $usuarioActual['rol'] !== 'admin') {
+                    $adminCount = $userModel->countAdministradores();
+                    if ($adminCount >= 1) {
+                        redirectWithMessage(false, 'Ya existe un usuario Administrador en el sistema. Solo se permite uno activo');
+                    }
+                }
+                
                 // Solo actualizar contraseña si se proporciona
                 if (!empty($_POST['contrasena'])) {
                     if (strlen($_POST['contrasena']) < 6) {
@@ -125,6 +142,28 @@ switch ($action) {
         }
         break;
         
+    case 'check_dependencies':
+        // Verificar dependencias de un usuario vía AJAX
+        if (isset($_GET['id'])) {
+            header('Content-Type: application/json');
+            try {
+                $id = intval($_GET['id']);
+                $dependencies = $userModel->checkDependencies($id);
+                
+                echo json_encode([
+                    'success' => true,
+                    'dependencies' => $dependencies
+                ]);
+            } catch (Exception $e) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => $e->getMessage()
+                ]);
+            }
+            exit();
+        }
+        break;
+        
     case 'delete':
         if (isset($_GET['id'])) {
             // Solo admins pueden eliminar usuarios
@@ -143,6 +182,20 @@ switch ($action) {
                 
                 $nombreCompleto = $usuario['nombre'] . ' ' . $usuario['apellido'];
                 
+                // Verificar dependencias antes de eliminar
+                $dependencies = $userModel->checkDependencies($id);
+                if (!empty($dependencies)) {
+                    $mensaje = "No se puede eliminar '{$nombreCompleto}' porque tiene: ";
+                    $detalles = [];
+                    
+                    if (isset($dependencies['ord_trabj'])) {
+                        $detalles[] = "{$dependencies['ord_trabj']} orden(es) de trabajo";
+                    }
+                    
+                    $mensaje .= implode(', ', $detalles) . '. Primero debe reasignar o eliminar estos registros.';
+                    redirectWithMessage(false, $mensaje);
+                }
+                
                 $success = $userModel->delete($id);
                 if ($success) {
                     redirectWithMessage(true, "Usuario '{$nombreCompleto}' eliminado exitosamente");
@@ -150,7 +203,13 @@ switch ($action) {
                     redirectWithMessage(false, 'Error al eliminar el usuario');
                 }
             } catch (Exception $e) {
-                redirectWithMessage(false, 'Error interno: ' . $e->getMessage());
+                // Capturar errores de FK específicamente
+                $errorMsg = $e->getMessage();
+                if (strpos($errorMsg, 'foreign key constraint') !== false || strpos($errorMsg, 'Integrity constraint') !== false) {
+                    redirectWithMessage(false, 'No se puede eliminar este usuario porque tiene registros asociados (órdenes de trabajo). Primero debe reasignar o eliminar esos registros.');
+                } else {
+                    redirectWithMessage(false, 'Error: ' . $errorMsg);
+                }
             }
         }
         break;

@@ -93,14 +93,14 @@ class Alert {
 
     // Obtener todas las alertas
     public function getAll() {
-        $query = "SELECT a.*, c.cargo as conductor_cargo, r.placa as vehiculo_placa,
-                         u.nombre as tecnico_nombre, ot.nombre_trabajo as orden_trabajo
-                  FROM " . $this->table . " a 
-                  LEFT JOIN cond c ON a.cond_id = c.id
-                  LEFT JOIN regis_vehic r ON a.regis_vehic_id = r.id
-                  LEFT JOIN ord_trabj ot ON a.ord_trabj_id = ot.id
-                  LEFT JOIN users u ON ot.users_id = u.id
-                  ORDER BY a.fecha_hora DESC";
+        $query = "SELECT a.*, COALESCE(a.posicion_llanta, ot.nombre_trabajo, a.descripcion) as titulo, c.cargo as conductor_cargo, r.placa as vehiculo_placa,
+             u.nombre as tecnico_nombre, ot.nombre_trabajo as orden_trabajo
+              FROM " . $this->table . " a 
+              LEFT JOIN cond c ON a.cond_id = c.id
+              LEFT JOIN regis_vehic r ON a.regis_vehic_id = r.id
+              LEFT JOIN ord_trabj ot ON a.ord_trabj_id = ot.id
+              LEFT JOIN users u ON ot.users_id = u.id
+              ORDER BY a.fecha_hora DESC, a.id DESC";
 
         $stmt = $this->db->prepare($query);
         $stmt->execute();
@@ -109,8 +109,8 @@ class Alert {
 
     // Obtener alertas por vehículo
     public function getByVehicle($vehicleId) {
-        $query = "SELECT a.*, c.cargo as conductor_cargo, r.placa as vehiculo_placa,
-                         u.nombre as tecnico_nombre, ot.nombre_trabajo as orden_trabajo
+        $query = "SELECT a.*, COALESCE(a.posicion_llanta, ot.nombre_trabajo, a.descripcion) as titulo, c.cargo as conductor_cargo, r.placa as vehiculo_placa,
+                 u.nombre as tecnico_nombre, ot.nombre_trabajo as orden_trabajo
                   FROM " . $this->table . " a 
                   LEFT JOIN cond c ON a.cond_id = c.id
                   LEFT JOIN regis_vehic r ON a.regis_vehic_id = r.id
@@ -127,7 +127,7 @@ class Alert {
 
     // Obtener alertas por conductor
     public function getByConductor($conductorId) {
-        $query = "SELECT a.*, c.cargo as conductor_cargo, r.placa as vehiculo_placa
+        $query = "SELECT a.*, COALESCE(a.posicion_llanta, ot.nombre_trabajo, a.descripcion) as titulo, c.cargo as conductor_cargo, r.placa as vehiculo_placa
                   FROM " . $this->table . " a 
                   LEFT JOIN cond c ON a.cond_id = c.id
                   LEFT JOIN regis_vehic r ON a.regis_vehic_id = r.id
@@ -140,15 +140,17 @@ class Alert {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Obtener alertas de llantas específicas
+    // Obtener todas las alertas (de cualquier tipo)
     public function getTireAlerts($vehicleId = null) {
-        $whereClause = $vehicleId ? "AND a.regis_vehic_id = :vehicle_id" : "";
+        $whereClause = $vehicleId ? "WHERE a.regis_vehic_id = :vehicle_id" : "";
         
-        $query = "SELECT a.*, c.cargo as conductor_cargo, r.placa as vehiculo_placa
+        // Incluir nombre de la orden de trabajo relacionada para que el buscador pueda
+        // filtrar también por la orden (si existe).
+        $query = "SELECT a.*, COALESCE(a.posicion_llanta, ot.nombre_trabajo, a.descripcion) as titulo, c.cargo as conductor_cargo, r.placa as vehiculo_placa, ot.nombre_trabajo as orden_trabajo
                   FROM " . $this->table . " a 
                   LEFT JOIN cond c ON a.cond_id = c.id
                   LEFT JOIN regis_vehic r ON a.regis_vehic_id = r.id
-                  WHERE a.tipo_alerta = 'llanta' AND a.posicion_llanta IS NOT NULL 
+                  LEFT JOIN ord_trabj ot ON a.ord_trabj_id = ot.id
                   $whereClause
                   ORDER BY a.fecha_hora DESC";
 
@@ -162,8 +164,8 @@ class Alert {
 
     // Obtener una alerta por ID
     public function getById($id) {
-        $query = "SELECT a.*, c.cargo as conductor_cargo, r.placa as vehiculo_placa,
-                         u.nombre as tecnico_nombre, ot.nombre_trabajo as orden_trabajo
+        $query = "SELECT a.*, COALESCE(a.posicion_llanta, ot.nombre_trabajo, a.descripcion) as titulo, c.cargo as conductor_cargo, r.placa as vehiculo_placa,
+                 u.nombre as tecnico_nombre, ot.nombre_trabajo as orden_trabajo
                   FROM " . $this->table . " a 
                   LEFT JOIN cond c ON a.cond_id = c.id
                   LEFT JOIN regis_vehic r ON a.regis_vehic_id = r.id
@@ -238,19 +240,43 @@ class Alert {
 
     // Actualizar alerta completa
     public function update($id, $data) {
-        $query = "UPDATE " . $this->table . " SET 
-                  descripcion = :descripcion,
-                  prioridad = :prioridad,
-                  estado = :estado,
-                  observaciones = :observaciones
-                  WHERE id = :id";
-
+        // Construir query dinámicamente según los campos presentes
+        $fields = [];
+        $params = [];
+        
+        if (isset($data['descripcion'])) {
+            $fields[] = "descripcion = :descripcion";
+            $params[':descripcion'] = $data['descripcion'];
+        }
+        if (isset($data['prioridad'])) {
+            $fields[] = "prioridad = :prioridad";
+            $params[':prioridad'] = $data['prioridad'];
+        }
+        if (isset($data['estado'])) {
+            $fields[] = "estado = :estado";
+            $params[':estado'] = $data['estado'];
+        }
+        if (isset($data['observaciones'])) {
+            $fields[] = "observaciones = :observaciones";
+            $params[':observaciones'] = $data['observaciones'];
+        }
+        if (isset($data['posicion_llanta'])) {
+            $fields[] = "posicion_llanta = :posicion_llanta";
+            $params[':posicion_llanta'] = $data['posicion_llanta'];
+        }
+        
+        if (empty($fields)) {
+            return false;
+        }
+        
+        $query = "UPDATE " . $this->table . " SET " . implode(', ', $fields) . " WHERE id = :id";
+        $params[':id'] = $id;
+        
         $stmt = $this->db->prepare($query);
-        $stmt->bindParam(':descripcion', $data['descripcion']);
-        $stmt->bindParam(':prioridad', $data['prioridad']);
-        $stmt->bindParam(':estado', $data['estado']);
-        $stmt->bindParam(':observaciones', $data['observaciones']);
-        $stmt->bindParam(':id', $id);
+        
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
         
         return $stmt->execute();
     }
@@ -406,6 +432,252 @@ class Alert {
             'traccion2_izquierda2' => 'Tracción 2 - Izquierda 2',
             'traccion2_derecha2' => 'Tracción 2 - Derecha 2'
         ];
+    }
+
+    // ========== SISTEMA DE RESOLUCIÓN DE ALERTAS ==========
+
+    /**
+     * Resolver una alerta
+     * @param int $alertId ID de la alerta
+     * @param int $userId ID del usuario que resuelve
+     * @param string $notas Notas de resolución
+     * @return array Resultado de la operación
+     */
+    public function resolve($alertId, $userId, $notas = '') {
+        try {
+            $this->db->beginTransaction();
+
+            // 1. Verificar que la alerta existe y NO está ya resuelta
+            $query = "SELECT * FROM " . $this->table . " WHERE id = :id";
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(':id', $alertId);
+            $stmt->execute();
+            $alert = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$alert) {
+                $this->db->rollBack();
+                return [
+                    'success' => false,
+                    'message' => 'La alerta no existe.'
+                ];
+            }
+
+            if ($alert['estado'] === 'resuelta') {
+                $this->db->rollBack();
+                return [
+                    'success' => false,
+                    'message' => 'Esta alerta ya fue resuelta anteriormente.'
+                ];
+            }
+
+            // 2. Actualizar la alerta
+            $updateQuery = "UPDATE " . $this->table . " 
+                           SET estado = 'resuelta',
+                               fecha_resolucion = NOW(),
+                               usuario_resuelve_id = :user_id,
+                               notas_resolucion = :notas
+                           WHERE id = :id";
+            
+            $updateStmt = $this->db->prepare($updateQuery);
+            $updateStmt->bindParam(':user_id', $userId);
+            $updateStmt->bindParam(':notas', $notas);
+            $updateStmt->bindParam(':id', $alertId);
+            $updateStmt->execute();
+
+            // 3. Actualizar orden de trabajo relacionada (si existe)
+            if ($alert['ord_trabj_id']) {
+                $ordQuery = "UPDATE ord_trabj SET estado = 'completada' WHERE id = :ord_id";
+                $ordStmt = $this->db->prepare($ordQuery);
+                $ordStmt->bindParam(':ord_id', $alert['ord_trabj_id']);
+                $ordStmt->execute();
+            }
+
+            // 4. Desvincular órdenes de trabajo del conductor (si tiene conductor asociado)
+            if ($alert['cond_id'] && $alert['ord_trabj_id']) {
+                $unlinkCondQuery = "UPDATE ord_trabj SET cond_id = NULL WHERE id = :ord_id";
+                $unlinkCondStmt = $this->db->prepare($unlinkCondQuery);
+                $unlinkCondStmt->bindParam(':ord_id', $alert['ord_trabj_id']);
+                $unlinkCondStmt->execute();
+            }
+
+            $this->db->commit();
+
+            // Obtener información del usuario que resolvió
+            $userQuery = "SELECT nombre FROM users WHERE id = :user_id";
+            $userStmt = $this->db->prepare($userQuery);
+            $userStmt->bindParam(':user_id', $userId);
+            $userStmt->execute();
+            $user = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+            return [
+                'success' => true,
+                'message' => 'Alerta resuelta exitosamente. Ahora puedes eliminar el conductor/vehículo asociado si lo deseas.',
+                'data' => [
+                    'alert_id' => $alertId,
+                    'fecha_resolucion' => date('Y-m-d H:i:s'),
+                    'usuario_resuelve' => $user['nombre'] ?? 'Usuario'
+                ]
+            ];
+
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            return [
+                'success' => false,
+                'message' => 'Error al resolver la alerta: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Verificar si se puede eliminar un conductor
+     * @param int $conductorId ID del conductor
+     * @return array Resultado con información de alertas pendientes
+     */
+    public function canDeleteConductor($conductorId) {
+        try {
+            // Contar alertas no resueltas
+            $query = "SELECT COUNT(*) as total 
+                     FROM " . $this->table . " 
+                     WHERE cond_id = :conductor_id 
+                     AND estado IN ('activa', 'en_proceso', 'cancelada')";
+            
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(':conductor_id', $conductorId);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($result['total'] > 0) {
+                // Obtener detalles de las alertas pendientes
+                $detailQuery = "SELECT id, descripcion, estado, fecha_hora, prioridad
+                               FROM " . $this->table . " 
+                               WHERE cond_id = :conductor_id 
+                               AND estado != 'resuelta'
+                               ORDER BY fecha_hora DESC
+                               LIMIT 10";
+                
+                $detailStmt = $this->db->prepare($detailQuery);
+                $detailStmt->bindParam(':conductor_id', $conductorId);
+                $detailStmt->execute();
+                $alerts = $detailStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                return [
+                    'success' => true,
+                    'can_delete' => false,
+                    'message' => 'No se puede eliminar el conductor porque tiene ' . $result['total'] . ' alertas pendientes o en proceso. Por favor, resuélvelas primero.',
+                    'pending_alerts' => (int)$result['total'],
+                    'alerts' => $alerts
+                ];
+            }
+
+            return [
+                'success' => true,
+                'can_delete' => true,
+                'message' => 'El conductor puede ser eliminado.',
+                'pending_alerts' => 0
+            ];
+
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Error al verificar alertas: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Verificar si se puede eliminar un vehículo
+     * @param int $vehicleId ID del vehículo
+     * @return array Resultado con información de alertas pendientes
+     */
+    public function canDeleteVehicle($vehicleId) {
+        try {
+            // Contar alertas no resueltas
+            $query = "SELECT COUNT(*) as total 
+                     FROM " . $this->table . " 
+                     WHERE regis_vehic_id = :vehicle_id 
+                     AND estado IN ('activa', 'en_proceso', 'cancelada')";
+            
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(':vehicle_id', $vehicleId);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($result['total'] > 0) {
+                // Obtener detalles de las alertas pendientes
+                $detailQuery = "SELECT id, descripcion, estado, fecha_hora, prioridad
+                               FROM " . $this->table . " 
+                               WHERE regis_vehic_id = :vehicle_id 
+                               AND estado != 'resuelta'
+                               ORDER BY fecha_hora DESC
+                               LIMIT 10";
+                
+                $detailStmt = $this->db->prepare($detailQuery);
+                $detailStmt->bindParam(':vehicle_id', $vehicleId);
+                $detailStmt->execute();
+                $alerts = $detailStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                return [
+                    'success' => true,
+                    'can_delete' => false,
+                    'message' => 'No se puede eliminar el vehículo porque tiene ' . $result['total'] . ' alertas pendientes o en proceso. Por favor, resuélvelas primero.',
+                    'pending_alerts' => (int)$result['total'],
+                    'alerts' => $alerts
+                ];
+            }
+
+            return [
+                'success' => true,
+                'can_delete' => true,
+                'message' => 'El vehículo puede ser eliminado.',
+                'pending_alerts' => 0
+            ];
+
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Error al verificar alertas: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Desvincular alertas resueltas antes de eliminar conductor
+     * @param int $conductorId ID del conductor
+     * @return bool
+     */
+    public function unlinkResolvedAlertsConductor($conductorId) {
+        try {
+            $query = "UPDATE " . $this->table . " 
+                     SET cond_id = NULL 
+                     WHERE cond_id = :conductor_id 
+                     AND estado = 'resuelta'";
+            
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(':conductor_id', $conductorId);
+            return $stmt->execute();
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Desvincular alertas resueltas antes de eliminar vehículo
+     * @param int $vehicleId ID del vehículo
+     * @return bool
+     */
+    public function unlinkResolvedAlertsVehicle($vehicleId) {
+        try {
+            $query = "UPDATE " . $this->table . " 
+                     SET regis_vehic_id = NULL 
+                     WHERE regis_vehic_id = :vehicle_id 
+                     AND estado = 'resuelta'";
+            
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(':vehicle_id', $vehicleId);
+            return $stmt->execute();
+        } catch (Exception $e) {
+            return false;
+        }
     }
 }
 ?>

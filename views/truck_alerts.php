@@ -22,361 +22,232 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
     <link href="../assets/css/truck-alerts.css" rel="stylesheet">
     
     <style>
-        /* HEADER PRINCIPAL */
-        .main-header {
-            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(30, 58, 138, 0.2);
-            color: #FFFFFF;
-            margin-bottom: 2rem;
-            padding: 2rem;
-            position: relative;
-            overflow: hidden;
+        :root{
+            --bg-primary: #0F172A;
+            --card-bg: #111827;
+            --card-radius: 12px;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --border: #1E293B;
+            --accent: #F97316;
+            --accent-amber: #F59E0B;
+            --danger: #EF4444;
+            --success: #10B981;
         }
-        .main-header::before {
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2"/></svg>');
-            content: '';
-            height: 200px;
-            opacity: 0.1;
-            position: absolute;
-            right: -50px;
-            top: -50px;
-            width: 200px;
+
+        /* Texto principal: aplicar blanco a elementos claves, preservar clases utilitarias como .text-muted */
+        body { color: var(--text-primary); }
+        .main-header, .card, .truck-diagram-container, .alerts-dashboard, .btn, .badge, label, .form-label { color: var(--text-primary) !important; }
+        .nav .nav-link .fas, .main-header .fas { color: var(--text-primary) !important; }
+
+        /* Títulos específicos en negro para legibilidad: nav tabs y h4 principales */
+        .nav .nav-link, .nav .nav-link.active { color: #000 !important; }
+        .tab-content h4, .tab-content h3, .truck-diagram-container h3 { color: #000 !important; }
+        small.text-muted { color: var(--text-secondary) !important; }
+
+        /* MAIN HEADER */
+        .main-header{
+            background: linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(17,24,39,0.85) 100%);
+            border-radius: 14px;
+            box-shadow: 0 18px 50px rgba(2,6,23,0.6);
+            color:var(--text-primary);
+            margin-bottom:2rem;padding:2rem;position:relative;overflow:hidden
         }
-        .main-header h1 {
-            color: #FFFFFF;
-            margin-bottom: 0.5rem;
-            position: relative;
-            z-index: 2;
+        .main-header::before{content:'';position:absolute;right:-80px;top:-80px;width:260px;height:260px;background:radial-gradient(circle at 20% 20%, rgba(59,130,246,0.08), transparent 40%), radial-gradient(circle at 90% 10%, rgba(249,115,22,0.06), transparent 40%);filter:blur(26px);opacity:0.95}
+        .main-header h1{color:var(--text-primary);margin-bottom:0.5rem}
+        .main-header .lead{color:var(--text-secondary);opacity:1}
+
+        /* CARDS & CONTAINERS */
+        .card, .tab-content .card{
+            background:var(--card-bg);border:1px solid rgba(255,255,255,0.03);border-radius:12px;box-shadow:0 8px 30px rgba(2,6,23,0.6);margin-bottom:1.5rem;overflow:hidden
         }
-        .main-header .lead {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            position: relative;
-            z-index: 2;
+
+        /* Recuadro completo naranja para el contenedor del diagrama de llantas */
+        .truck-diagram-container{
+            background: linear-gradient(90deg, var(--accent), #814310ff);
+            border:1px solid rgba(249,115,22,0.18);
+            border-radius:12px;
+            box-shadow:0 8px 30px rgba(249,115,22,0.12);
+            margin-bottom:1.5rem;
+            overflow:hidden;
+            padding:2rem 1.5rem;
+            color: #000; /* texto negro sobre naranja para legibilidad */
         }
-        /* TARJETAS Y CONTENEDORES */
-        .truck-diagram-container, .card, .tab-content .card {
-            background: #FFFFFF;
-            border: 1px solid rgba(209, 213, 219, 0.3);
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-            margin-bottom: 1.5rem;
-            overflow: hidden;
-        }
-        .truck-diagram-container {
-            padding: 2rem 1.5rem;
-        }
-        /* BOTONES */
-        .btn {
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-size: 0.95rem;
-            font-weight: 500;
-            min-height: 44px;
-            padding: 0.75rem 1.5rem;
-            position: relative;
-            text-decoration: none;
-        }
-        .btn:focus {
-            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.3);
-            outline: none;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
-            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
-            color: #1E3A8A !important;
-            font-weight: 600;
-        }
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
-            color: #1E3A8A !important;
-        }
-        .btn-outline-primary {
-            background: #FFFFFF;
-            border: 2px solid #1E3A8A;
-            color: #1E3A8A !important;
-        }
-        .btn-outline-primary:hover {
-            background: #1E3A8A;
-            color: #FFFFFF !important;
-        }
-        .btn-light {
-            background: rgba(13,110,253,0.08) !important;
-            color: #111 !important;
-            border: 1px solid rgba(13,110,253,0.15) !important;
-        }
-        /* BADGES */
-        .badge {
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            padding: 0.5rem 1rem;
-        }
-        .badge.bg-success {
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
-        }
-        .badge.bg-warning {
-            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%) !important;
-            color: #1E3A8A !important;
-        }
-        .badge.bg-danger {
-            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
-        }
-        .badge.bg-info {
-            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
-        }
-        /* FORMULARIOS */
-        .form-control, .form-select {
-            background: #FFFFFF;
-            border: 2px solid #D1D5DB;
-            border-radius: 8px;
-            color: #374151;
-            font-size: 16px;
-            padding: 0.75rem 1rem;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: #1E3A8A;
-            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
-            outline: none;
-        }
-        .form-label {
-            color: #1E3A8A;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-        }
-        /* ANIMACIONES */
-        /* Animaciones removidas para mejorar rendimiento */
-        
-        /* Desactivar todas las animaciones en la tabla de estadísticas */
-        #statistics-table *, #statistics-table {
-            animation: none !important;
-            transition: none !important;
-            transform: none !important;
-        }
-        
-        /* Desactivar animaciones en las barras de progreso */
-        .progress-bar {
-            animation: none !important;
-            transition: none !important;
-        }
-        
-        /* ESTILOS PARA EL MODAL DE ALERTA */
-        .alert-modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
+
+        /* Título sin fondo (el contenedor ya es naranja) */
+        .truck-diagram-container h3 {
+            display: block;
             width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(3px);
-        }
-        
-        .alert-modal-content {
-            background-color: #ffffff;
-            margin: 5% auto;
+            background: transparent;
+            color: #000 !important;
             padding: 0;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            animation: modalSlideIn 0.3s ease-out;
+            margin: 0 0 1rem 0;
         }
-        
-        @keyframes modalSlideIn {
-            from { opacity: 0; transform: translateY(-50px); }
-            to { opacity: 1; transform: translateY(0); }
+
+        /* BUTTONS */
+        .btn{border-radius:10px;border:0;cursor:pointer;font-size:.95rem;font-weight:600;min-height:44px;padding:.6rem 1rem}
+        .btn:focus{outline:none;box-shadow:0 0 0 3px rgba(249,115,22,0.12)}
+        .btn-primary{background:linear-gradient(90deg,var(--accent),#FB923C);color:#fff;box-shadow:0 8px 30px rgba(249,115,22,0.08)}
+        .btn-primary:hover{filter:brightness(.98);transform:translateY(-2px);box-shadow:0 18px 40px rgba(249,115,22,0.12)}
+        .btn-outline-primary{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--text-primary)}
+        .btn-light{background:transparent;color:var(--text-secondary);border:1px solid rgba(255,255,255,0.02)}
+
+        /* BADGES */
+        .badge{border-radius:20px;font-size:.8rem;font-weight:600;padding:.4rem .75rem}
+        .badge.bg-success{background:linear-gradient(90deg,var(--success),#059669);color:#fff}
+        .badge.bg-warning{background:linear-gradient(90deg,var(--accent-amber),#D97706);color:#fff}
+        .badge.bg-danger{background:linear-gradient(90deg,var(--danger),#DC2626);color:#fff}
+        .badge.bg-info{background:linear-gradient(90deg,#475569,#334155);color:#fff}
+
+        /* FORMS */
+        .form-control,.form-select{background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--text-primary);padding:.65rem .85rem}
+        .form-control::placeholder{color:var(--text-primary) !important;opacity:0.85}
+        .form-control:focus,.form-select:focus{border-color:var(--accent);box-shadow:0 10px 30px rgba(249,115,22,0.06);outline:none}
+        .form-label{color:var(--text-secondary);font-weight:600;margin-bottom:.5rem}
+
+        /* PERFORMANCE */
+        #statistics-table *, #statistics-table{animation:none!important;transition:none!important;transform:none!important}
+        .progress-bar{animation:none!important;transition:none!important}
+
+        /* ALERT MODAL */
+        .alert-modal{display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;background-color:rgba(0,0,0,0.6);backdrop-filter:blur(6px)}
+        /* Modal: dark card background matching the system palette */
+        .alert-modal-content{
+            background: var(--card-bg);
+            color: var(--text-primary) !important;
+            margin:5% auto;padding:0;border-radius:12px;width:90%;max-width:520px;box-shadow:0 18px 60px rgba(2,6,23,0.6);animation:modalSlideIn .28s ease-out;
         }
-        
-        .alert-modal-header {
-            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 12px 12px 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .alert-modal-title {
-            margin: 0;
-            font-size: 1.2rem;
-            font-weight: 600;
-        }
-        
-        .close {
-            color: white;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            line-height: 1;
-        }
-        
-        .close:hover,
-        .close:focus {
-            color: #fbbf24;
-            text-decoration: none;
-        }
-        
-        #alert-form {
-            padding: 25px;
-        }
-        
-        #alert-form .form-group {
-            margin-bottom: 20px;
-        }
-        
-        #alert-form label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            color: #1E3A8A;
-        }
-        
-        #alert-form input[type="text"],
-        #alert-form select,
-        #alert-form textarea {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #D1D5DB;
+        /* Header with subtle orange accent */
+        .alert-modal-header{background:linear-gradient(135deg, rgba(15,23,42,0.95), rgba(17,24,39,0.95));color:var(--text-primary);padding:18px;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--accent)}
+        .alert-modal-title{margin:0;font-size:1.1rem;font-weight:700;color:var(--text-primary)}
+        .close{color:var(--text-secondary);font-size:22px;font-weight:700;cursor:pointer}
+        .close:hover{color:var(--accent)}
+
+        /* Formularios dentro del modal: inputs/selects/textareas usan fondo blanco para legibilidad */
+        .alert-modal-content input[type="text"],
+        .alert-modal-content input[type="search"],
+        .alert-modal-content textarea,
+        .alert-modal-content select,
+        .alert-modal-content .form-control,
+        .alert-modal-content .form-select {
+            color: #000 !important;
+            background: #ffffff !important;
+            border-color: #e6e6e6 !important;
             border-radius: 8px;
-            font-size: 14px;
-            background: #F9FAFB;
+        }
+        .alert-modal-content select option { color: #000 !important; background: #fff !important }
+
+        /* Placeholder styling inside dark modal */
+        .alert-modal-content input::placeholder,
+        .alert-modal-content textarea::placeholder {
+            color: #666666 !important;
+            opacity: 0.85 !important;
+        }
+        @keyframes modalSlideIn{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:none}}
+        .alert-modal-header{background:#ffffff;color:#000;padding:18px;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee}
+        .alert-modal-title{margin:0;font-size:1.1rem;font-weight:700}
+        .close{color:#666;font-size:22px;font-weight:700;cursor:pointer}
+        .close:hover{color:#000}
+
+        /* ALERT FORM */
+        #alert-form{padding:20px}
+        /* Etiquetas del modal en negro para mejor legibilidad sobre fondo blanco */
+        #alert-form label{color:#000;font-weight:600;margin-bottom:6px}
+        #alert-form input[type="text"],#alert-form select,#alert-form textarea{width:100%;padding:10px;border:1px solid #dcdcdc;border-radius:10px;background:#fff;color:#000}
+        #alert-form textarea{min-height:90px}
+        #alert-form .btn-primary{background:linear-gradient(90deg,var(--accent),#FB923C);color:#fff}
+        #alert-form .btn-secondary{background:#374151;color:#fff}
+
+        /* TRUCK DIAGRAM */
+        .truck-diagram{width:100%;height:400px;max-width:360px;margin:0 auto;display:block}
+        .tire{cursor:pointer;stroke:rgba(0,0,0,0.6);stroke-width:2;transition:all .18s ease}
+        .tire:hover{fill:rgba(255,255,255,0.03)!important;stroke:var(--accent);stroke-width:3}
+        .tire-label{font-family:Arial,Helvetica,sans-serif;font-size:10px;font-weight:700;text-anchor:middle;fill:#000 !important;pointer-events:none}
+        .truck-line{stroke:rgba(255,255,255,0.06);stroke-width:3;fill:none}
+        .tire.status-normal{fill:var(--success)}
+        .tire.status-warning{fill:var(--accent-amber)}
+        .tire.status-critical{fill:var(--danger)}
+
+        /* ACTION BUTTONS */
+        .btn-group .btn{margin:2px;box-shadow:0 6px 18px rgba(2,6,23,0.45)}
+        .alert-actions{display:flex;gap:.5rem}
+        .alert-actions .btn{min-width:86px;padding:.35rem .75rem;font-size:.875rem}
+
+        /* EDIT MODAL */
+        .edit-modal{display:none;position:fixed;z-index:1000;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px)}
+        .edit-modal-content{background:#ffffff;margin:3% auto;padding:0;border-radius:12px;width:92%;max-width:700px;max-height:85vh;overflow:auto;box-shadow:0 18px 60px rgba(2,6,23,0.8)}
+        .edit-modal-header{background:#ffffff;color:#000000;padding:18px;border-radius:12px 12px 0 0;position:sticky;top:0;z-index:10;border-bottom:1px solid #eee}
+        
+        /* Forzar texto negro en todo el contenido del modal de edición */
+        .edit-modal-content,
+        .edit-modal-content *,
+        .edit-modal-content label,
+        .edit-modal-content input,
+        .edit-modal-content select,
+        .edit-modal-content textarea,
+        .edit-modal-content option,
+        .edit-modal-content .form-control,
+        .edit-modal-content .form-select,
+        .edit-modal-content h1,
+        .edit-modal-content h2,
+        .edit-modal-content h3,
+        .edit-modal-content h4,
+        .edit-modal-content h5,
+        .edit-modal-content h6,
+        .edit-modal-content p,
+        .edit-modal-content div,
+        .edit-modal-content span {
+            color: #000000 !important;
         }
         
-        #alert-form input[type="text"]:focus,
-        #alert-form select:focus,
-        #alert-form textarea:focus {
-            outline: none;
-            border-color: #1E3A8A;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        /* Asegurar fondo blanco para inputs y selects del modal de edición */
+        .edit-modal-content input,
+        .edit-modal-content select,
+        .edit-modal-content textarea,
+        .edit-modal-content .form-control,
+        .edit-modal-content .form-select {
+            background: #ffffff !important;
+            color: #000000 !important;
+            border: 1px solid #ddd !important;
         }
         
-        #alert-form textarea {
-            height: 80px;
-            resize: vertical;
+        .edit-modal-content select option {
+            background: #ffffff !important;
+            color: #000000 !important;
         }
         
-        #alert-form button {
-            padding: 10px 20px;
-            margin: 0 5px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 500;
-            cursor: pointer;
+        /* Placeholder negro para todos los inputs del modal de edición */
+        .edit-modal-content input::placeholder,
+        .edit-modal-content textarea::placeholder {
+            color: #000000 !important;
+            opacity: 0.7 !important;
         }
         
-        #alert-form .btn-primary {
-            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
-            color: #1E3A8A;
-        }
-        
-        #alert-form .btn-secondary {
-            background: #6B7280;
-            color: white;
-        }
-        
-        #alert-form .btn-primary:hover {
-            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-        }
-        
-        #alert-form .btn-secondary:hover {
-            background: #4B5563;
-        }
-        
-        /* ESTILOS PARA EL DIAGRAMA DE LLANTAS */
-        .truck-diagram {
-            width: 100%;
-            height: 400px;
-            max-width: 300px;
-            margin: 0 auto;
-            display: block;
-        }
-        
-        .tire {
-            cursor: pointer;
-            stroke: #000;
-            stroke-width: 2;
-            transition: all 0.2s ease;
-        }
-        
-        .tire:hover {
-            fill: #fbbf24 !important;
-            stroke: #f59e0b;
-            stroke-width: 3;
-        }
-        
-        .tire-label {
-            font-family: Arial, sans-serif;
-            font-size: 10px;
-            font-weight: bold;
-            text-anchor: middle;
-            fill: white;
-            pointer-events: none;
-        }
-        
-        .truck-line {
-            stroke: #333;
-            stroke-width: 3;
-            fill: none;
-        }
-        
-        /* Estados de las llantas según alertas */
-        .tire.status-normal { fill: #10b981; }
-        .tire.status-warning { fill: #f59e0b; }
-        .tire.status-critical { fill: #ef4444; }
-        
-        
-        /* Estilos para el botón de eliminar alerta */
-        .btn-danger:hover {
-            background-color: #c82333 !important;
-            border-color: #bd2130 !important;
-        }
-        
-        /* Animación para la eliminación de alertas removida */
-        .alert-deleting {
-            opacity: 0;
-        }
-        
-        /* Mejorar la presentación de los botones de acción */
-        .btn-group .btn {
-            margin: 1px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        /* Estilos específicos para botones de alertas recientes */
-        .alert-actions {
-            gap: 0.5rem !important;
-        }
-        
-        .alert-actions .btn {
-            min-width: 80px;
-            padding: 0.25rem 0.75rem;
-            font-size: 0.875rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        /* Responsivo para pantallas pequeñas */
-        @media (max-width: 576px) {
-            .alert-actions {
-                justify-content: center !important;
-            }
-            
-            .alert-actions .btn {
-                min-width: 70px;
-                font-size: 0.8rem;
-            }
-        }
-        
-        .btn-group .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
+        #edit-alert-form .d-flex{position:sticky;bottom:0;background:transparent;padding:16px 0 0 0;margin-top:20px;border-top:1px solid rgba(255,255,255,0.03)}
+
+        /* Responsive */
+        @media (max-width:576px){.alert-actions{justify-content:center}.alert-actions .btn{min-width:70px;font-size:.8rem}.truck-diagram{height:280px}}
+
+        /* Estadísticas por Posición: forzar texto blanco dentro del panel */
+        #nav-statistics, #nav-statistics * { color: var(--text-primary) !important; }
+        #nav-statistics small.text-muted { color: var(--text-secondary) !important; }
+        #nav-statistics h4, #nav-statistics h3 { color: var(--text-primary) !important; }
+
+        /* ===== Ajuste: forzar texto negro y fondos blancos en Estadísticas por Posición ===== */
+        /* Forzamos texto negro en todo el panel */
+        #nav-statistics, #nav-statistics * { color: #000 !important; }
+        #nav-statistics small.text-muted { color: #000 !important; }
+        #nav-statistics h4, #nav-statistics h3 { color: #030303ff !important; }
+        /* Forzar fondos blancos para el panel y sus contenedores internos sin afectar otros componentes */
+        #nav-statistics { background: #ffffff !important; }
+        #nav-statistics .card,
+        #nav-statistics .card-body,
+        #nav-statistics #statistics-summary,
+        #nav-statistics #chart-container,
+        #nav-statistics #statistics-table { background: #ffffff !important; }
+        /* Mantener select visuals pero forzar texto y opciones en negro sobre fondo blanco */
+        #chart-type-selector, #data-type-selector, #nav-statistics select.form-select { color: #000 !important; background: #fff !important; }
+        #nav-statistics select.form-select option { color: #070707ff !important; background: #fff !important; }
     </style>
 </head>
 <body>
@@ -447,7 +318,53 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
                         <div class="mt-3">
                             <h4>Alertas de Llantas Recientes</h4>
                             <div id="alerts-list" class="alerts-dashboard">
-                                <!-- Las alertas se cargarán dinámicamente -->
+                                <!-- Contenedor del filtro y lista: el filtro se inserta por JS. -->
+                                <!-- Los cards de alertas se renderizan dentro de #alerts-cards para no sobrescribir el filtro -->
+                                <div id="alerts-cards"></div>
+                            </div>
+                            <!-- Modal para nueva alerta -->
+                            <div class="alert-modal" id="alert-modal">
+                                <div class="alert-modal-content">
+                                    <div class="alert-modal-header">
+                                        <span class="alert-modal-title">Nueva Alerta</span>
+                                        <span class="close" onclick="closeAlertModal()">&times;</span>
+                                    </div>
+                                    <form id="alert-form" onsubmit="event.preventDefault(); submitAlertForm();">
+                                        <div class="mb-3">
+                                            <label for="tipo_alerta" class="form-label">Tipo de Alerta</label>
+                                            <select class="form-select" id="tipo_alerta" name="tipo_alerta" required>
+                                                <option value="llanta">Llantas</option>
+                                                <option value="freno">Frenos</option>
+                                                <option value="motor">Motor</option>
+                                                <option value="electrico">Eléctrico</option>
+                                                <option value="otros">Otros</option>
+                                            </select>
+                                        </div>
+                                        <!-- ...otros campos del formulario existentes... -->
+                                        <div class="mb-3">
+                                            <label for="descripcion" class="form-label">Descripción</label>
+                                            <input type="text" class="form-control" id="descripcion" name="descripcion" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="prioridad" class="form-label">Prioridad</label>
+                                            <select class="form-select" id="prioridad" name="prioridad" required>
+                                                <option value="critica">Crítica</option>
+                                                <option value="alta">Alta</option>
+                                                <option value="media">Media</option>
+                                                <option value="baja">Baja</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="observaciones" class="form-label">Observaciones</label>
+                                            <textarea class="form-control" id="observaciones" name="observaciones"></textarea>
+                                        </div>
+                                        <!-- Aquí puedes agregar más campos según tu lógica -->
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <button type="button" class="btn btn-secondary" onclick="closeAlertModal()">Cancelar</button>
+                                            <button type="submit" class="btn btn-primary">Guardar Alerta</button>
+                                        </div>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -492,11 +409,6 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
                                         <option value="critical">Solo Críticas</option>
                                         <option value="percentages">Solo Porcentajes</option>
                                     </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <button id="export-chart" class="btn btn-outline-success btn-sm">
-                                        <i class="fas fa-download"></i> Exportar
-                                    </button>
                                 </div>
                             </div>
                             
@@ -658,7 +570,7 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
 
         // Mostrar alertas recientes en el dashboard
         function displayRecentAlerts(alerts) {
-            const container = document.getElementById('alerts-list');
+            const container = document.getElementById('alerts-cards');
             if (!container) return;
             if (!alerts || alerts.length === 0) {
                 container.innerHTML = '<p>No hay alertas recientes.</p>';
@@ -676,6 +588,7 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <h5 class="card-title mb-1 text-corporate"><i class="fas fa-exclamation-triangle me-2 text-danger"></i>${alert.descripcion}</h5>
+                                <span class="badge bg-secondary mb-1 text-uppercase">${alert.tipo_alerta || 'N/A'}</span>
                                 <p class="card-text mb-1">${alert.observaciones || ''}</p>
                                 <small class="text-muted">
                                     <i class="fas fa-calendar"></i> ${alert.fecha_hora || ''}
@@ -698,6 +611,9 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
                                     </button>
                                     <button class="btn btn-sm btn-outline-danger" onclick="updateAlertStatus(${alert.id}, 'activa')" title="Marcar como activa">
                                         <i class="fas fa-exclamation"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-primary" onclick="openEditModal(${alert.id})" title="Editar alerta">
+                                        <i class="fas fa-edit"></i>
                                     </button>
                                     <button class="btn btn-sm btn-danger" onclick="deleteAlert(${alert.id})" title="Eliminar alerta">
                                         <i class="fas fa-trash"></i>
@@ -1061,26 +977,23 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
                             <h6 class="mb-0">
                                 <i class="fas fa-table"></i> Tabla Detallada de Estadísticas
                             </h6>
-                            <button class="btn btn-outline-primary btn-sm" onclick="exportTableToCSV()">
-                                <i class="fas fa-file-csv"></i> Exportar CSV
-                            </button>
                         </div>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
                             <table class="table table-hover mb-0" id="statistics-data-table">
-                                <thead class="table-dark">
-                                    <tr>
-                                        <th class="text-center">#</th>
-                                        <th>Posición de Llanta</th>
-                                        <th class="text-center">Total Alertas</th>
-                                        <th class="text-center">Estado</th>
-                                        <th class="text-center">Críticas</th>
-                                        <th class="text-center">% Críticas</th>
-                                        <th class="text-center">% Altas</th>
-                                        <th class="text-center">% Medias</th>
-                                        <th class="text-center">% Bajas</th>
-                                        <th class="text-center">Tendencia</th>
+                                <thead style="background: #F97316 !important;">
+                                    <tr style="background: #F97316 !important;">
+                                        <th class="text-center" style="background: #F97316 !important; color: #ffffff !important; border: 1px solid #E65100 !important;">#</th>
+                                        <th style="background: #F97316 !important; color: #ffffff !important; border: 1px solid #E65100 !important;">Posición de Llanta</th>
+                                        <th class="text-center" style="background: #F97316 !important; color: #ffffff !important; border: 1px solid #E65100 !important;">Total Alertas</th>
+                                        <th class="text-center" style="background: #F97316 !important; color: #ffffff !important; border: 1px solid #E65100 !important;">Estado</th>
+                                        <th class="text-center" style="background: #F97316 !important; color: #ffffff !important; border: 1px solid #E65100 !important;">Críticas</th>
+                                        <th class="text-center" style="background: #F97316 !important; color: #ffffff !important; border: 1px solid #E65100 !important;">% Críticas</th>
+                                        <th class="text-center" style="background: #F97316 !important; color: #ffffff !important; border: 1px solid #E65100 !important;">% Altas</th>
+                                        <th class="text-center" style="background: #F97316 !important; color: #ffffff !important; border: 1px solid #E65100 !important;">% Medias</th>
+                                        <th class="text-center" style="background: #F97316 !important; color: #ffffff !important; border: 1px solid #E65100 !important;">% Bajas</th>
+                                        <th class="text-center" style="background: #F97316 !important; color: #ffffff !important; border: 1px solid #E65100 !important;">Tendencia</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1266,16 +1179,6 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
             document.getElementById('data-type-selector').addEventListener('change', function() {
                 if (window.currentStatistics) {
                     createStatisticsChart(window.currentStatistics);
-                }
-            });
-            
-            // Evento para exportar gráfico
-            document.getElementById('export-chart').addEventListener('click', function() {
-                if (window.statisticsChart) {
-                    const link = document.createElement('a');
-                    link.download = `grafico_estadisticas_${new Date().toISOString().split('T')[0]}.png`;
-                    link.href = window.statisticsChart.toBase64Image();
-                    link.click();
                 }
             });
         }
@@ -1476,6 +1379,150 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
                 alert('Error de conexión al eliminar la alerta: ' + error.message);
             }
         }
+
+        // Función para abrir modal de edición
+        async function openEditModal(alertId) {
+            try {
+                // Cargar nombres de alertas para el select
+                const select = document.getElementById('edit-posicion');
+                select.innerHTML = '<option value="">Cargando alertas...</option>';
+                const nombresResp = await fetch('/trucksisx/api/alerta_nombres.php');
+                const nombresData = await nombresResp.json();
+                if (nombresData.success && Array.isArray(nombresData.data)) {
+                    select.innerHTML = '<option value="">Seleccione una alerta...</option>' +
+                        nombresData.data.map(nombre => `<option value="${nombre}">${nombre}</option>`).join('');
+                } else {
+                    select.innerHTML = '<option value="">No hay alertas registradas</option>';
+                }
+
+                // Obtener datos de la alerta
+                const response = await fetch(`/trucksisx/controllers/AlertController.php?action=getAlert&id=${alertId}`);
+                const data = await response.json();
+                if (data.success && data.alert) {
+                    const alert = data.alert;
+                    document.getElementById('edit-alert-id').value = alert.id;
+                    document.getElementById('edit-descripcion').value = alert.descripcion || '';
+                    if (select) {
+                        select.value = alert.posicion_llanta || '';
+                    }
+                    document.getElementById('edit-prioridad').value = alert.prioridad || 'baja';
+                    document.getElementById('edit-estado').value = alert.estado || 'activa';
+                    document.getElementById('edit-observaciones').value = alert.observaciones || '';
+                    document.getElementById('editAlertModal').style.display = 'block';
+                } else {
+                    alert('Error al cargar los datos de la alerta');
+                    console.error('Error en respuesta:', data);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error de conexión al cargar la alerta');
+            }
+        }
+
+        // Función para cerrar modal de edición
+        function closeEditModal() {
+            document.getElementById('editAlertModal').style.display = 'none';
+        }
+
+        // Función para guardar cambios de la alerta
+        async function saveAlertChanges() {
+            try {
+                const formData = new FormData();
+                formData.append('id', document.getElementById('edit-alert-id').value);
+                formData.append('descripcion', document.getElementById('edit-descripcion').value);
+                formData.append('posicion_llanta', document.getElementById('edit-posicion').value);
+                formData.append('prioridad', document.getElementById('edit-prioridad').value);
+                formData.append('estado', document.getElementById('edit-estado').value);
+                formData.append('observaciones', document.getElementById('edit-observaciones').value);
+                
+                const response = await fetch('/trucksisx/controllers/AlertController.php?action=update', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    closeEditModal();
+                    loadDashboard();
+                    loadStatistics();
+                    alert('Alerta actualizada correctamente');
+                } else {
+                    alert('Error al actualizar la alerta: ' + (data.message || 'Error desconocido'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error de conexión al actualizar la alerta');
+            }
+        }
+
+        // Cerrar modal al hacer clic fuera de él
+        window.onclick = function(event) {
+            const modal = document.getElementById('editAlertModal');
+            if (event.target === modal) {
+                closeEditModal();
+            }
+        }
     </script>
+
+    <!-- Modal de edición de alerta -->
+    <div id="editAlertModal" class="edit-modal">
+        <div class="edit-modal-content">
+            <div class="edit-modal-header">
+                <h3 class="alert-modal-title m-0">
+                    <i class="fas fa-edit"></i> Editar Alerta
+                </h3>
+                <span class="close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <form id="edit-alert-form" onsubmit="event.preventDefault(); saveAlertChanges();">
+                <input type="hidden" id="edit-alert-id">
+                
+                <div class="form-group">
+                    <label for="edit-descripcion">Descripción *</label>
+                    <input type="text" id="edit-descripcion" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-posicion">Nombre de la Alerta *</label>
+                    <select id="edit-posicion" class="form-select" required>
+                        <option value="">Cargando alertas...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-prioridad">Prioridad *</label>
+                    <select id="edit-prioridad" class="form-select" required>
+                        <option value="baja">Baja</option>
+                        <option value="media">Media</option>
+                        <option value="alta">Alta</option>
+                        <option value="critica">Crítica</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-estado">Estado *</label>
+                    <select id="edit-estado" class="form-select" required>
+                        <option value="activa">Activa</option>
+                        <option value="en_proceso">En Proceso</option>
+                        <option value="resuelta">Resuelta</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-observaciones">Observaciones</label>
+                    <textarea id="edit-observaciones" class="form-control" rows="3"></textarea>
+                </div>
+                
+                <div class="d-flex gap-2 justify-content-end">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

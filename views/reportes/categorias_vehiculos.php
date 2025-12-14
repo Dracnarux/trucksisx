@@ -1,90 +1,43 @@
 <div class="container mt-4">
    <div class="card shadow-sm mb-4">
        <div class="card-body">
-           <h2 class="card-title text-primary"><i class="bi bi-box"></i> Reportes de repuestos</h2>
+           <h2 class="card-title text-primary"><i class="bi bi-truck-front"></i> Reportes de categorias de vehiculos</h2>
            <form method="GET" action="/trucksisx/reportes.php" class="row g-3 align-items-center mb-3">
-                 <input type="hidden" name="reporte" value="repuestos">
+                 <input type="hidden" name="reporte" value="categoriasVehiculos">
                  <div class="col-auto">
-                    <label for="categoria" class="form-label">Filtrar por categoría</label>
+                    <label for="nombre" class="form-label">Filtrar por nombre</label>
                  </div>
                  <div class="col-auto">
-                    <select id="categoria" name="categoria" class="form-select">
-                        <option value="">Todas</option>
-                        <?php if (!empty($categorias)): ?>
-                            <?php foreach ($categorias as $cat): ?>
-                                <option value="<?= htmlspecialchars($cat['id']) ?>" <?= (isset($_GET['categoria']) && $_GET['categoria'] == $cat['id']) ? 'selected' : ''; ?>>
-                                    <?= htmlspecialchars($cat['nombre']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </select>
-                 </div>
-                 <div class="col-auto">
-                    <label for="subcategoria" class="form-label">Filtrar por subcategoría</label>
-                 </div>
-                 <div class="col-auto">
-                    <select id="subcategoria" name="subcategoria" class="form-select">
-                        <option value="">Todas</option>
-                        <?php if (!empty($subcategorias)): ?>
-                            <?php foreach ($subcategorias as $sub): ?>
-                                <option value="<?= htmlspecialchars($sub['id']) ?>" <?= (isset($_GET['subcategoria']) && $_GET['subcategoria'] == $sub['id']) ? 'selected' : ''; ?>>
-                                    <?= htmlspecialchars($sub['nombre']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </select>
-                 </div>
-                 <div class="col-auto">
-                    <label for="proveedor" class="form-label">Filtrar por proveedor</label>
-                 </div>
-                 <div class="col-auto">
-                    <select id="proveedor" name="proveedor" class="form-select">
-                        <option value="">Todos</option>
-                        <?php if (!empty($proveedores)): ?>
-                            <?php foreach ($proveedores as $prov): ?>
-                                <option value="<?= htmlspecialchars($prov['id']) ?>" <?= (isset($_GET['proveedor']) && $_GET['proveedor'] == $prov['id']) ? 'selected' : ''; ?>>
-                                    <?= htmlspecialchars($prov['nombre']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </select>
+                     <input type="text" id="nombre" name="nombre" class="form-control" placeholder="Nombre de la categoría" value="<?= htmlspecialchars($_GET['nombre'] ?? '') ?>">
                  </div>
                  <div class="col-auto">
                         <button type="submit" class="btn btn-primary">Filtrar</button>
                  </div>
                 <div class="col-auto">
-                          <a href="/trucksisx/reportes.php?reporte=repuestos" class="btn btn-primary">Reporte total</a>
+                          <a href="/trucksisx/reportes.php?reporte=categoriasVehiculos" class="btn btn-primary">Reporte total</a>
                 </div>
            </form>
            <div class="mb-3">
                 <a class="btn btn-danger me-2" id="descargar-pdf" href="#"><i class="bi bi-file-earmark-pdf"></i> Descargar PDF</a>
                 <a class="btn btn-success" id="descargar-excel" href="#"><i class="bi bi-file-earmark-excel"></i> Descargar Excel</a>
            </div>
-           <div id="tabla-repuestos" class="table-responsive">
+           <div id="tabla-categorias-veh" class="table-responsive">
                 <table class="table table-bordered table-hover">
                     <thead class="table-light">
                         <tr>
                             <th>Nombre</th>
-                            <th>Categoria</th>
-                            <th>Subcategoria</th>
-                            <th>Proveedor</th>
-                            <th>Precio</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (!empty($repuestos)): ?>
-                            <?php foreach ($repuestos as $repuesto): ?>
+                        <?php if (!empty($categorias)): ?>
+                            <?php foreach ($categorias as $cat): ?>
                                 <tr>
-                                    <td><?= htmlspecialchars($repuesto['nombre']); ?></td>
-                                    <td><?= htmlspecialchars($repuesto['categoria']); ?></td>
-                                    <td><?= htmlspecialchars($repuesto['subcategoria']); ?></td>
-                                    <td><?= htmlspecialchars($repuesto['proveedor_nombre']); ?></td>
-                                    <td><?= htmlspecialchars($repuesto['precio']); ?></td>
+                                    <td><?= htmlspecialchars($cat['nombre'] ?? ''); ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="5">No hay resultados</td>
+                                <td class="text-center">No hay resultados</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -132,28 +85,16 @@
 <script>
     document.getElementById('descargar-pdf').onclick = function(e) {
         e.preventDefault();
-        const categoria = document.getElementById('categoria').value;
-        const subcategoria = document.getElementById('subcategoria').value;
-        const proveedor = document.getElementById('proveedor').value;
-
-        let url = '/trucksisx/reportes.php?reporte=descargarRepuestosPDF';
-        if (categoria) url += '&categoria=' + encodeURIComponent(categoria);
-        if (subcategoria) url += '&subcategoria=' + encodeURIComponent(subcategoria);
-        if (proveedor) url += '&proveedor=' + encodeURIComponent(proveedor);
-        
+        const nombre = document.getElementById('nombre').value;
+        let url = '/trucksisx/reportes.php?reporte=descargarCategoriasVehiculosPDF';
+        if (nombre) url += '&nombre=' + encodeURIComponent(nombre); 
         window.location.href = url;
     };
     document.getElementById('descargar-excel').onclick = function(e) {
         e.preventDefault();
-        const categoria = document.getElementById('categoria').value;
-        const subcategoria = document.getElementById('subcategoria').value;
-        const proveedor = document.getElementById('proveedor').value;
-
-        let url = '/trucksisx/reportes.php?reporte=descargarRepuestosExcel';
-        if (categoria) url += '&categoria=' + encodeURIComponent(categoria);
-        if (subcategoria) url += '&subcategoria=' + encodeURIComponent(subcategoria);
-        if (proveedor) url += '&proveedor=' + encodeURIComponent(proveedor);
-
+        const nombre = document.getElementById('nombre').value;
+        let url = '/trucksisx/reportes.php?reporte=descargarCategoriasVehiculosExcel';
+        if (nombre) url += '&nombre=' + encodeURIComponent(nombre); 
         window.location.href = url;
     };
 </script>

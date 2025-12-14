@@ -4,7 +4,7 @@
            <h2 class="card-title text-primary"><i class="bi bi-truck-front"></i> Reportes de Salidas de Vehículos</h2>
            <form method="GET" action="/trucksisx/reportes.php" class="row g-3 align-items-center mb-3">
                  <input type="hidden" name="reporte" value="salidasVehiculos">
-                 <div class="col-md-3">
+                 <div class="col-md-6">
                     <label for="vehiculo" class="form-label">Vehículo</label>
                     <select id="vehiculo" name="vehiculo" class="form-select">
                         <option value="">Todos</option>
@@ -17,26 +17,18 @@
                         <?php endif; ?>
                     </select>
                  </div>
-                 <div class="col-md-3">
-                    <label for="conductor" class="form-label">Conductor</label>
-                    <select id="conductor" name="conductor" class="form-select">
-                        <option value="">Todos</option>
-                        <?php if (!empty($conductores)): ?>
-                            <?php foreach ($conductores as $cond): ?>
-                                <option value="<?= htmlspecialchars($cond['id']) ?>" <?= (isset($_GET['conductor']) && $_GET['conductor'] == $cond['id']) ? 'selected' : ''; ?>>
-                                    <?= htmlspecialchars($cond['nombre_completo']); ?>
+                 <div class="col-md-6">
+                    <label for="orden" class="form-label">Orden de Trabajo</label>
+                    <select id="orden" name="orden" class="form-select">
+                        <option value="">Todas</option>
+                        <?php if (!empty($ordenes)): ?>
+                            <?php foreach ($ordenes as $ord): ?>
+                                <option value="<?= htmlspecialchars($ord['id']) ?>" <?= (isset($_GET['orden']) && $_GET['orden'] == $ord['id']) ? 'selected' : ''; ?>>
+                                    <?= htmlspecialchars($ord['nombre_trabajo']); ?>
                                 </option>
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </select>
-                 </div>
-                 <div class="col-md-3">
-                    <label for="fecha_desde" class="form-label">Fecha desde</label>
-                     <input type="date" id="fecha_desde" name="fecha_desde" class="form-control" value="<?= htmlspecialchars($_GET['fecha_desde'] ?? '') ?>">
-                 </div>
-                 <div class="col-md-3">
-                    <label for="fecha_hasta" class="form-label">Fecha hasta</label>
-                     <input type="date" id="fecha_hasta" name="fecha_hasta" class="form-control" value="<?= htmlspecialchars($_GET['fecha_hasta'] ?? '') ?>">
                  </div>
                  <div class="col-md-12 d-flex gap-2 align-items-end">
                         <button type="submit" class="btn btn-primary">Filtrar</button>
@@ -53,24 +45,24 @@
                         <tr>
                             <th>ID</th>
                             <th>Vehículo</th>
-                            <th>Conductor</th>
-                            <th>Fecha Salida</th>
-                            <th>Fecha Retorno</th>
-                            <th>Destino</th>
-                            <th>Kilometraje</th>
+                            <th>Monitoreo</th>
+                            <th>Combustible</th>
+                            <th>Regulaciones</th>
+                            <th>Orden Trabajo</th>
+                            <th>Estado</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (!empty($salidas)): ?>
                             <?php foreach ($salidas as $sal): ?>
                                 <tr>
-                                    <td><?= htmlspecialchars($sal['id_salida'] ?? $sal['id'] ?? ''); ?></td>
-                                    <td><?= htmlspecialchars($sal['id_vehiculo'] ?? $sal['vehiculo_placa'] ?? ''); ?></td>
-                                    <td><?= htmlspecialchars($sal['id_conductor'] ?? $sal['conductor_nombre'] ?? ''); ?></td>
-                                    <td><?= htmlspecialchars($sal['fecha_salida'] ?? ''); ?></td>
-                                    <td><?= htmlspecialchars($sal['fecha_retorno'] ?? 'N/A'); ?></td>
-                                    <td><?= htmlspecialchars($sal['destino'] ?? ''); ?></td>
-                                    <td><?= htmlspecialchars($sal['kilometraje'] ?? ''); ?></td>
+                                    <td><?= htmlspecialchars($sal['id'] ?? ''); ?></td>
+                                    <td><?= htmlspecialchars($sal['vehiculo_placa'] ?? 'N/A'); ?></td>
+                                    <td><?= htmlspecialchars($sal['segui_monitoreo'] ?? 'N/A'); ?></td>
+                                    <td><?= htmlspecialchars($sal['control_combustible'] ?? 'N/A'); ?></td>
+                                    <td><?= htmlspecialchars($sal['cump_regulaciones'] ?? 'N/A'); ?></td>
+                                    <td><?= htmlspecialchars($sal['orden_trabajo'] ?? 'N/A'); ?></td>
+                                    <td><?= htmlspecialchars($sal['orden_estado'] ?? 'N/A'); ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
@@ -119,7 +111,7 @@
     }
 
     .card-title {
-        color: #1E3A8A;
+        color: #475569;
         font-size: 1.75rem;
         font-weight: 700;
         margin-bottom: 1.5rem;
@@ -127,7 +119,7 @@
 
     .card-title i {
         margin-right: 0.5rem;
-        color: #3B82F6;
+        color: #475569;
     }
 
     .form-label {
@@ -146,8 +138,8 @@
     }
 
     .form-control:focus, .form-select:focus {
-        border-color: #3B82F6;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        border-color: #475569;
+        box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.1);
         outline: none;
     }
 
@@ -167,14 +159,14 @@
     }
 
     .btn-primary {
-        background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+        background: linear-gradient(135deg, #475569 0%, #334155 100%);
         color: #FFFFFF;
         box-shadow: 0 2px 8px rgba(30, 58, 138, 0.3);
     }
 
     .btn-primary:hover {
-        background: linear-gradient(135deg, #1E40AF 0%, #2563EB 100%);
-        box-shadow: 0 4px 12px rgba(30, 58, 138, 0.4);
+        background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+        box-shadow: 0 4px 12px rgba(71, 85, 105, 0.4);
         transform: translateY(-1px);
     }
 
@@ -243,7 +235,7 @@
 
     .table thead th {
         border-bottom: 2px solid #D1D5DB;
-        color: #1E3A8A;
+        color: #475569;
         font-weight: 600;
         font-size: 0.9rem;
         padding: 1rem;
