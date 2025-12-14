@@ -18,7 +18,6 @@ if (!$rol_admin && !$rol_tecnico) {
 // Determinar si es vista de solo lectura/edición (técnicos)
 $solo_lectura_edicion = $rol_tecnico;
 
-
 require_once '../config/db.php';
 $db = new Database();
 $conn = $db->getConnection();
@@ -176,7 +175,6 @@ $adminCount = $userModel->countAdministradores();
                                            strpos(strtolower($u['correo']), $filtro) !== false;
                                 });
                             }
-
                             if (empty($usuarios_filtrados)):
                             ?>
                                 <tr>
