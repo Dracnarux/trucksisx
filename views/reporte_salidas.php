@@ -36,7 +36,7 @@ ORDER BY sv.id DESC");
             min-height: 100vh;
         }
         h2, h3, h4, h5, h6 {
-            color: #1E3A8A;
+            color: #475569;
             font-weight: 600;
         }
         .container-fluid {
@@ -45,9 +45,9 @@ ORDER BY sv.id DESC");
             padding: 2rem;
         }
         .main-header {
-            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
             border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(30, 58, 138, 0.2);
+            box-shadow: 0 10px 25px rgba(71, 85, 105, 0.2);
             color: #FFFFFF;
             margin-bottom: 2rem;
             padding: 2rem;
@@ -74,7 +74,7 @@ ORDER BY sv.id DESC");
         .card-header {
             background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
             border-bottom: 1px solid #D1D5DB;
-            color: #1E3A8A;
+            color: #475569;
             font-weight: 600;
             padding: 1.25rem;
         }
@@ -94,24 +94,24 @@ ORDER BY sv.id DESC");
             transition: all 0.3s ease;
         }
         .btn-primary {
-            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
-            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
-            color: #1E3A8A !important;
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            box-shadow: 0 4px 12px rgba(71, 85, 105, 0.3);
+            color: #FFFFFF !important;
             font-weight: 600;
         }
         .btn-primary:hover {
-            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
-            color: #1E3A8A !important;
+            background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+            box-shadow: 0 6px 20px rgba(71, 85, 105, 0.4);
+            color: #FFFFFF !important;
             transform: translateY(-2px);
         }
         .btn-outline-primary, .btn-secondary {
             background: #FFFFFF;
-            border: 2px solid #1E3A8A;
-            color: #1E3A8A !important;
+            border: 2px solid #475569;
+            color: #475569 !important;
         }
         .btn-outline-primary:hover, .btn-secondary:hover {
-            background: #1E3A8A;
+            background: #475569;
             color: #FFFFFF !important;
             transform: translateY(-2px);
         }
@@ -137,12 +137,12 @@ ORDER BY sv.id DESC");
             transition: all 0.3s ease;
         }
         .form-control:focus, .form-select:focus {
-            border-color: #1E3A8A;
-            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+            border-color: #475569;
+            box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.1);
             outline: none;
         }
         .form-label {
-            color: #1E3A8A;
+            color: #475569;
             font-weight: 500;
             margin-bottom: 0.5rem;
         }
@@ -156,7 +156,7 @@ ORDER BY sv.id DESC");
             font-size: 13px;
         }
         .table thead th {
-            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
             border: none;
             color: #FFFFFF;
             font-weight: 700;
@@ -166,8 +166,8 @@ ORDER BY sv.id DESC");
             z-index: 10;
         }
         .table-warning th {
-            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%) !important;
-            color: #1E3A8A !important;
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%) !important;
+            color: #FFFFFF !important;
         }
         .table tbody td {
             border-bottom: 1px solid #E5E7EB;
@@ -176,7 +176,7 @@ ORDER BY sv.id DESC");
             vertical-align: middle;
         }
         .table-hover tbody tr:hover {
-            background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(30, 58, 138, 0.08) 100%);
+            background: linear-gradient(135deg, rgba(71, 85, 105, 0.08) 0%, rgba(51, 65, 85, 0.08) 100%);
         }
         .alert {
             border: none;
@@ -184,8 +184,9 @@ ORDER BY sv.id DESC");
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
         }
         .alert-info {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.1) 100%);
-            color: #2563EB;
+            background: rgba(71, 85, 105, 0.1);
+            color: #334155;
+            border: 1px solid rgba(71, 85, 105, 0.2);
         }
         @media (max-width: 768px) {
             .container-fluid {

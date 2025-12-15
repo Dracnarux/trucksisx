@@ -5,8 +5,10 @@ class SaliRepue {
         $this->db = $db;
     }
     public function registrarSalida($data) {
+        // Si no se pasa repor_id, ponerlo como null
+        $repor_id = isset($data['repor_id']) ? $data['repor_id'] : null;
         $stmt = $this->db->prepare("INSERT INTO sali_repue (fecha_salida, cantidad, repue_id, ord_trabj_id, repor_id, alerta_id, sali_vehi_id) VALUES (?, ?, ?, ?, ?, ?, NULL)");
-        $stmt->bind_param('siiiis', $data['fecha_salida'], $data['cantidad'], $data['repue_id'], $data['ord_trabj_id'], $data['repor_id'], $data['alerta_id']);
+        $stmt->bind_param('siiisi', $data['fecha_salida'], $data['cantidad'], $data['repue_id'], $data['ord_trabj_id'], $repor_id, $data['alerta_id']);
         if ($stmt->execute()) {
             return $this->db->insert_id;
         }

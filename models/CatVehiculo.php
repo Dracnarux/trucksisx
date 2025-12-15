@@ -4,8 +4,12 @@ class CatVehiculo {
     public function __construct($db) {
         $this->conn = $db;
     }
-    public function getAll() {
-        $sql = "SELECT * FROM cat_vehic ORDER BY id DESC";
+    public function getAll($nombre = '') {
+        $sql = "SELECT * FROM cat_vehic";
+        if (!empty($nombre)) {
+            $sql .= " WHERE nombre LIKE '%" . $this->conn->real_escape_string($nombre) . "%'";
+        }
+        $sql .= " ORDER BY id DESC";
         $result = $this->conn->query($sql);
         return $result;
     }

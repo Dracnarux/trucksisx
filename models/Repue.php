@@ -7,16 +7,16 @@ class Repue {
         $this->conn = conectarDB();
     }
     public function getAll($filtros = []) {
-        $sql = "SELECT * FROM repue WHERE 1";
+        $sql = "SELECT * FROM repue WHERE 1=1";
         $params = [];
         $types = '';
         foreach ([
             'nombre', 'marca_repuesto', 'proveedor_id', 'cat_repu_id', 'subcat_repu_id', 'modelo', 'medidas_espe', 'norma_estan', 'numero_parte', 'des_tecnica', 'veh_compatible', 'estado_repus', 'num_factura', 'ubi_almacen', 'dest_area', 'firma_verificacion'
         ] as $campo) {
-            if (!empty($filtros[$campo])) {
+            if (isset($filtros[$campo]) && $filtros[$campo] !== '' && $filtros[$campo] !== null) {
                 if ($campo === 'cat_repu_id' || $campo === 'subcat_repu_id' || $campo === 'proveedor_id') {
                     $sql .= " AND $campo = ?";
-                    $params[] = $filtros[$campo];
+                    $params[] = (int)$filtros[$campo];
                     $types .= 'i';
                 } else {
                     $sql .= " AND $campo LIKE ?";
@@ -26,7 +26,7 @@ class Repue {
             }
         }
         $stmt = $this->conn->prepare($sql);
-        if ($params) {
+        if (!empty($params)) {
             $stmt->bind_param($types, ...$params);
         }
         $stmt->execute();

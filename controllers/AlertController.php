@@ -8,7 +8,13 @@ class AlertController {
         require_once __DIR__ . '/../config/db.php';
         $database = new Database();
         $db = $database->getConnection();
-        $query = "SELECT id, cargo FROM cond ORDER BY cargo ASC";
+        $query = "SELECT c.id, 
+                         COALESCE(CONCAT(u.nombre, ' ', u.apellido), c.cargo) AS nombre_completo,
+                         c.cargo,
+                         c.regis_vehic_id
+                  FROM cond c 
+                  LEFT JOIN users u ON c.cargo = u.nombre 
+                  ORDER BY c.id ASC";
         $stmt = $db->prepare($query);
         $stmt->execute();
         $conductores = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -37,9 +43,14 @@ class AlertController {
     public function create() {
         if ($_POST) {
             // Validar datos requeridos
-            if (!isset($_POST['descripcion']) || !isset($_POST['cond_id']) || 
-                !isset($_POST['posicion_llanta']) || !isset($_POST['regis_vehic_id'])) {
+            if (!isset($_POST['descripcion']) || !isset($_POST['cond_id']) || !isset($_POST['regis_vehic_id']) || !isset($_POST['tipo_alerta'])) {
                 echo json_encode(['success' => false, 'message' => 'Faltan datos requeridos']);
+                return;
+            }
+            $tipo_alerta = $_POST['tipo_alerta'];
+            // Si es llanta, exigir posicion_llanta
+            if ($tipo_alerta === 'llanta' && !isset($_POST['posicion_llanta'])) {
+                echo json_encode(['success' => false, 'message' => 'Falta la posición de la llanta']);
                 return;
             }
 
@@ -71,8 +82,8 @@ class AlertController {
                 'descripcion' => $_POST['descripcion'],
                 'prioridad' => $_POST['prioridad'] ?? 'media',
                 'estado' => 'activa',
-                'tipo_alerta' => 'llanta',
-                'posicion_llanta' => $_POST['posicion_llanta'],
+                'tipo_alerta' => $tipo_alerta,
+                'posicion_llanta' => $tipo_alerta === 'llanta' ? ($_POST['posicion_llanta'] ?? null) : null,
                 'codigo_conductor' => '', // Ya no se usa, pero se mantiene por compatibilidad
                 'observaciones' => $_POST['observaciones'] ?? '',
                 'cond_id' => $_POST['cond_id'],
@@ -81,8 +92,8 @@ class AlertController {
 
             // Datos de la orden de trabajo
             $workOrderData = [
-                'nombre_trabajo' => 'Revisión de llanta - ' . $this->formatTirePosition($_POST['posicion_llanta']),
-                'descripcion' => 'Orden generada automáticamente por alerta de llanta: ' . $_POST['descripcion'],
+                'nombre_trabajo' => $tipo_alerta === 'llanta' ? ($_POST['posicion_llanta'] ?? '') : ($_POST['descripcion'] ?? ''),
+                'descripcion' => 'Orden generada automáticamente por alerta: ' . $_POST['descripcion'],
                 'fecha_estimada' => date('Y-m-d', strtotime('+3 days')),
                 'estado' => 'pendiente',
                 'prioridad' => $_POST['prioridad'] ?? 'media',
@@ -216,6 +227,30 @@ class AlertController {
         }
     }
 
+    // Obtener una alerta específica por ID
+    public function getAlert() {
+        if (isset($_GET['id'])) {
+            require_once __DIR__ . '/../config/db.php';
+            $database = new Database();
+            $db = $database->getConnection();
+            
+            $query = "SELECT * FROM alert WHERE id = :id";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':id', $_GET['id']);
+            $stmt->execute();
+            
+            $alert = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($alert) {
+                echo json_encode(['success' => true, 'alert' => $alert]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Alerta no encontrada']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'ID no proporcionado']);
+        }
+    }
+
     // Actualizar alerta completa
     public function update() {
         if ($_POST && isset($_POST['id'])) {
@@ -225,10 +260,13 @@ class AlertController {
                 'estado' => $_POST['estado'],
                 'observaciones' => $_POST['observaciones'] ?? ''
             ];
+            
+            // Agregar posición de llanta si está presente
+            if (isset($_POST['posicion_llanta'])) {
+                $data['posicion_llanta'] = $_POST['posicion_llanta'];
+            }
 
             $result = $this->alert->update($_POST['id'], $data);
-                // Definir cond_id desde POST
-                $cond_id = $_POST['cond_id'];
             
             if ($result) {
                 echo json_encode(['success' => true, 'message' => 'Alerta actualizada correctamente']);
@@ -419,6 +457,9 @@ class AlertController {
             case 'getById':
                 $this->getById();
                 break;
+            case 'getAlert':
+                $this->getAlert();
+                break;
             case 'updateStatus':
                 $this->updateStatus();
                 break;
@@ -434,10 +475,80 @@ class AlertController {
             case 'getDashboard':
                 $this->getDashboard();
                 break;
+            case 'resolve':
+                $this->resolveAlert();
+                break;
+            case 'canDeleteConductor':
+                $this->canDeleteConductor();
+                break;
+            case 'canDeleteVehicle':
+                $this->canDeleteVehicle();
+                break;
             default:
                 echo json_encode(['success' => false, 'message' => 'Acción no válida']);
                 break;
         }
+    }
+
+    // ========== SISTEMA DE RESOLUCIÓN DE ALERTAS ==========
+
+    /**
+     * Resolver una alerta
+     */
+    public function resolveAlert() {
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+            return;
+        }
+
+        // Obtener datos del body JSON
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        if (!isset($input['alert_id'])) {
+            echo json_encode(['success' => false, 'message' => 'ID de alerta requerido']);
+            return;
+        }
+
+        $alertId = (int)$input['alert_id'];
+        $notas = isset($input['notas_resolucion']) ? trim($input['notas_resolucion']) : '';
+        $userId = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 1;
+
+        $result = $this->alert->resolve($alertId, $userId, $notas);
+        echo json_encode($result);
+    }
+
+    /**
+     * Verificar si se puede eliminar un conductor
+     */
+    public function canDeleteConductor() {
+        header('Content-Type: application/json');
+        
+        if (!isset($_GET['id'])) {
+            echo json_encode(['success' => false, 'message' => 'ID de conductor requerido']);
+            return;
+        }
+
+        $conductorId = (int)$_GET['id'];
+        $result = $this->alert->canDeleteConductor($conductorId);
+        echo json_encode($result);
+    }
+
+    /**
+     * Verificar si se puede eliminar un vehículo
+     */
+    public function canDeleteVehicle() {
+        header('Content-Type: application/json');
+        
+        if (!isset($_GET['id'])) {
+            echo json_encode(['success' => false, 'message' => 'ID de vehículo requerido']);
+            return;
+        }
+
+        $vehicleId = (int)$_GET['id'];
+        $result = $this->alert->canDeleteVehicle($vehicleId);
+        echo json_encode($result);
     }
 }
 

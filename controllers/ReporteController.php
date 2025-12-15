@@ -425,6 +425,287 @@ public function descargarSubcategoriasExcel($filtros = [])
     }
 }
 
+    // MÉTODOS PARA CATEGORÍAS DE VEHÍCULOS
+    //vista de categorias de vehiculos
+    public function categoriasVehiculos($filtros = [])
+    {
+        require_once __DIR__ . '/../models/CatVehiculo.php';
+        $model = new CatVehiculo($this->db);
+        $nombre = $filtros['nombre'] ?? '';
+        $result = $model->getAll($nombre);
+        $categorias = [];
+        while ($row = $result->fetch_assoc()) {
+            $categorias[] = $row;
+        }
+        include __DIR__ . '/../views/reportes/categorias_vehiculos.php';
+    }
+
+    //descargar pdf de categorias vehiculos
+    public function descargarCategoriasVehiculosPDF($filtros = [])
+    {
+        date_default_timezone_set('america/Bogota');
+        require_once __DIR__ . '/../vendor/autoload.php';
+        require_once __DIR__ . '/../models/CatVehiculo.php';
+        $model = new CatVehiculo($this->db);
+        $result = $model->getAll();
+        $categorias = [];
+        while ($row = $result->fetch_assoc()) {
+            $categorias[] = $row;
+        }
+        $pdf = new FPDF();
+        $pdf->AddPage();
+        //logo de la empresa 
+        if (file_exists('public/img/logo.png')) {
+            $pdf->Image('public/img/logo.png', 10, 8, 25);
+        }
+        $pdf->SetFont('Helvetica', 'B', 18);
+        $pdf->SetTextColor(40, 80, 180);
+        $pdf->Cell(0, 15, utf8_decode('Reporte de Categorías de Vehículos'), 0, 1, 'C');
+        $pdf->SetDrawColor(40, 80, 180);
+        $pdf->Line(10, $pdf->GetY(), 200, $pdf->GetY());
+        $pdf->Ln(2);
+        $pdf->SetTextColor(0, 0, 0);
+        $pdf->SetFont('Helvetica', 'I', 10);
+        $pdf->Cell(0, 8, utf8_decode('Generado: ' .date('d/m/Y H:i')), 0, 1, 'R');
+        $pdf->SetFont('Helvetica', '', 11);
+        $pdf->Cell(0, 8, utf8_decode('Cantidad de registros: ' .count($categorias)), 0, 1, 'L');
+        $pdf->Ln(2);
+        $pdf->SetFont('Helvetica', 'B', 12);
+        $pdf->SetFillColor(220, 230, 241);
+        $pdf->Cell(190, 10, utf8_decode('Nombre de Categoría'), 1, 1, 'C', true);
+        $pdf->SetFont('Helvetica', '', 10);
+        foreach ($categorias as $cat) {
+            $nombre = strlen($cat['nombre'] ?? '') > 80 ? substr($cat['nombre'], 0, 77) . '...' : ($cat['nombre'] ?? '');
+            $pdf->Cell(190, 8, utf8_decode($nombre), 1, 1, 'L');
+        }
+        //pie de pagina
+        $pdf->SetY(-25);
+        $pdf->SetFont('Helvetica', 'I', 9);
+        $pdf->SetTextColor(120, 120, 120);
+        $pdf->Cell(0, 10, utf8_decode('Sistema de Reportes | Pagina ' . $pdf->PageNo()), 0, 0, 'C');
+        header('Content-Type: application/pdf');
+        $filename = 'categorias_vehiculos_report_' . date('Ymd_His') . '.pdf';
+        header ('Content-Disposition: attachment; filename="' . $filename . '"');
+        $pdf->Output('D', $filename);
+        exit;
+    }
+
+    //descargar excel de categorias vehiculos
+    public function descargarCategoriasVehiculosExcel($filtros = [])
+    {
+        // Limpiar buffer de salida para evitar problemas con Excel
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        try {
+            require_once __DIR__ . '/../vendor/autoload.php';
+            require_once __DIR__ . '/../models/CatVehiculo.php';
+            
+            $model = new CatVehiculo($this->db);
+            $nombre = $filtros['nombre'] ?? '';
+            $result = $model->getAll($nombre);
+            $categorias = [];
+            while ($row = $result->fetch_assoc()) {
+                $categorias[] = $row;
+            }
+            
+            // Crear spreadsheet
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            
+            // Configurar encabezados
+            $sheet->setTitle('Categorías de Vehículos');
+            $sheet->setCellValue('A1', 'REPORTE DE CATEGORÍAS DE VEHÍCULOS');
+            $sheet->setCellValue('A2', 'Generado: ' . date('d/m/Y H:i'));
+            $sheet->setCellValue('A3', 'Total de registros: ' . count($categorias));
+            
+            // Estilo para el título
+            $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
+            $sheet->getStyle('A2:A3')->getFont()->setBold(true);
+            
+            // Encabezados de tabla
+            $sheet->setCellValue('A4', 'Nombre');
+            $sheet->getStyle('A4')->getFont()->setBold(true);
+            $sheet->getStyle('A4')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                  ->getStartColor()->setARGB('FFCCCCCC');
+            
+            // Llenar datos
+            $row = 5;
+            foreach ($categorias as $categoria) {
+                $sheet->setCellValue('A' . $row, htmlspecialchars($categoria['nombre'] ?? '', ENT_QUOTES, 'UTF-8'));
+                $row++;
+            }
+            $sheet->getColumnDimension('A')->setAutoSize(true);
+            $sheet->setAutoFilter('A4:A' . ($row - 1));
+            
+            // Crear el writer y guardar archivo
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $filename = 'categorias_vehiculos_report_' . date('Ymd_His') . '.xlsx';
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+            $writer->save('php://output');
+            exit;
+            
+        } catch (Exception $e) {
+            // En caso de error, mostrar mensaje de error
+            header('Content-Type: text/html; charset=utf-8');
+            die('Error generando Excel: ' . $e->getMessage());
+        }
+    }
+
+    // MÉTODOS PARA SUBCATEGORÍAS DE VEHÍCULOS
+    //vista de subcategorias de vehiculos
+    public function subcategoriasVehiculos($filtros = [])
+    {
+        require_once __DIR__ . '/../models/SubCatVehiculo.php';
+        require_once __DIR__ . '/../models/CatVehiculo.php';
+
+        $model = new SubCatVehiculo($this->db);
+        $categoriasModel = new CatVehiculo($this->db);
+
+        $categoria = $filtros['categoria'] ?? '';
+
+        // Aplicar filtros a las subcategorías
+        $result = $model->getAll($categoria);
+        $subcategorias = [];
+        while ($row = $result->fetch_assoc()) {
+            $subcategorias[] = $row;
+        }
+        
+        // Obtener todas las categorías para el filtro
+        $resultCat = $categoriasModel->getAll();
+        $categorias = [];
+        while ($row = $resultCat->fetch_assoc()) {
+            $categorias[] = $row;
+        }
+        
+        include __DIR__ . '/../views/reportes/subcategorias_vehiculos.php';
+    }
+
+    //descargar pdf de subcategorias vehiculos
+    public function descargarSubcategoriasVehiculosPDF($filtros = [])
+    {
+        date_default_timezone_set('America/Bogota');
+        require_once __DIR__ . '/../vendor/autoload.php';
+        require_once __DIR__ . '/../models/SubCatVehiculo.php';
+        require_once __DIR__ . '/../models/CatVehiculo.php';
+        $model = new SubCatVehiculo($this->db);
+        $categoria = $filtros['categoria'] ?? '';
+        $result = $model->getAll($categoria);
+        $subcategorias = [];
+        while ($row = $result->fetch_assoc()) {
+            $subcategorias[] = $row;
+        }
+        $pdf = new FPDF();
+        $pdf->AddPage();
+        if (file_exists('public/img/logo.png')) {
+            $pdf->Image('public/img/logo.png', 10, 8, 25);
+        }
+        $pdf->SetFont('Helvetica', 'B', 18);
+        $pdf->SetTextColor(40, 80, 180);
+        $pdf->Cell(0, 15, utf8_decode('Reporte de Subcategorías de Vehículos'), 0, 1, 'C');
+        $pdf->SetDrawColor(40, 80, 180);
+        $pdf->Line(10, $pdf->GetY(), 200, $pdf->GetY());
+        $pdf->Ln(2);
+        $pdf->SetTextColor(0, 0, 0);
+        $pdf->SetFont('Helvetica', 'I', 10);
+        $pdf->Cell(0, 8, utf8_decode('Generado: ' .date('d/m/Y H:i')), 0, 1, 'R');
+        $pdf->SetFont('Helvetica', '', 11);
+        $pdf->Cell(0, 8, utf8_decode('Cantidad de registros: ' .count($subcategorias)), 0, 1, 'L');
+        $pdf->Ln(2);
+        $pdf->SetFont('Helvetica', 'B', 12);
+        $pdf->SetFillColor(220, 241, 220);
+        $pdf->Cell(95, 10, utf8_decode('Nombre'), 1, 0, 'C', true);
+        $pdf->Cell(95, 10, utf8_decode('Categoría'), 1, 1, 'C', true);
+        $pdf->SetFont('Helvetica', '', 10);
+        foreach ($subcategorias as $subcat) {
+            $nombre = strlen($subcat['nombre'] ?? '') > 40 ? substr($subcat['nombre'], 0, 37) . '...' : ($subcat['nombre'] ?? '');
+            $categoria = strlen($subcat['categoria'] ?? '') > 40 ? substr($subcat['categoria'], 0, 37) . '...' : ($subcat['categoria'] ?? '');
+            
+            $pdf->Cell(95, 8, utf8_decode($nombre), 1, 0, 'L');
+            $pdf->Cell(95, 8, utf8_decode($categoria), 1, 1, 'L');
+        }
+        //pie de pagina
+        $pdf->SetY(-25);
+        $pdf->SetFont('Helvetica', 'I', 9);
+        $pdf->SetTextColor(120, 120, 120);
+        $pdf->Cell(0, 10, utf8_decode('Sistema de Reportes | Pagina ' . $pdf->PageNo()), 0, 0, 'C');
+        header('Content-Type: application/pdf');
+        $filename = 'subcategorias_vehiculos_report_' . date('Ymd_His') . '.pdf';
+        header ('Content-Disposition: attachment; filename="' . $filename . '"');
+        $pdf->Output('D', $filename);
+        exit;
+    }
+
+    //descargar excel de subcategorias vehiculos
+    public function descargarSubcategoriasVehiculosExcel($filtros = [])
+    {
+        // Limpiar buffer de salida para evitar problemas con Excel
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        try {
+            require_once __DIR__ . '/../vendor/autoload.php';
+            require_once __DIR__ . '/../models/SubCatVehiculo.php';
+            require_once __DIR__ . '/../models/CatVehiculo.php';
+            
+            $model = new SubCatVehiculo($this->db);
+            $categoria = $filtros['categoria'] ?? '';
+            $result = $model->getAll($categoria);
+            $subcategorias = [];
+            while ($row = $result->fetch_assoc()) {
+                $subcategorias[] = $row;
+            }
+            
+            // Crear spreadsheet
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            
+            // Configurar encabezados
+            $sheet->setTitle('Subcategorías de Vehículos');
+            $sheet->setCellValue('A1', 'REPORTE DE SUBCATEGORÍAS DE VEHÍCULOS');
+            $sheet->setCellValue('A2', 'Generado: ' . date('d/m/Y H:i'));
+            $sheet->setCellValue('A3', 'Total de registros: ' . count($subcategorias));
+            
+            // Estilo para el título
+            $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
+            $sheet->getStyle('A2:A3')->getFont()->setBold(true);
+            
+            // Encabezados de tabla
+            $sheet->setCellValue('A4', 'Nombre');
+            $sheet->setCellValue('B4', 'Categoría');
+            $sheet->getStyle('A4:B4')->getFont()->setBold(true);
+            $sheet->getStyle('A4:B4')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                  ->getStartColor()->setARGB('FFCCCCCC');
+            
+            // Llenar datos
+            $row = 5;
+            foreach ($subcategorias as $subcategoria) {
+                $sheet->setCellValue('A' . $row, htmlspecialchars($subcategoria['nombre'] ?? '', ENT_QUOTES, 'UTF-8'));
+                $sheet->setCellValue('B' . $row, htmlspecialchars($subcategoria['categoria'] ?? '', ENT_QUOTES, 'UTF-8'));
+                $row++;
+            }
+            $sheet->getColumnDimension('A')->setAutoSize(true);
+            $sheet->getColumnDimension('B')->setAutoSize(true);
+            $sheet->setAutoFilter('A4:B' . ($row - 1));
+            
+            // Crear el writer y guardar archivo
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $filename = 'subcategorias_vehiculos_report_' . date('Ymd_His') . '.xlsx';
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+            $writer->save('php://output');
+            exit;
+            
+        } catch (Exception $e) {
+            // En caso de error, mostrar mensaje de error
+            header('Content-Type: text/html; charset=utf-8');
+            die('Error generando Excel: ' . $e->getMessage());
+        }
+    }
+
 
 //descargar pdf de repuestos
 public function descargarProductosPDF($filtros = [])
@@ -1171,22 +1452,25 @@ public function descargarVehiculosExcel($filtros = [])
 
 private function getConductoresData($filtros = [])
 {
-    $sql = "SELECT u.id, u.nombre, u.apellido, u.num_celular as telefono, 
-                   u.num_documento as numero_licencia, 'Activo' as estado
-            FROM users u
-            WHERE u.rol = 'conductor'";
+    $sql = "SELECT c.id, 
+                   c.cargo,
+                   c.horas_trabajadas,
+                   c.tareas_completadas,
+                   c.efeciencia,
+                   c.descripcion,
+                   rv.placa AS vehiculo
+            FROM cond c
+            LEFT JOIN regis_vehic rv ON c.regis_vehic_id = rv.id
+            WHERE 1=1";
     
-    if (!empty($filtros['nombre'])) {
-        $sql .= " AND (u.nombre LIKE '%" . $this->db->real_escape_string($filtros['nombre']) . "%' OR u.apellido LIKE '%" . $this->db->real_escape_string($filtros['nombre']) . "%')";
+    if (!empty($filtros['cargo'])) {
+        $sql .= " AND c.cargo LIKE '%" . $this->db->real_escape_string($filtros['cargo']) . "%'";
     }
-    if (!empty($filtros['licencia'])) {
-        $sql .= " AND u.num_documento LIKE '%" . $this->db->real_escape_string($filtros['licencia']) . "%'";
-    }
-    if (!empty($filtros['telefono'])) {
-        $sql .= " AND u.num_celular LIKE '%" . $this->db->real_escape_string($filtros['telefono']) . "%'";
+    if (!empty($filtros['vehiculo'])) {
+        $sql .= " AND rv.id = " . intval($filtros['vehiculo']);
     }
     
-    $sql .= " ORDER BY u.id DESC";
+    $sql .= " ORDER BY c.id DESC";
     $result = $this->db->query($sql);
     $conductores = [];
     while ($row = $result->fetch_assoc()) {
@@ -1198,6 +1482,15 @@ private function getConductoresData($filtros = [])
 public function conductores($filtros = [])
 {
     $conductores = $this->getConductoresData($filtros);
+    
+    // Obtener vehículos únicos
+    $sqlVehiculos = "SELECT DISTINCT rv.id, rv.placa FROM cond c INNER JOIN regis_vehic rv ON c.regis_vehic_id = rv.id WHERE rv.placa IS NOT NULL ORDER BY rv.placa";
+    $resultVehiculos = $this->db->query($sqlVehiculos);
+    $vehiculos = [];
+    while ($row = $resultVehiculos->fetch_assoc()) {
+        $vehiculos[] = $row;
+    }
+    
     include __DIR__ . '/../views/reportes/conductores.php';
 }
 
@@ -1229,23 +1522,26 @@ public function descargarConductoresPDF($filtros = [])
     $pdf->Cell(0, 8, utf8_decode('Cantidad de registros: ' . count($conductores)), 0, 1, 'L');
     $pdf->Ln(2);
     
-    $pdf->SetFont('Helvetica', 'B', 10);
+    $pdf->SetFont('Helvetica', 'B', 9);
     $pdf->SetFillColor(220, 241, 220);
-    $pdf->Cell(15, 10, 'ID', 1, 0, 'C', true);
-    $pdf->Cell(40, 10, 'Nombre', 1, 0, 'C', true);
-    $pdf->Cell(40, 10, 'Apellido', 1, 0, 'C', true);
-    $pdf->Cell(35, 10, utf8_decode('Teléfono'), 1, 0, 'C', true);
-    $pdf->Cell(35, 10, 'Documento', 1, 0, 'C', true);
-    $pdf->Cell(25, 10, 'Estado', 1, 1, 'C', true);
+    $pdf->Cell(12, 10, 'ID', 1, 0, 'C', true);
+    $pdf->Cell(35, 10, 'Cargo', 1, 0, 'C', true);
+    $pdf->Cell(25, 10, 'Horas Trab.', 1, 0, 'C', true);
+    $pdf->Cell(25, 10, 'Tareas Comp.', 1, 0, 'C', true);
+    $pdf->Cell(20, 10, 'Eficiencia', 1, 0, 'C', true);
+    $pdf->Cell(50, 10, utf8_decode('Descripción'), 1, 0, 'C', true);
+    $pdf->Cell(23, 10, utf8_decode('Vehículo'), 1, 1, 'C', true);
     
-    $pdf->SetFont('Helvetica', '', 9);
+    $pdf->SetFont('Helvetica', '', 8);
     foreach ($conductores as $cond) {
-        $pdf->Cell(15, 8, $cond['id'] ?? '', 1, 0, 'C');
-        $pdf->Cell(40, 8, utf8_decode($cond['nombre'] ?? ''), 1, 0, 'L');
-        $pdf->Cell(40, 8, utf8_decode($cond['apellido'] ?? ''), 1, 0, 'L');
-        $pdf->Cell(35, 8, $cond['telefono'] ?? '', 1, 0, 'C');
-        $pdf->Cell(35, 8, $cond['numero_licencia'] ?? '', 1, 0, 'C');
-        $pdf->Cell(25, 8, utf8_decode($cond['estado'] ?? ''), 1, 1, 'C');
+        $pdf->Cell(12, 8, $cond['id'] ?? '', 1, 0, 'C');
+        $pdf->Cell(35, 8, utf8_decode($cond['cargo'] ?? ''), 1, 0, 'L');
+        $pdf->Cell(25, 8, $cond['horas_trabajadas'] ?? '0', 1, 0, 'C');
+        $pdf->Cell(25, 8, $cond['tareas_completadas'] ?? '0', 1, 0, 'C');
+        $pdf->Cell(20, 8, $cond['efeciencia'] ?? '0', 1, 0, 'C');
+        $descripcion = strlen($cond['descripcion'] ?? '') > 25 ? substr($cond['descripcion'], 0, 22) . '...' : ($cond['descripcion'] ?? '');
+        $pdf->Cell(50, 8, utf8_decode($descripcion), 1, 0, 'L');
+        $pdf->Cell(23, 8, utf8_decode($cond['vehiculo'] ?? 'N/A'), 1, 1, 'C');
     }
     
     $pdf->SetY(-25);
@@ -1276,36 +1572,37 @@ public function descargarConductoresExcel($filtros = [])
         $sheet = $spreadsheet->getActiveSheet();
         
         $sheet->setCellValue('A1', 'Reporte de Conductores');
-        $sheet->mergeCells('A1:F1');
+        $sheet->mergeCells('A1:G1');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16)->getColor()->setRGB('288C50');
         
         $sheet->setCellValue('A2', 'Generado: ' . date('d/m/Y H:i'));
-        $sheet->mergeCells('A2:F2');
+        $sheet->mergeCells('A2:G2');
         
         $sheet->setCellValue('A3', 'Cantidad de registros: ' . count($conductores));
-        $sheet->mergeCells('A3:F3');
+        $sheet->mergeCells('A3:G3');
         
-        $headers = ['ID', 'Nombre', 'Apellido', 'Teléfono', 'Documento', 'Estado'];
+        $headers = ['ID', 'Cargo', 'Horas Trabajadas', 'Tareas Completadas', 'Eficiencia', 'Descripción', 'Vehículo'];
         foreach ($headers as $index => $header) {
             $col = chr(65 + $index);
             $sheet->setCellValue($col . '4', $header);
         }
-        $sheet->getStyle('A4:F4')->getFont()->setBold(true);
-        $sheet->getStyle('A4:F4')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+        $sheet->getStyle('A4:G4')->getFont()->setBold(true);
+        $sheet->getStyle('A4:G4')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
             ->getStartColor()->setRGB('DCF1DC');
         
         $row = 5;
         foreach ($conductores as $cond) {
             $sheet->setCellValue('A' . $row, $cond['id'] ?? '');
-            $sheet->setCellValue('B' . $row, $cond['nombre'] ?? '');
-            $sheet->setCellValue('C' . $row, $cond['apellido'] ?? '');
-            $sheet->setCellValue('D' . $row, $cond['telefono'] ?? '');
-            $sheet->setCellValue('E' . $row, $cond['numero_licencia'] ?? '');
-            $sheet->setCellValue('F' . $row, $cond['estado'] ?? '');
+            $sheet->setCellValue('B' . $row, $cond['cargo'] ?? '');
+            $sheet->setCellValue('C' . $row, $cond['horas_trabajadas'] ?? '0');
+            $sheet->setCellValue('D' . $row, $cond['tareas_completadas'] ?? '0');
+            $sheet->setCellValue('E' . $row, $cond['efeciencia'] ?? '0');
+            $sheet->setCellValue('F' . $row, $cond['descripcion'] ?? '');
+            $sheet->setCellValue('G' . $row, $cond['vehiculo'] ?? 'Sin asignar');
             $row++;
         }
         
-        foreach (range('A', 'F') as $col) {
+        foreach (range('A', 'G') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
         
@@ -1873,31 +2170,30 @@ public function descargarSalidasRepuestosExcel($filtros = [])
 private function getSalidasVehiculosData($filtros = [])
 {
     $sql = "SELECT sv.id, 
+                   sv.id_flotas,
                    rv.placa AS vehiculo_placa,
-                   CONCAT(COALESCE(u.nombre, ''), ' ', COALESCE(u.apellido, '')) AS conductor_nombre,
-                   DATE(a.fecha_hora) AS fecha_salida,
-                   'N/A' AS fecha_retorno,
-                   a.descripcion AS destino,
-                   sv.control_combustible AS kilometraje
+                   sv.segui_monitoreo,
+                   sv.control_combustible,
+                   sv.cump_regulaciones,
+                   sv.protocolo_seguridad,
+                   sv.gest_conductores,
+                   ot.nombre_trabajo AS orden_trabajo,
+                   ot.estado AS orden_estado,
+                   a.descripcion AS alerta_descripcion
             FROM sali_vehi sv
+            LEFT JOIN regis_vehic rv ON sv.id_flotas = rv.id
+            LEFT JOIN ord_trabj ot ON sv.ord_trabj_id = ot.id
             LEFT JOIN alert a ON sv.alerta_id = a.id
-            LEFT JOIN regis_vehic rv ON a.regis_vehic_id = rv.id
-            LEFT JOIN cond c ON a.cond_id = c.id
-            LEFT JOIN users u ON c.id = u.id AND u.rol = 'conductor'
             WHERE 1=1";
     
         if (!empty($filtros['vehiculo'])) {
-            $sql .= " AND rv.id = " . intval($filtros['vehiculo']);
+            $sql .= " AND sv.id_flotas = " . intval($filtros['vehiculo']);
         }
-        if (!empty($filtros['conductor'])) {
-            $sql .= " AND u.id = " . intval($filtros['conductor']);
+        if (!empty($filtros['orden'])) {
+            $sql .= " AND sv.ord_trabj_id = " . intval($filtros['orden']);
         }
-        if (!empty($filtros['fecha_desde'])) {
-            $sql .= " AND DATE(a.fecha_hora) >= '" . $this->db->real_escape_string($filtros['fecha_desde']) . "'";
-        }
-        if (!empty($filtros['fecha_hasta'])) {
-            $sql .= " AND DATE(a.fecha_hora) <= '" . $this->db->real_escape_string($filtros['fecha_hasta']) . "'";
-        }    $sql .= " ORDER BY sv.id DESC";
+        
+    $sql .= " ORDER BY sv.id DESC";
     $result = $this->db->query($sql);
     $salidas = [];
     while ($row = $result->fetch_assoc()) {
@@ -1911,19 +2207,19 @@ public function salidasVehiculos($filtros = [])
     $salidas = $this->getSalidasVehiculosData($filtros);
     
     // Obtener vehículos únicos con salidas
-    $sqlVehiculos = "SELECT DISTINCT rv.id, rv.placa FROM sali_vehi sv INNER JOIN alert a ON sv.alerta_id = a.id INNER JOIN regis_vehic rv ON a.regis_vehic_id = rv.id WHERE rv.placa IS NOT NULL ORDER BY rv.placa";
+    $sqlVehiculos = "SELECT DISTINCT rv.id, rv.placa FROM sali_vehi sv INNER JOIN regis_vehic rv ON sv.id_flotas = rv.id WHERE rv.placa IS NOT NULL ORDER BY rv.placa";
     $resultVehiculos = $this->db->query($sqlVehiculos);
     $vehiculos = [];
     while ($row = $resultVehiculos->fetch_assoc()) {
         $vehiculos[] = $row;
     }
     
-    // Obtener conductores únicos
-    $sqlConductores = "SELECT DISTINCT u.id, CONCAT(u.nombre, ' ', u.apellido) as nombre_completo FROM users u WHERE u.rol = 'conductor' ORDER BY u.nombre";
-    $resultConductores = $this->db->query($sqlConductores);
-    $conductores = [];
-    while ($row = $resultConductores->fetch_assoc()) {
-        $conductores[] = $row;
+    // Obtener órdenes de trabajo únicas
+    $sqlOrdenes = "SELECT DISTINCT ot.id, ot.nombre_trabajo FROM sali_vehi sv INNER JOIN ord_trabj ot ON sv.ord_trabj_id = ot.id WHERE ot.nombre_trabajo IS NOT NULL ORDER BY ot.nombre_trabajo";
+    $resultOrdenes = $this->db->query($sqlOrdenes);
+    $ordenes = [];
+    while ($row = $resultOrdenes->fetch_assoc()) {
+        $ordenes[] = $row;
     }
     
     include __DIR__ . '/../views/reportes/salidas_vehiculos.php';
@@ -1960,24 +2256,26 @@ public function descargarSalidasVehiculosPDF($filtros = [])
     $pdf->SetFont('Helvetica', 'B', 9);
     $pdf->SetFillColor(167, 243, 208);
     $pdf->Cell(15, 10, 'ID', 1, 0, 'C', true);
-    $pdf->Cell(35, 10, utf8_decode('Vehículo'), 1, 0, 'C', true);
-    $pdf->Cell(55, 10, 'Conductor', 1, 0, 'C', true);
-    $pdf->Cell(35, 10, 'F. Salida', 1, 0, 'C', true);
-    $pdf->Cell(35, 10, 'F. Retorno', 1, 0, 'C', true);
-    $pdf->Cell(70, 10, 'Destino', 1, 0, 'C', true);
-    $pdf->Cell(32, 10, 'Kilometraje', 1, 1, 'C', true);
+    $pdf->Cell(30, 10, utf8_decode('Vehículo'), 1, 0, 'C', true);
+    $pdf->Cell(50, 10, 'Monitoreo', 1, 0, 'C', true);
+    $pdf->Cell(50, 10, 'Combustible', 1, 0, 'C', true);
+    $pdf->Cell(50, 10, 'Regulaciones', 1, 0, 'C', true);
+    $pdf->Cell(60, 10, 'Orden Trabajo', 1, 0, 'C', true);
+    $pdf->Cell(22, 10, 'Estado', 1, 1, 'C', true);
     
     $pdf->SetFont('Helvetica', '', 8);
     foreach ($salidas as $salida) {
         $pdf->Cell(15, 8, $salida['id'], 1, 0, 'C');
-        $pdf->Cell(35, 8, utf8_decode($salida['vehiculo_placa'] ?? 'N/A'), 1, 0, 'C');
-        $conductor = strlen($salida['conductor_nombre'] ?? '') > 25 ? substr($salida['conductor_nombre'], 0, 22) . '...' : ($salida['conductor_nombre'] ?? 'N/A');
-        $pdf->Cell(55, 8, utf8_decode($conductor), 1, 0, 'L');
-        $pdf->Cell(35, 8, $salida['fecha_salida'] ?? 'N/A', 1, 0, 'C');
-        $pdf->Cell(35, 8, $salida['fecha_retorno'] ?? 'N/A', 1, 0, 'C');
-        $destino = strlen($salida['destino'] ?? '') > 32 ? substr($salida['destino'], 0, 29) . '...' : ($salida['destino'] ?? 'N/A');
-        $pdf->Cell(70, 8, utf8_decode($destino), 1, 0, 'L');
-        $pdf->Cell(32, 8, utf8_decode($salida['kilometraje'] ?? 'N/A'), 1, 1, 'C');
+        $pdf->Cell(30, 8, utf8_decode($salida['vehiculo_placa'] ?? 'N/A'), 1, 0, 'C');
+        $monitoreo = strlen($salida['segui_monitoreo'] ?? '') > 22 ? substr($salida['segui_monitoreo'], 0, 19) . '...' : ($salida['segui_monitoreo'] ?? 'N/A');
+        $pdf->Cell(50, 8, utf8_decode($monitoreo), 1, 0, 'L');
+        $combustible = strlen($salida['control_combustible'] ?? '') > 22 ? substr($salida['control_combustible'], 0, 19) . '...' : ($salida['control_combustible'] ?? 'N/A');
+        $pdf->Cell(50, 8, utf8_decode($combustible), 1, 0, 'L');
+        $regulaciones = strlen($salida['cump_regulaciones'] ?? '') > 22 ? substr($salida['cump_regulaciones'], 0, 19) . '...' : ($salida['cump_regulaciones'] ?? 'N/A');
+        $pdf->Cell(50, 8, utf8_decode($regulaciones), 1, 0, 'L');
+        $orden = strlen($salida['orden_trabajo'] ?? '') > 27 ? substr($salida['orden_trabajo'], 0, 24) . '...' : ($salida['orden_trabajo'] ?? 'N/A');
+        $pdf->Cell(60, 8, utf8_decode($orden), 1, 0, 'L');
+        $pdf->Cell(22, 8, utf8_decode($salida['orden_estado'] ?? 'N/A'), 1, 1, 'C');
     }
     
     $pdf->SetY(-25);
@@ -2017,7 +2315,7 @@ public function descargarSalidasVehiculosExcel($filtros = [])
         $sheet->setCellValue('A3', 'Cantidad de registros: ' . count($salidas));
         $sheet->mergeCells('A3:G3');
         
-        $headers = ['ID', 'Vehículo', 'Conductor', 'Fecha Salida', 'Fecha Retorno', 'Destino', 'Kilometraje'];
+        $headers = ['ID', 'Vehículo', 'Monitoreo', 'Combustible', 'Regulaciones', 'Orden Trabajo', 'Estado'];
         foreach ($headers as $index => $header) {
             $col = chr(65 + $index);
             $sheet->setCellValue($col . '4', $header);
@@ -2030,11 +2328,11 @@ public function descargarSalidasVehiculosExcel($filtros = [])
         foreach ($salidas as $salida) {
             $sheet->setCellValue('A' . $row, $salida['id']);
             $sheet->setCellValue('B' . $row, $salida['vehiculo_placa'] ?? 'N/A');
-            $sheet->setCellValue('C' . $row, $salida['conductor_nombre'] ?? 'N/A');
-            $sheet->setCellValue('D' . $row, $salida['fecha_salida'] ?? 'N/A');
-            $sheet->setCellValue('E' . $row, $salida['fecha_retorno'] ?? 'N/A');
-            $sheet->setCellValue('F' . $row, $salida['destino'] ?? 'N/A');
-            $sheet->setCellValue('G' . $row, $salida['kilometraje'] ?? 'N/A');
+            $sheet->setCellValue('C' . $row, $salida['segui_monitoreo'] ?? 'N/A');
+            $sheet->setCellValue('D' . $row, $salida['control_combustible'] ?? 'N/A');
+            $sheet->setCellValue('E' . $row, $salida['cump_regulaciones'] ?? 'N/A');
+            $sheet->setCellValue('F' . $row, $salida['orden_trabajo'] ?? 'N/A');
+            $sheet->setCellValue('G' . $row, $salida['orden_estado'] ?? 'N/A');
             $row++;
         }
         

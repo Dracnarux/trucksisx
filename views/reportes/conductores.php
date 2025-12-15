@@ -4,19 +4,24 @@
            <h2 class="card-title text-primary"><i class="bi bi-person-badge"></i> Reportes de Conductores</h2>
            <form method="GET" action="/trucksisx/reportes.php" class="row g-3 align-items-center mb-3">
                  <input type="hidden" name="reporte" value="conductores">
-                 <div class="col-md-3">
-                    <label for="nombre" class="form-label">Nombre</label>
-                     <input type="text" id="nombre" name="nombre" class="form-control" placeholder="Nombre del conductor" value="<?= htmlspecialchars($_GET['nombre'] ?? '') ?>">
+                 <div class="col-md-4">
+                    <label for="cargo" class="form-label">Cargo</label>
+                     <input type="text" id="cargo" name="cargo" class="form-control" placeholder="Buscar por cargo" value="<?= htmlspecialchars($_GET['cargo'] ?? '') ?>">
                  </div>
-                 <div class="col-md-3">
-                    <label for="licencia" class="form-label">Número de documento</label>
-                     <input type="text" id="licencia" name="licencia" class="form-control" placeholder="Número de documento" value="<?= htmlspecialchars($_GET['licencia'] ?? '') ?>">
+                 <div class="col-md-4">
+                    <label for="vehiculo" class="form-label">Vehículo</label>
+                    <select id="vehiculo" name="vehiculo" class="form-select">
+                        <option value="">Todos</option>
+                        <?php if (!empty($vehiculos)): ?>
+                            <?php foreach ($vehiculos as $veh): ?>
+                                <option value="<?= htmlspecialchars($veh['id']) ?>" <?= (isset($_GET['vehiculo']) && $_GET['vehiculo'] == $veh['id']) ? 'selected' : ''; ?>>
+                                    <?= htmlspecialchars($veh['placa']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </select>
                  </div>
-                 <div class="col-md-3">
-                    <label for="telefono" class="form-label">Teléfono</label>
-                     <input type="text" id="telefono" name="telefono" class="form-control" placeholder="Número de teléfono" value="<?= htmlspecialchars($_GET['telefono'] ?? '') ?>">
-                 </div>
-                 <div class="col-md-3 d-flex gap-2 align-items-end">
+                 <div class="col-md-4 d-flex gap-2 align-items-end">
                         <button type="submit" class="btn btn-primary">Filtrar</button>
                           <a href="/trucksisx/reportes.php?reporte=conductores" class="btn btn-primary">Reporte total</a>
                  </div>
@@ -30,28 +35,30 @@
                     <thead class="table-light">
                         <tr>
                             <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Apellido</th>
-                            <th>Teléfono</th>
-                            <th>Licencia</th>
-                            <th>Estado</th>
+                            <th>Cargo</th>
+                            <th>Horas Trabajadas</th>
+                            <th>Tareas Completadas</th>
+                            <th>Eficiencia</th>
+                            <th>Descripción</th>
+                            <th>Vehículo</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (!empty($conductores)): ?>
                             <?php foreach ($conductores as $cond): ?>
                                 <tr>
-                                    <td><?= htmlspecialchars($cond['id_conductor'] ?? $cond['id'] ?? ''); ?></td>
-                                    <td><?= htmlspecialchars($cond['nombre'] ?? ''); ?></td>
-                                    <td><?= htmlspecialchars($cond['apellido'] ?? ''); ?></td>
-                                    <td><?= htmlspecialchars($cond['telefono'] ?? ''); ?></td>
-                                    <td><?= htmlspecialchars($cond['numero_licencia'] ?? ''); ?></td>
-                                    <td><?= htmlspecialchars($cond['estado'] ?? ''); ?></td>
+                                    <td><?= htmlspecialchars($cond['id'] ?? ''); ?></td>
+                                    <td><?= htmlspecialchars($cond['cargo'] ?? ''); ?></td>
+                                    <td><?= htmlspecialchars($cond['horas_trabajadas'] ?? '0'); ?></td>
+                                    <td><?= htmlspecialchars($cond['tareas_completadas'] ?? '0'); ?></td>
+                                    <td><?= htmlspecialchars($cond['efeciencia'] ?? '0'); ?></td>
+                                    <td><?= htmlspecialchars($cond['descripcion'] ?? ''); ?></td>
+                                    <td><?= htmlspecialchars($cond['vehiculo'] ?? 'Sin asignar'); ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="6" class="text-center">No hay resultados</td>
+                                <td colspan="7" class="text-center">No hay resultados</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -61,7 +68,6 @@
        </div>
    </div>
 </div>
-
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -95,7 +101,7 @@
     }
 
     .card-title {
-        color: #1E3A8A;
+        color: #475569;
         font-size: 1.75rem;
         font-weight: 700;
         margin-bottom: 1.5rem;
@@ -103,7 +109,7 @@
 
     .card-title i {
         margin-right: 0.5rem;
-        color: #3B82F6;
+        color: #475569;
     }
 
     .form-label {
@@ -113,7 +119,7 @@
         margin-bottom: 0.5rem;
     }
 
-    .form-control, .form-select {
+    .form-control {
         border: 1px solid #D1D5DB;
         border-radius: 8px;
         font-size: 0.95rem;
@@ -121,9 +127,9 @@
         transition: all 0.3s ease;
     }
 
-    .form-control:focus, .form-select:focus {
-        border-color: #3B82F6;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    .form-control:focus {
+        border-color: #475569;
+        box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.1);
         outline: none;
     }
 
@@ -143,26 +149,14 @@
     }
 
     .btn-primary {
-        background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+        background: linear-gradient(135deg, #475569 0%, #334155 100%);
         color: #FFFFFF;
-        box-shadow: 0 2px 8px rgba(30, 58, 138, 0.3);
+        box-shadow: 0 2px 8px rgba(71, 85, 105, 0.3);
     }
 
     .btn-primary:hover {
-        background: linear-gradient(135deg, #1E40AF 0%, #2563EB 100%);
-        box-shadow: 0 4px 12px rgba(30, 58, 138, 0.4);
-        transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-        background: linear-gradient(135deg, #6B7280 0%, #9CA3AF 100%);
-        color: #FFFFFF;
-        box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
-    }
-
-    .btn-secondary:hover {
-        background: linear-gradient(135deg, #4B5563 0%, #6B7280 100%);
-        box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
+        background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+        box-shadow: 0 4px 12px rgba(71, 85, 105, 0.4);
         transform: translateY(-1px);
     }
 
@@ -219,7 +213,7 @@
 
     .table thead th {
         border-bottom: 2px solid #D1D5DB;
-        color: #1E3A8A;
+        color: #475569;
         font-weight: 600;
         font-size: 0.9rem;
         padding: 1rem;

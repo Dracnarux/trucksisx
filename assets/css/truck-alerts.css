@@ -515,3 +515,6 @@
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+
+/* Simple utility class */
+.hidden{display:none !important}

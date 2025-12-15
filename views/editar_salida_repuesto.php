@@ -1,5 +1,3 @@
-
-
 <?php
 session_start();
 if (!isset($_SESSION['usuario'])) {
@@ -31,56 +29,84 @@ $alertas = (new Alert($db))->getAll();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        body {
-            background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
+        :root {
+            --bg-primary: #0F172A;
+            --card-bg: #111827;
+            --card-radius: 12px;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --border: #1E293B;
+            --accent: #F97316;
+            --accent-amber: #F59E0B;
+            --danger: #EF4444;
+            --success: #10B981;
         }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
         .main-header {
-            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(30, 58, 138, 0.2);
-            color: #FFFFFF;
+            background: linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(17,24,39,0.85) 100%);
+            border-radius: var(--card-radius);
+            box-shadow: 0 18px 50px rgba(2,6,23,0.6);
+            color: var(--text-primary);
             margin-bottom: 2rem;
             padding: 2rem;
             position: relative;
             overflow: hidden;
         }
-        .main-header h1 { color: #fff; }
-        .card { border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
-        .card-header { background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%); color: #1E3A8A; font-weight: 600; }
-        .form-label { color: #1E3A8A; font-weight: 500; }
+
+        .main-header h1 {
+            color: var(--text-primary);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--card-radius);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-header {
+            background: var(--accent);
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .form-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
         .btn-primary {
-            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
-            color: #1E3A8A !important;
+            background: var(--accent);
+            color: #fff;
             font-weight: 600;
             border: none;
         }
+
         .btn-primary:hover {
-            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-            color: #1E3A8A !important;
+            background: var(--accent-amber);
+            color: #fff;
         }
-        .btn-outline-primary {
-            background: #FFFFFF;
-            border: 2px solid #1E3A8A;
-            color: #1E3A8A !important;
-        }
-        .btn-outline-primary:hover {
-            background: #1E3A8A;
-            color: #FFFFFF !important;
-        }
+
         .btn-secondary {
-            background: #FFFFFF;
-            border: 2px solid #1E3A8A;
-            color: #1E3A8A !important;
+            background: transparent;
+            border: 1px solid var(--text-secondary);
+            color: var(--text-secondary);
         }
+
         .btn-secondary:hover {
-            background: #1E3A8A;
-            color: #FFFFFF !important;
+            background: var(--text-secondary);
+            color: var(--bg-primary);
         }
-        .card { margin-bottom: 2rem; }
+
         .form-section {
-            background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
-            border: 1px solid #E5E7EB;
-            border-radius: 12px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--card-radius);
             margin-bottom: 1.5rem;
             padding: 1.5rem;
         }

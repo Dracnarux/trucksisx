@@ -68,399 +68,241 @@ if (!$rol_conductor) {
 // Filtros
 $filtros = [];
 foreach ([
-    'nombre', 'marca_repuesto', 'proveedor', 'cat_repu_id', 'subcat_repu_id', 'modelo', 'medidas_espe', 'norma_estan', 'numero_parte', 'des_tecnica', 'veh_compatible', 'estado_repus', 'num_factura', 'ubi_almacen', 'dest_area', 'firma_verificacion'
+    'nombre', 'marca_repuesto', 'proveedor_id', 'cat_repu_id', 'subcat_repu_id', 'modelo', 'medidas_espe', 'norma_estan', 'numero_parte', 'des_tecnica', 'veh_compatible', 'estado_repus', 'num_factura', 'ubi_almacen', 'dest_area', 'firma_verificacion'
 ] as $campo) {
-    $filtros[$campo] = $_GET[$campo] ?? '';
+    if (isset($_GET[$campo]) && $_GET[$campo] !== '') {
+        $filtros[$campo] = $_GET[$campo];
+    } else {
+        $filtros[$campo] = '';
+    }
 }
 $repuestos = $controller->index($filtros);
+
+// Cargar proveedores para el modal de edición
+require_once '../models/Proveedor.php';
+$provModel = new Proveedor();
+$proveedoresResult = $provModel->getAll();
+$proveedoresArray = [];
+while ($prov = $proveedoresResult->fetch_assoc()) {
+    $proveedoresArray[] = $prov;
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Gestión de Repuestos</title>
+    <script>
+        // Datos de proveedores para el modal de edición
+        window.proveedoresData = <?= json_encode($proveedoresArray) ?>;
+        // Datos de categorías y subcategorías para el formulario de edición
+        window.categoriasData = <?php
+            require_once '../models/CatRepu.php';
+            $catModelJS = new CatRepu();
+            $categoriasJS = $catModelJS->getAll();
+            $arrCats = [];
+            while ($cat = $categoriasJS->fetch_assoc()) $arrCats[] = $cat;
+            echo json_encode($arrCats);
+        ?>;
+        window.subcategoriasData = <?php
+            require_once '../models/SubCatRepu.php';
+            $subcatModelJS = new SubCatRepu();
+            $subcatsJS = $subcatModelJS->getAll();
+            $arrSubcats = [];
+            while ($subcat = $subcatsJS->fetch_assoc()) $arrSubcats[] = $subcat;
+            echo json_encode($arrSubcats);
+        ?>;
+    </script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        :root {
+            --bg-primary: #0F172A;
+            --bg-secondary: #1E293B;
+            --card-bg: #1E293B;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --border: #334155;
+            --accent: #F97316;
+            --accent-amber: #F59E0B;
+            --danger: #EF4444;
+            --success: #10B981;
+            --card-radius: 12px;
         }
+
         body {
-            background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
-            color: #374151;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             font-size: 16px;
             line-height: 1.6;
             min-height: 100vh;
         }
-        h1, h2, h3, h4, h5, h6 {
-            color: #1E3A8A;
-            font-weight: 600;
-            line-height: 1.3;
-            margin-bottom: 1rem;
-        }
-        h1 {
-            font-size: clamp(1.75rem, 4vw, 2.5rem);
-            font-weight: 700;
-        }
+
         .container {
             max-width: 1280px;
             margin: 0 auto;
             padding: 2rem;
         }
+
         .main-container {
-            background: #FFFFFF;
-            border: 1px solid rgba(209, 213, 219, 0.3);
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(51,65,85,0.08);
+            border-radius: var(--card-radius);
+            box-shadow: 0 8px 40px rgba(2,6,23,0.6);
             margin-top: 2rem;
             margin-bottom: 2rem;
             overflow: hidden;
             transition: all 0.3s ease;
         }
-        .main-container:hover {
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-            transform: translateY(-2px);
-        }
+
         .header-section {
-            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
-            color: #FFFFFF !important;
-            padding: 2rem;
+            background: linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(17,24,39,0.85) 100%);
             border-radius: 12px 12px 0 0;
+            color: var(--text-primary);
+            padding: 2rem;
             position: relative;
             overflow: hidden;
         }
-        .header-section::before {
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2"/></svg>');
-            content: '';
-            height: 200px;
-            opacity: 0.1;
-            position: absolute;
-            right: -50px;
-            top: -50px;
-            width: 200px;
-        }
+
         .header-section h2 {
-            color: #FFFFFF;
+            color: var(--text-primary);
             margin-bottom: 0.5rem;
-            position: relative;
-            z-index: 2;
         }
+
         .header-section .lead {
-            font-size: 1.1rem;
+            color: var(--text-secondary);
             opacity: 0.9;
-            position: relative;
-            z-index: 2;
         }
+
         .content-section {
             padding: 2rem;
         }
+
         .card, .table-responsive {
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            border-radius: var(--card-radius);
+            box-shadow: 0 6px 24px rgba(2,6,23,0.45);
             margin-bottom: 1.5rem;
             overflow: hidden;
             transition: all 0.3s ease;
         }
+
         .card-header {
-            background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
-            border-bottom: 1px solid #D1D5DB;
-            color: #1E3A8A;
-            font-weight: 600;
+            background: var(--accent);
+            color: #fff;
+            font-weight: bold;
             padding: 1.25rem;
         }
+
         .card-body {
             padding: 1.5rem;
         }
+
         .btn {
             border-radius: 8px;
             border: none;
             cursor: pointer;
             font-size: 0.95rem;
-            font-weight: 500;
+            font-weight: 600;
             min-height: 44px;
             padding: 0.75rem 1.5rem;
             position: relative;
             text-decoration: none;
             transition: all 0.3s ease;
         }
-        .btn:focus {
-            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.3);
-            outline: none;
-        }
+
         .btn-primary {
-            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
-            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
-            color: #1E3A8A !important;
-            font-weight: 600;
+            background: var(--accent);
+            color: white;
         }
+
         .btn-primary:hover {
-            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
-            color: #1E3A8A !important;
-            transform: translateY(-2px);
+            background: #E65100;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
         }
-        .btn-outline-primary, .btn-secondary {
+
+        .btn-outline-primary {
             background: #FFFFFF;
-            border: 2px solid #1E3A8A;
-            color: #1E3A8A !important;
+            border: 2px solid var(--accent);
+            color: var(--accent) !important;
         }
-        .btn-outline-primary:hover, .btn-secondary:hover {
-            background: #1E3A8A;
+
+        .btn-outline-primary:hover {
+            background: var(--accent);
             color: #FFFFFF !important;
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
-        .btn-success {
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-            color: #FFFFFF !important;
-        }
-        .btn-warning {
-            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
-            color: #1E3A8A !important;
-        }
-        .btn-danger {
-            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
-            color: #FFFFFF !important;
-        }
-        .btn-info {
-            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-            color: #FFFFFF !important;
-        }
-        .btn:hover {
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-            transform: translateY(-2px);
-        }
+
         .form-control, .form-select {
             background: #FFFFFF;
             border: 2px solid #D1D5DB;
             border-radius: 8px;
-            color: #374151;
+            color: #000;
             font-size: 16px;
             padding: 0.75rem 1rem;
             transition: all 0.3s ease;
         }
+
         .form-control:focus, .form-select:focus {
-            border-color: #1E3A8A;
-            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
             outline: none;
         }
-        .form-label {
-            color: #1E3A8A;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-        }
-        .form-section {
-            background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
-            border: 1px solid #E5E7EB;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
-            padding: 1.5rem;
-        }
-        .form-section h6 {
-            border-bottom: 2px solid #FBBF24;
-            color: #1E3A8A;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-        }
-        .table-responsive {
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-            overflow: hidden;
-        }
-        .table {
-            margin-bottom: 0;
-            font-size: 13px;
-        }
+
         .table thead th {
-            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            background: var(--accent);
             border: none;
             color: #FFFFFF;
-            font-weight: 700;
-            padding: 0.7rem 0.5rem;
+            font-weight: 600;
+            padding: 0.75rem;
             position: sticky;
             top: 0;
             z-index: 10;
         }
+
         .table tbody td {
-            border-bottom: 1px solid #E5E7EB;
-            color: #374151;
-            padding: 0.6rem 0.5rem;
+            border-bottom: 1px solid var(--border);
+            color: #000;
+            padding: 0.75rem;
             vertical-align: middle;
         }
-        .table-hover tbody tr:hover {
-            background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(30, 58, 138, 0.08) 100%);
-        }
-        .table td.text-center .btn {
-            font-size: 12px;
-            padding: 0.3rem 0.6rem;
-            margin: 0 2px;
-        }
-        .table td.text-center .btn-info {
-            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-            color: #fff !important;
-        }
-        .table td.text-center .btn-warning {
-            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
-            color: #1E3A8A !important;
-        }
-        .table td.text-center .btn-danger {
-            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
-            color: #fff !important;
-        }
-        .badge {
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            padding: 0.5rem 1rem;
-        }
-        .badge.bg-success {
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
-        }
-        .badge.bg-warning {
-            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%) !important;
-            color: #1E3A8A !important;
-        }
-        .badge.bg-danger {
-            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
-        }
-        .badge.bg-info {
-            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
-        }
+
+        .badge.bg-success { background: var(--success) !important; }
+        .badge.bg-warning { background: var(--accent-amber) !important; color: #FFFFFF !important; }
+        .badge.bg-danger { background: var(--danger) !important; }
+        .badge.bg-info { background: var(--text-secondary) !important; }
+
+        .modal-content { border: none; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+        .modal-header { background: var(--accent); color: #fff; }
+
+        /* Forzar legibilidad en ventanas emergentes: fondo blanco y texto negro */
         .modal-content {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            background: white !important;
+            color: black !important;
+            border-radius: var(--card-radius);
+            border: 1px solid #dee2e6;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
         }
-        .modal-header {
-            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
-            border-radius: 12px 12px 0 0;
-            color: #FFFFFF;
+
+        .modal-header, .modal-body, .modal-footer {
+            background: white !important;
+            color: black !important;
         }
-        .modal-body {
-            padding: 2rem;
+
+        .modal-header .btn-close {
+            filter: none !important;
         }
-        .modal-footer {
-            border-top: 1px solid #E5E7EB;
-            padding: 1.5rem 2rem;
-        }
-        .alert {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-        }
-        .alert-success {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
-            color: #059669;
-        }
-        .alert-warning {
-            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
-            color: #D97706;
-        }
-        .alert-danger {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%);
-            color: #DC2626;
-        }
+
         @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-            .main-container {
-                margin-top: 1rem;
-                margin-bottom: 1rem;
-            }
-            .header-section {
-                padding: 1.5rem;
-                text-align: center;
-            }
-            .content-section {
-                padding: 1rem;
-            }
-            .btn {
-                font-size: 16px;
-                min-height: 44px;
-                width: 100%;
-            }
-            .btn + .btn {
-                margin-top: 0.5rem;
-            }
-            .table-responsive {
-                font-size: 14px;
-            }
-            .form-section {
-                padding: 1rem;
-            }
-            .modal-body {
-                padding: 1rem;
-            }
-            .d-flex.gap-2 {
-                flex-direction: column;
-            }
-            .d-flex.gap-2 > * {
-                margin-bottom: 0.5rem;
-            }
-        }
-        @media (max-width: 576px) {
-            .container {
-                padding: 0.5rem;
-            }
-            h1 {
-                font-size: 1.5rem;
-            }
-            .header-section {
-                padding: 1rem;
-            }
-            .table thead th,
-            .table tbody td {
-                font-size: 12px;
-                padding: 0.5rem;
-            }
-            .btn {
-                padding: 0.75rem 1rem;
-            }
-        }
-        .gradient-bg {
-            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
-        }
-        .text-corporate {
-            color: #1E3A8A !important;
-        }
-        .text-accent {
-            color: #FBBF24 !important;
-        }
-        .border-corporate {
-            border-color: #1E3A8A !important;
-        }
-        .shadow-corporate {
-            box-shadow: 0 4px 16px rgba(30, 58, 138, 0.15) !important;
-        }
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        .animate-slide-up {
-            animation: slideInUp 0.6s ease-out;
-        }
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-        .animate-fade-in {
-            animation: fadeIn 0.4s ease-out;
+            .container { padding: 1rem; }
+            .header-section { padding: 1.5rem; text-align: center; }
+            .content-section { padding: 1rem; }
+            .btn { font-size: 16px; min-height: 44px; width: 100%; }
         }
     </style>
 </head>
@@ -505,238 +347,210 @@ $repuestos = $controller->index($filtros);
     $provModel = new Proveedor();
     $proveedores = $provModel->getAll();
     ?>
-    <form class="row mb-4" method="get">
-        <!-- Filtros Desktop -->
-        <div class="d-none d-md-block col-12">
-            <div class="row">
-                <div class="col-md-2 mb-2">
-                    <input type="text" name="nombre" class="form-control" placeholder="Buscar por nombre" value="<?= htmlspecialchars($filtros['nombre']) ?>">
-                </div>
-                <div class="col-md-2 mb-2">
-                    <input type="text" name="modelo" class="form-control" placeholder="Buscar por modelo" value="<?= htmlspecialchars($filtros['modelo']) ?>">
-                </div>
-                <div class="col-md-2 mb-2">
-                    <input type="text" name="estado_repus" class="form-control" placeholder="Buscar por estado" value="<?= htmlspecialchars($filtros['estado_repus']) ?>">
-                </div>
-                <div class="col-md-2 mb-2">
-                    <select name="cat_repu_id" class="form-control" aria-label="Filtrar por categoría">
-                        <option value="">Filtrar por categoría</option>
-                        <?php $catModel2 = new CatRepu(); $categorias2 = $catModel2->getAll(); while ($cat = $categorias2->fetch_assoc()): ?>
-                            <option value="<?= $cat['id'] ?>" <?= (isset($_GET['cat_repu_id']) && $_GET['cat_repu_id'] == $cat['id']) ? 'selected' : '' ?>><?= htmlspecialchars($cat['nombre']) ?></option>
-                        <?php endwhile; ?>
-                    </select>
-                </div>
-                <div class="col-md-2 mb-2">
-                    <select name="subcat_repu_id" class="form-control" aria-label="Filtrar por subcategoría">
-                        <option value="">Filtrar por subcategoría</option>
-                        <?php $subcatModel2 = new SubCatRepu(); $subcategorias2 = $subcatModel2->getAll(); while ($subcat = $subcategorias2->fetch_assoc()): ?>
-                            <option value="<?= $subcat['id'] ?>" <?= (isset($_GET['subcat_repu_id']) && $_GET['subcat_repu_id'] == $subcat['id']) ? 'selected' : '' ?>><?= htmlspecialchars($subcat['nombre']) ?></option>
-                        <?php endwhile; ?>
-                    </select>
-                </div>
-                <div class="col-md-2 mb-2">
-                    <select name="proveedor_id" class="form-control" aria-label="Filtrar por proveedor">
-                        <option value="">Filtrar por proveedor</option>
-                        <?php $proveedores->data_seek(0); while ($prov = $proveedores->fetch_assoc()): ?>
-                            <option value="<?= $prov['id'] ?>" <?= (isset($_GET['proveedor_id']) && $_GET['proveedor_id'] == $prov['id']) ? 'selected' : '' ?>><?= htmlspecialchars($prov['nom_proveedor']) ?></option>
-                        <?php endwhile; ?>
-                    </select>
-                </div>
-                <div class="col-md-2 mb-2">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-search"></i> Filtrar
-                    </button>
-                </div>
-                <div class="col-md-2 mb-2">
-                    <a href="repue.php" class="btn btn-secondary w-100">
-                        <i class="bi bi-x"></i> Limpiar
-                    </a>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Filtros Mobile -->
-        <div class="d-md-none col-12">
-            <div class="filtros-mobile">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="mb-0"><i class="bi bi-funnel"></i> Filtros</h6>
-                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filtrosMobile" aria-expanded="false">
-                        <i class="bi bi-chevron-down"></i>
-                    </button>
-                </div>
-                
-                <div class="collapse" id="filtrosMobile">
-                    <input type="text" name="nombre" class="form-control" placeholder="🔍 Buscar por nombre" value="<?= htmlspecialchars($filtros['nombre']) ?>">
-                    
-                    <input type="text" name="modelo" class="form-control" placeholder="🔍 Buscar por modelo" value="<?= htmlspecialchars($filtros['modelo']) ?>">
-                    
-                    <input type="text" name="estado_repus" class="form-control" placeholder="🔍 Buscar por estado" value="<?= htmlspecialchars($filtros['estado_repus']) ?>">
-                    
-                    <select name="cat_repu_id" class="form-select" aria-label="Filtrar por categoría">
-                        <option value="">📁 Todas las categorías</option>
-                        <?php $catModel3 = new CatRepu(); $categorias3 = $catModel3->getAll(); while ($cat = $categorias3->fetch_assoc()): ?>
-                            <option value="<?= $cat['id'] ?>" <?= (isset($_GET['cat_repu_id']) && $_GET['cat_repu_id'] == $cat['id']) ? 'selected' : '' ?>><?= htmlspecialchars($cat['nombre']) ?></option>
-                        <?php endwhile; ?>
-                    </select>
-                    
-                    <select name="subcat_repu_id" class="form-select" aria-label="Filtrar por subcategoría">
-                        <option value="">📂 Todas las subcategorías</option>
-                        <?php $subcatModel3 = new SubCatRepu(); $subcategorias3 = $subcatModel3->getAll(); while ($subcat = $subcategorias3->fetch_assoc()): ?>
-                            <option value="<?= $subcat['id'] ?>" <?= (isset($_GET['subcat_repu_id']) && $_GET['subcat_repu_id'] == $subcat['id']) ? 'selected' : '' ?>><?= htmlspecialchars($subcat['nombre']) ?></option>
-                        <?php endwhile; ?>
-                    </select>
-                    
-                    <select name="proveedor_id" class="form-select" aria-label="Filtrar por proveedor">
-                        <option value="">🏢 Todos los proveedores</option>
-                        <?php $provModel2 = new Proveedor(); $proveedores2 = $provModel2->getAll(); while ($prov = $proveedores2->fetch_assoc()): ?>
-                            <option value="<?= $prov['id'] ?>" <?= (isset($_GET['proveedor_id']) && $_GET['proveedor_id'] == $prov['id']) ? 'selected' : '' ?>><?= htmlspecialchars($prov['nom_proveedor']) ?></option>
-                        <?php endwhile; ?>
-                    </select>
-                    
-                    <div class="row">
-                        <div class="col-6">
-                            <button type="submit" class="btn btn-primary">
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title"><i class="bi bi-funnel"></i> Filtros de Búsqueda</h5>
+            <form method="GET" action="repue.php">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" name="nombre" class="form-control" placeholder="Buscar por nombre" value="<?= isset($_GET['nombre']) ? htmlspecialchars($_GET['nombre']) : '' ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Modelo</label>
+                        <input type="text" name="modelo" class="form-control" placeholder="Buscar por modelo" value="<?= isset($_GET['modelo']) ? htmlspecialchars($_GET['modelo']) : '' ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Estado</label>
+                        <input type="text" name="estado_repus" class="form-control" placeholder="Buscar por estado" value="<?= isset($_GET['estado_repus']) ? htmlspecialchars($_GET['estado_repus']) : '' ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Categoría</label>
+                        <select name="cat_repu_id" class="form-select">
+                            <option value="">Todas las categorías</option>
+                            <?php 
+                            $categorias->data_seek(0);
+                            while ($cat = $categorias->fetch_assoc()): 
+                            ?>
+                                <option value="<?= $cat['id'] ?>" <?= (isset($_GET['cat_repu_id']) && $_GET['cat_repu_id'] == $cat['id']) ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($cat['nombre']) ?>
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Subcategoría</label>
+                        <select name="subcat_repu_id" class="form-select">
+                            <option value="">Todas las subcategorías</option>
+                            <?php 
+                            $subcategorias->data_seek(0);
+                            while ($subcat = $subcategorias->fetch_assoc()): 
+                            ?>
+                                <option value="<?= $subcat['id'] ?>" <?= (isset($_GET['subcat_repu_id']) && $_GET['subcat_repu_id'] == $subcat['id']) ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($subcat['nombre']) ?>
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Proveedor</label>
+                        <select name="proveedor_id" class="form-select">
+                            <option value="">Todos los proveedores</option>
+                            <?php 
+                            $proveedores->data_seek(0);
+                            while ($prov = $proveedores->fetch_assoc()): 
+                            ?>
+                                <option value="<?= $prov['id'] ?>" <?= (isset($_GET['proveedor_id']) && $_GET['proveedor_id'] == $prov['id']) ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($prov['nom_proveedor']) ?>
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary flex-fill">
                                 <i class="bi bi-search"></i> Buscar
                             </button>
-                        </div>
-                        <div class="col-6">
-                            <a href="repue.php" class="btn btn-outline-secondary">
-                                <i class="bi bi-arrow-clockwise"></i> Limpiar
+                            <a href="repue.php" class="btn btn-secondary flex-fill">
+                                <i class="bi bi-x-circle"></i> Limpiar
                             </a>
                         </div>
                     </div>
                 </div>
-            </div>
+            </form>
         </div>
-        </div>
-    </form>
+    </div>
+
     
     <!-- Tabla de Repuestos -->
     <div class="table-responsive">
-        <table class="table table-hover">
-            <thead>
+        <div style="overflow-x:auto;">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Categoría y Subcategoría</th>
+                        <th>Marca/Modelo</th>
+                        <th>Proveedor</th>
+                        <th>Stock</th>
+                        <th>Estado</th>
+                        <th>Precio</th>
+                        <th>Ubicación</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+            <tbody>
+            <?php 
+            require_once '../models/CatRepu.php';
+            require_once '../models/SubCatRepu.php';
+            require_once '../models/Proveedor.php';
+            $catModel = new CatRepu();
+            $subcatModel = new SubCatRepu();
+            $provModel = new Proveedor();
+            while ($row = $repuestos->fetch_assoc()): 
+                $cat = isset($row['cat_repu_id']) ? $catModel->getById($row['cat_repu_id']) : null;
+                $subcat = isset($row['subcat_repu_id']) ? $subcatModel->getById($row['subcat_repu_id']) : null;
+                $prov = $provModel->getById($row['proveedor_id']);
+            ?>
                 <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Categoría</th>
-                    <th>Marca/Modelo</th>
-                    <th>Proveedor</th>
-                    <th>Stock</th>
-                    <th>Estado</th>
-                    <th>Precio</th>
-                    <th>Ubicación</th>
-                    <th class="text-center">Acciones</th>
+                    <td><strong>#<?= $row['id'] ?></strong></td>
+                    <td>
+                        <strong><?= htmlspecialchars($row['nombre']) ?></strong>
+                        <?php if ($row['numero_parte']): ?>
+                            <br><small class="text-muted">Parte: <?= htmlspecialchars($row['numero_parte']) ?></small>
+                        <?php endif; ?>
+                    </td>
+                    <td>
+                        <?php if ($cat): ?>
+                            <span class="badge bg-primary"><?= htmlspecialchars($cat['nombre']) ?></span>
+                        <?php endif; ?>
+                        <?php if ($subcat): ?>
+                            <br><span class="badge bg-secondary mt-1"><?= htmlspecialchars($subcat['nombre']) ?></span>
+                        <?php endif; ?>
+                    </td>
+                    <td>
+                        <?php if ($row['marca_repuesto']): ?>
+                            <strong><?= htmlspecialchars($row['marca_repuesto']) ?></strong>
+                        <?php endif; ?>
+                        <?php if ($row['modelo']): ?>
+                            <br><small class="text-muted"><?= htmlspecialchars($row['modelo']) ?></small>
+                        <?php endif; ?>
+                    </td>
+                    <td>
+                        <?php if ($row['proveedor_id']): ?>
+                            <?php $prov = $provModel->getById($row['proveedor_id']); ?>
+                            <?= $prov ? htmlspecialchars($prov['nom_proveedor']) : 'ID: ' . $row['proveedor_id'] ?>
+                            <br><span class="badge bg-success">Asignado</span>
+                        <?php else: ?>
+                            <span class="badge bg-warning">Sin proveedor</span>
+                        <?php endif; ?>
+                    </td>
+                    <td>
+                        <span class="badge <?= $row['cant_stock'] > 5 ? 'bg-success' : ($row['cant_stock'] > 0 ? 'bg-warning' : 'bg-danger') ?>">
+                            <?= $row['cant_stock'] ?>
+                        </span>
+                        <br><small class="text-muted"><?= $row['cant_stock'] > 5 ? 'Disponible' : ($row['cant_stock'] > 0 ? 'Stock bajo' : 'Agotado') ?></small>
+                    </td>
+                    <td>
+                        <?php
+                        $estado_class = [
+                            'Nuevo' => 'bg-success',
+                            'Usado' => 'bg-info', 
+                            'Reacondicionado' => 'bg-warning text-dark',
+                            'Dañado' => 'bg-danger'
+                        ];
+                        $class = $estado_class[$row['estado_repus']] ?? 'bg-secondary';
+                        ?>
+                        <span class="badge <?= $class ?>"><?= htmlspecialchars($row['estado_repus']) ?></span>
+                    </td>
+                    <td>
+                        <?php if ($row['pre_unitario'] > 0): ?>
+                            $<?= number_format($row['pre_unitario'], 2) ?>
+                            <?php if ($row['costo_total'] > 0): ?>
+                                <br><small class="text-muted">Total: $<?= number_format($row['costo_total'], 2) ?></small>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <small class="text-muted">Sin precio</small>
+                        <?php endif; ?>
+                    </td>
+                    <td>
+                        <?php if ($row['ubi_almacen']): ?>
+                            <i class="bi bi-geo-alt"></i> <?= htmlspecialchars($row['ubi_almacen']) ?>
+                        <?php else: ?>
+                            <small class="text-muted">Sin ubicación</small>
+                        <?php endif; ?>
+                    </td>
+                    <td class="text-center">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" 
+                                    class="btn btn-outline-info" 
+                                    onclick="verRepuesto(<?= htmlspecialchars(json_encode($row), ENT_QUOTES, 'UTF-8') ?>)"
+                                    title="Ver detalles">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <?php if (!$rol_conductor): ?>
+                            <button type="button" 
+                                    class="btn btn-outline-warning" 
+                                    onclick="editarRepuesto(<?= $row['id'] ?>)"
+                                    title="Editar repuesto">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button type="button" 
+                                    class="btn btn-outline-danger" 
+                                    onclick="eliminarRepuesto(<?= $row['id'] ?>, '<?= htmlspecialchars($row['nombre'], ENT_QUOTES, 'UTF-8') ?>')"
+                                    title="Eliminar repuesto">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            <?php endif; ?>
+                        </div>
+                    </td>
                 </tr>
-            </thead>
-        <tbody>
-        <?php 
-        require_once '../models/CatRepu.php';
-        require_once '../models/SubCatRepu.php';
-        require_once '../models/Proveedor.php';
-        $catModel = new CatRepu();
-        $subcatModel = new SubCatRepu();
-        $provModel = new Proveedor();
-        while ($row = $repuestos->fetch_assoc()): 
-            $cat = isset($row['cat_repu_id']) ? $catModel->getById($row['cat_repu_id']) : null;
-            $subcat = isset($row['subcat_repu_id']) ? $subcatModel->getById($row['subcat_repu_id']) : null;
-            $prov = $provModel->getById($row['proveedor_id']);
-        ?>
-            <tr>
-                <td><strong>#<?= $row['id'] ?></strong></td>
-                <td>
-                    <strong><?= htmlspecialchars($row['nombre']) ?></strong>
-                    <?php if ($row['numero_parte']): ?>
-                        <br><small class="text-muted">Parte: <?= htmlspecialchars($row['numero_parte']) ?></small>
-                    <?php endif; ?>
-                </td>
-                <td>
-                    <?php if ($cat): ?>
-                        <span class="badge bg-primary"><?= htmlspecialchars($cat['nombre']) ?></span>
-                    <?php endif; ?>
-                    <?php if ($subcat): ?>
-                        <br><span class="badge bg-secondary mt-1"><?= htmlspecialchars($subcat['nombre']) ?></span>
-                    <?php endif; ?>
-                </td>
-                <td>
-                    <?php if ($row['marca_repuesto']): ?>
-                        <strong><?= htmlspecialchars($row['marca_repuesto']) ?></strong>
-                    <?php endif; ?>
-                    <?php if ($row['modelo']): ?>
-                        <br><small class="text-muted"><?= htmlspecialchars($row['modelo']) ?></small>
-                    <?php endif; ?>
-                </td>
-                <td>
-                    <?php if ($row['proveedor_id']): ?>
-                        <?php $prov = $provModel->getById($row['proveedor_id']); ?>
-                        <?= $prov ? htmlspecialchars($prov['nom_proveedor']) : 'ID: ' . $row['proveedor_id'] ?>
-                        <br><span class="badge bg-success">Asignado</span>
-                    <?php else: ?>
-                        <span class="badge bg-warning">Sin proveedor</span>
-                    <?php endif; ?>
-                </td>
-                <td>
-                    <span class="badge <?= $row['cant_stock'] > 5 ? 'bg-success' : ($row['cant_stock'] > 0 ? 'bg-warning' : 'bg-danger') ?>">
-                        <?= $row['cant_stock'] ?>
-                    </span>
-                    <br><small class="text-muted"><?= $row['cant_stock'] > 5 ? 'Disponible' : ($row['cant_stock'] > 0 ? 'Stock bajo' : 'Agotado') ?></small>
-                </td>
-                <td>
-                    <?php
-                    $estado_class = [
-                        'Nuevo' => 'bg-success',
-                        'Usado' => 'bg-info', 
-                        'Reacondicionado' => 'bg-warning text-dark',
-                        'Dañado' => 'bg-danger'
-                    ];
-                    $class = $estado_class[$row['estado_repus']] ?? 'bg-secondary';
-                    ?>
-                    <span class="badge <?= $class ?>"><?= htmlspecialchars($row['estado_repus']) ?></span>
-                </td>
-                <td>
-                    <?php if ($row['pre_unitario'] > 0): ?>
-                        $<?= number_format($row['pre_unitario'], 2) ?>
-                        <?php if ($row['costo_total'] > 0): ?>
-                            <br><small class="text-muted">Total: $<?= number_format($row['costo_total'], 2) ?></small>
-                        <?php endif; ?>
-                    <?php else: ?>
-                        <small class="text-muted">Sin precio</small>
-                    <?php endif; ?>
-                </td>
-                <td>
-                    <?php if ($row['ubi_almacen']): ?>
-                        <i class="bi bi-geo-alt"></i> <?= htmlspecialchars($row['ubi_almacen']) ?>
-                    <?php else: ?>
-                        <small class="text-muted">Sin ubicación</small>
-                    <?php endif; ?>
-                </td>
-                <td class="text-center">
-                    <div class="btn-group btn-group-sm" role="group">
-                        <button type="button" 
-                                class="btn btn-outline-info" 
-                                onclick="verRepuesto(<?= htmlspecialchars(json_encode($row), ENT_QUOTES, 'UTF-8') ?>)"
-                                title="Ver detalles">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                        <?php if (!$rol_conductor): ?>
-                        <button type="button" 
-                                class="btn btn-outline-warning" 
-                                onclick="editarRepuesto(<?= $row['id'] ?>)"
-                                title="Editar repuesto">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button type="button" 
-                                class="btn btn-outline-danger" 
-                                onclick="eliminarRepuesto(<?= $row['id'] ?>, '<?= htmlspecialchars($row['nombre'], ENT_QUOTES, 'UTF-8') ?>')"
-                                title="Eliminar repuesto">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                        <?php endif; ?>
-                    </div>
-                </td>
-            </tr>
-        <?php endwhile; ?>
+            <?php endwhile; ?>
             </tbody>
         </table>
+        </div>
     </div>
         </div>
     </div>
@@ -744,16 +558,18 @@ $repuestos = $controller->index($filtros);
 
 <!-- Modal Crear Repuesto -->
 <div class="modal fade" id="modalCrearRepuesto" tabindex="-1" aria-labelledby="modalCrearRepuestoLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title" id="modalCrearRepuestoLabel">
-                    <i class="bi bi-plus-circle me-2"></i>Nuevo Repuesto
+                    <i class="bi bi-plus-circle me-2"></i> Nuevo Repuesto
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-            <form method="POST" action="repue.php">
-                <div class="modal-body">
+            <div class="modal-body">
+                <form method="POST" action="repue.php" id="formCrearRepuesto">
+                    <input type="hidden" name="crear" value="1">
+                    <!-- Sección 1: Información Básica -->
                     <!-- Sección 1: Información Básica -->
                     <div class="row mb-4">
                         <div class="col-12">
@@ -804,28 +620,31 @@ $repuestos = $controller->index($filtros);
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label"><i class="bi bi-collection me-1"></i>Categoría</label>
-                            <select name="cat_repu_id" class="form-select">
-                                <option value="">Seleccione una categoría</option>
+                            <label class="form-label"><i class="bi bi-collection me-1"></i>Categoría de repuesto</label>
+                            <input type="text" id="categoria_search" class="form-control mb-2" placeholder="Buscar categoría..." autocomplete="off">
+                            <input type="hidden" name="cat_repu_id" id="cat_repu_id">
+                            <select id="categoria_dropdown" class="form-select" size="5" style="display: none;">
+                                <option value="">Seleccione una categoría de repuesto</option>
                                 <?php 
                                 $categorias = $catModel->getAll();
                                 while ($cat = $categorias->fetch_assoc()): 
                                 ?>
-                                    <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['nombre']) ?></option>
+                                    <option value="<?= $cat['id'] ?>" data-nombre="<?= htmlspecialchars($cat['nombre']) ?>"><?= htmlspecialchars($cat['nombre']) ?></option>
                                 <?php endwhile; ?>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label"><i class="bi bi-bookmark me-1"></i>Subcategoría</label>
-                            <select name="subcat_repu_id" class="form-select">
-                                <option value="">Seleccione una subcategoría</option>
+                            <label class="form-label"><i class="bi bi-bookmark me-1"></i>Subcategoría de repuesto</label>
+                            <select name="subcat_repu_id" id="subcat_repu_id" class="form-select" disabled>
+                                <option value="">Primero selecciona una categoría de repuesto</option>
                                 <?php 
                                 $subcategorias = $subcatModel->getAll();
                                 while ($subcat = $subcategorias->fetch_assoc()): 
                                 ?>
-                                    <option value="<?= $subcat['id'] ?>"><?= htmlspecialchars($subcat['nombre']) ?></option>
+                                    <option value="<?= $subcat['id'] ?>" data-cat="<?= $subcat['cat_repu_id'] ?>"><?= htmlspecialchars($subcat['nombre']) ?></option>
                                 <?php endwhile; ?>
                             </select>
+                            <div id="subcatHelp" class="form-text text-muted">Primero selecciona una categoría de repuesto.</div>
                         </div>
                     </div>
                     
@@ -967,22 +786,23 @@ $repuestos = $controller->index($filtros);
                             <input type="text" name="firma_verificacion" class="form-control">
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-1"></i>Cancelar
-                    </button>
-                    <button type="submit" class="btn btn-success">
-                        <i class="bi bi-check-circle me-1"></i>Crear Repuesto
-                    </button>
-                </div>
-            </form>
+                    <!-- fin formulario -->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i> Cancelar
+                </button>
+                <button type="submit" form="formCrearRepuesto" class="btn btn-success">
+                    <i class="bi bi-check-circle me-1"></i> Crear Repuesto
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Modal Ver Repuesto -->
-<div class="modal fade" id="modalVerRepuesto" tabindex="-1" aria-labelledby="modalVerRepuestoLabel" aria-hidden="true">
+<div class="modal fade" id="modalVerRepuesto" tabindex="-1" aria-labelledby="modalVerRepuestoLabel">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-info text-white">
@@ -1004,7 +824,7 @@ $repuestos = $controller->index($filtros);
 </div>
 
 <!-- Modal Editar Repuesto -->
-<div class="modal fade" id="modalEditarRepuesto" tabindex="-1" aria-labelledby="modalEditarRepuestoLabel" aria-hidden="true">
+<div class="modal fade" id="modalEditarRepuesto" tabindex="-1" aria-labelledby="modalEditarRepuestoLabel">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-warning text-dark">
@@ -1029,7 +849,7 @@ $repuestos = $controller->index($filtros);
 </div>
 
 <!-- Modal Eliminar Repuesto -->
-<div class="modal fade" id="modalEliminarRepuesto" tabindex="-1" aria-labelledby="modalEliminarRepuestoLabel" aria-hidden="true">
+<div class="modal fade" id="modalEliminarRepuesto" tabindex="-1" aria-labelledby="modalEliminarRepuestoLabel">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
@@ -1076,22 +896,27 @@ $repuestos = $controller->index($filtros);
                 <input type="hidden" name="id" value="<?= $editData['id'] ?? '' ?>">
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Categoría</label>
-                        <select name="cat_repu_id" class="form-control" required>
-                            <option value="">Seleccione una categoría</option>
-                            <?php while ($cat = $categorias->fetch_assoc()): ?>
+                        <label class="form-label">Categoría de repuesto</label>
+                        <select name="cat_repu_id" id="edit_cat_repu_id" class="form-control" required>
+                            <option value="">Seleccione una categoría de repuesto</option>
+                            <?php 
+                            $categorias->data_seek(0); // Reiniciar puntero
+                            while ($cat = $categorias->fetch_assoc()): ?>
                                 <option value="<?= $cat['id'] ?>" <?= (isset($editData['cat_repu_id']) && $editData['cat_repu_id'] == $cat['id']) ? 'selected' : '' ?>><?= htmlspecialchars($cat['nombre']) ?></option>
                             <?php endwhile; ?>
                         </select>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Subcategoría</label>
-                        <select name="subcat_repu_id" class="form-control" required>
-                            <option value="">Seleccione una subcategoría</option>
-                            <?php while ($subcat = $subcategorias->fetch_assoc()): ?>
-                                <option value="<?= $subcat['id'] ?>" <?= (isset($editData['subcat_repu_id']) && $editData['subcat_repu_id'] == $subcat['id']) ? 'selected' : '' ?>><?= htmlspecialchars($subcat['nombre']) ?></option>
+                        <label class="form-label">Subcategoría de repuesto</label>
+                        <select name="subcat_repu_id" id="edit_subcat_repu_id" class="form-control" required>
+                            <option value="">Seleccione una subcategoría de repuesto</option>
+                            <?php 
+                            $subcategorias->data_seek(0); // Reiniciar puntero
+                            while ($subcat = $subcategorias->fetch_assoc()): ?>
+                                <option value="<?= $subcat['id'] ?>" data-cat="<?= $subcat['cat_repu_id'] ?>" <?= (isset($editData['subcat_repu_id']) && $editData['subcat_repu_id'] == $subcat['id']) ? 'selected' : '' ?>><?= htmlspecialchars($subcat['nombre']) ?></option>
                             <?php endwhile; ?>
                         </select>
+                        <div id="edit_subcatHelp" class="form-text text-muted"></div>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Nombre</label>
@@ -1222,7 +1047,31 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Función para abrir modales
     function abrirModal(modalId) {
-        const modal = new bootstrap.Modal(document.getElementById(modalId));
+        const modalElement = document.getElementById(modalId);
+        
+        // Remove aria-hidden before creating modal instance
+        modalElement.removeAttribute('aria-hidden');
+        
+        const modal = new bootstrap.Modal(modalElement);
+        
+        // Monitor and remove aria-hidden continuously
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'aria-hidden') {
+                    if (modalElement.hasAttribute('aria-hidden')) {
+                        modalElement.removeAttribute('aria-hidden');
+                    }
+                }
+            });
+        });
+        
+        observer.observe(modalElement, { attributes: true });
+        
+        // Stop observing when modal is hidden
+        modalElement.addEventListener('hidden.bs.modal', function() {
+            observer.disconnect();
+        }, { once: true });
+        
         modal.show();
     }
     
@@ -1442,7 +1291,6 @@ document.addEventListener('DOMContentLoaded', function() {
             <form id="formEditar" method="POST" action="repue.php">
                 <input type="hidden" name="id" value="${repuesto.id}">
                 <input type="hidden" name="editar" value="1">
-                
                 <!-- Información Básica -->
                 <div class="row mb-4">
                     <div class="col-12">
@@ -1451,12 +1299,27 @@ document.addEventListener('DOMContentLoaded', function() {
                         </h6>
                     </div>
                 </div>
-                
                 <div class="row">
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label"><i class="bi bi-collection me-1"></i>Categoría</label>
+                        <select name="cat_repu_id" class="form-select" required>
+                            <option value="">Seleccione una categoría</option>
+                            ${window.categoriasData.map(cat => `<option value="${cat.id}" ${repuesto.cat_repu_id == cat.id ? 'selected' : ''}>${cat.nombre}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label"><i class="bi bi-bookmark me-1"></i>Subcategoría</label>
+                        <select name="subcat_repu_id" class="form-select" required>
+                            <option value="">Seleccione una subcategoría</option>
+                            ${window.subcategoriasData.map(subcat => `<option value="${subcat.id}" ${repuesto.subcat_repu_id == subcat.id ? 'selected' : ''}>${subcat.nombre}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
                         <label class="form-label"><i class="bi bi-gear me-1"></i>Nombre *</label>
                         <input type="text" name="nombre" class="form-control" value="${repuesto.nombre || ''}" required>
                     </div>
+                </div>
+                <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label"><i class="bi bi-tag me-1"></i>Marca</label>
                         <input type="text" name="marca_repuesto" class="form-control" value="${repuesto.marca_repuesto || ''}">
@@ -1536,8 +1399,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         <input type="number" name="cant_stock" class="form-control" value="${repuesto.cant_stock || 0}" min="0">
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label"><i class="bi bi-building me-1"></i>ID Proveedor</label>
-                        <input type="number" name="proveedor_id" class="form-control" value="${repuesto.proveedor_id || ''}" min="0">
+                        <label class="form-label"><i class="bi bi-building me-1"></i>Proveedor</label>
+                        <select name="proveedor_id" class="form-select">
+                            <option value="">Sin proveedor</option>
+                            ${window.proveedoresData ? window.proveedoresData.map(prov => 
+                                `<option value="${prov.id}" ${repuesto.proveedor_id == prov.id ? 'selected' : ''}>${prov.nom_proveedor}</option>`
+                            ).join('') : ''}
+                        </select>
                     </div>
                 </div>
                 
@@ -1557,7 +1425,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label"><i class="bi bi-calculator me-1"></i>Costo Total</label>
-                        <input type="number" step="0.01" name="costo_total" class="form-control" value="${repuesto.costo_total || ''}" min="0">
+                                               <input type="number" step="0.01" name="costo_total" class="form-control" value="${repuesto.costo_total || ''}" min="0">
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label"><i class="bi bi-receipt me-1"></i>Número Factura</label>
@@ -1686,4 +1554,193 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 </script>
 </body>
+<script>
+// Filtrado y validación en edición
+document.addEventListener('DOMContentLoaded', function() {
+    const editCatSelect = document.getElementById('edit_cat_repu_id');
+    const editSubcatSelect = document.getElementById('edit_subcat_repu_id');
+    const editSubcatHelp = document.getElementById('edit_subcatHelp');
+    if (editCatSelect && editSubcatSelect) {
+        const allEditSubcatOptions = Array.from(editSubcatSelect.querySelectorAll('option[data-cat]'));
+        function filtrarEditSubcategorias(catId) {
+            if (!catId) {
+                editSubcatSelect.innerHTML = '<option value="">Primero selecciona una categoría de repuesto</option>';
+                editSubcatSelect.disabled = true;
+                editSubcatHelp.textContent = 'Primero selecciona una categoría de repuesto.';
+                return;
+            }
+            editSubcatSelect.innerHTML = '<option value="">Seleccione una subcategoría de repuesto</option>';
+            let found = false;
+            allEditSubcatOptions.forEach(opt => {
+                if (opt.getAttribute('data-cat') == catId) {
+                    editSubcatSelect.appendChild(opt.cloneNode(true));
+                    found = true;
+                }
+            });
+            editSubcatSelect.disabled = !found;
+            editSubcatHelp.textContent = found ? '' : 'No hay subcategorías para esta categoría.';
+        }
+        // Inicializar según valor actual
+        filtrarEditSubcategorias(editCatSelect.value);
+        // Si la subcategoría actual no corresponde, limpiar y mostrar mensaje
+        if (editSubcatSelect.value && editSubcatSelect.querySelector('option[value="'+editSubcatSelect.value+'"]') === null) {
+            editSubcatSelect.value = '';
+            editSubcatHelp.textContent = 'La subcategoría seleccionada no pertenece a la nueva categoría. Por favor, elige una subcategoría válida.';
+        }
+        editCatSelect.addEventListener('change', function() {
+            filtrarEditSubcategorias(this.value);
+            editSubcatSelect.value = '';
+        });
+        // Validación al enviar
+        const editForm = editCatSelect.closest('form');
+        if (editForm) {
+            editForm.addEventListener('submit', function(e) {
+                const catId = editCatSelect.value;
+                const subcatId = editSubcatSelect.value;
+                let valid = true;
+                if (!catId) {
+                    editCatSelect.classList.add('is-invalid');
+                    valid = false;
+                } else {
+                    editCatSelect.classList.remove('is-invalid');
+                }
+                if (!subcatId || !Array.from(editSubcatSelect.options).some(opt => opt.value === subcatId)) {
+                    editSubcatSelect.classList.add('is-invalid');
+                    editSubcatHelp.textContent = 'Selecciona una subcategoría válida.';
+                    valid = false;
+                } else {
+                    editSubcatSelect.classList.remove('is-invalid');
+                }
+                if (!valid) e.preventDefault();
+            });
+        }
+    }
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filterable search for category
+    const categoriaSearchInput = document.getElementById('categoria_search');
+    const categoriaDropdown = document.getElementById('categoria_dropdown');
+    const catRepuIdInput = document.getElementById('cat_repu_id');
+    const subcatSelect = document.getElementById('subcat_repu_id');
+    const subcatHelp = document.getElementById('subcatHelp');
+
+    if (categoriaSearchInput && categoriaDropdown) {
+        const allCategoryOptions = Array.from(categoriaDropdown.options);
+
+        // Function to show all or filtered categories
+        function mostrarCategorias(searchTerm = '') {
+            const filteredOptions = allCategoryOptions.filter(option => {
+                if (!searchTerm) return true; // Show all if no search term
+                const nombre = option.getAttribute('data-nombre');
+                return nombre && nombre.toLowerCase().includes(searchTerm.toLowerCase());
+            });
+
+            categoriaDropdown.innerHTML = '';
+            filteredOptions.forEach(option => {
+                categoriaDropdown.appendChild(option.cloneNode(true));
+            });
+
+            if (filteredOptions.length > 0) {
+                categoriaDropdown.style.display = 'block';
+            } else {
+                categoriaDropdown.style.display = 'none';
+            }
+        }
+
+        // Filter categories on input
+        categoriaSearchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            mostrarCategorias(searchTerm);
+        });
+
+        // Show all categories on focus
+        categoriaSearchInput.addEventListener('focus', function() {
+            mostrarCategorias(this.value);
+        });
+
+        // Select category on click
+        categoriaDropdown.addEventListener('click', function(e) {
+            if (e.target.tagName === 'OPTION' && e.target.value) {
+                const selectedValue = e.target.value;
+                const selectedText = e.target.getAttribute('data-nombre');
+                
+                categoriaSearchInput.value = selectedText;
+                catRepuIdInput.value = selectedValue;
+                categoriaDropdown.style.display = 'none';
+                
+                // Trigger subcategory filtering and enable subcategory select
+                filtrarSubcategorias(selectedValue);
+            }
+        });
+
+        // Clear subcategory when category search is cleared
+        categoriaSearchInput.addEventListener('input', function() {
+            if (this.value === '') {
+                catRepuIdInput.value = '';
+                subcatSelect.value = '';
+                subcatSelect.innerHTML = '<option value="">Primero selecciona una categoría de repuesto</option>';
+                subcatSelect.disabled = true;
+                subcatHelp.textContent = 'Primero selecciona una categoría de repuesto.';
+            }
+        });
+
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!categoriaSearchInput.contains(e.target) && !categoriaDropdown.contains(e.target)) {
+                categoriaDropdown.style.display = 'none';
+            }
+        });
+    }
+
+    // Guardar todas las opciones de subcategoría
+    const allSubcatOptions = Array.from(subcatSelect.querySelectorAll('option[data-cat]'));
+
+    function filtrarSubcategorias(catId) {
+        // Limpiar y desactivar si no hay categoría
+        if (!catId) {
+            subcatSelect.innerHTML = '<option value="">Primero selecciona una categoría de repuesto</option>';
+            subcatSelect.disabled = true;
+            subcatHelp.textContent = 'Primero selecciona una categoría de repuesto.';
+            return;
+        }
+        // Filtrar opciones válidas
+        subcatSelect.innerHTML = '<option value="">Seleccione una subcategoría de repuesto</option>';
+        let found = false;
+        allSubcatOptions.forEach(opt => {
+            if (opt.getAttribute('data-cat') == catId) {
+                subcatSelect.appendChild(opt.cloneNode(true));
+                found = true;
+            }
+        });
+        subcatSelect.disabled = !found;
+        subcatHelp.textContent = found ? '' : 'No hay subcategorías para esta categoría.';
+    }
+
+    // Validación al enviar el formulario
+    const form = catRepuIdInput ? catRepuIdInput.closest('form') : null;
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const catId = catRepuIdInput.value;
+            const subcatId = subcatSelect.value;
+            let valid = true;
+            if (!catId) {
+                categoriaSearchInput.classList.add('is-invalid');
+                valid = false;
+            } else {
+                categoriaSearchInput.classList.remove('is-invalid');
+            }
+            if (!subcatId || !Array.from(subcatSelect.options).some(opt => opt.value === subcatId)) {
+                subcatSelect.classList.add('is-invalid');
+                subcatHelp.textContent = 'Selecciona una subcategoría válida.';
+                valid = false;
+            } else {
+                subcatSelect.classList.remove('is-invalid');
+            }
+            if (!valid) e.preventDefault();
+        });
+    }
+});
+</script>
 </html>

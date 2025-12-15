@@ -10,11 +10,10 @@ if (!isset($_SESSION['usuario'])) {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Gestión de Repuestos | TruckSISX</title>
+    <title>Gestión Vehicular | TruckSISX</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -300,6 +299,7 @@ if (!isset($_SESSION['usuario'])) {
         }
 
         .module-card {
+            background: rgba(255, 255, 255, 0.95);
             border: 1px solid var(--border);
             border-radius: var(--card-radius);
             overflow: hidden;
@@ -664,164 +664,245 @@ if (!isset($_SESSION['usuario'])) {
     </style>
 </head>
 <body>
-<div class="container-fluid py-4">
-    <div class="main-header animate-fade-in mb-4">
-        <div class="d-flex justify-content-between align-items-center flex-wrap">
-            <div>
-                <h1 class="h3 mb-1"><i class="fas fa-cogs text-accent"></i> Gestión de Repuestos</h1>
-                <p class="mb-0 opacity-75">Centro de control para la administración completa del inventario de repuestos y proveedores</p>
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-brand">
+            <div class="brand-icon">🚚</div>
+            <div class="brand-text">TruckSisX</div>
+        </div>
+        <button class="sidebar-toggle" onclick="toggleSidebar()" title="Colapsar menú">
+            <span id="toggleIcon">←</span>
+        </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <div class="nav-section">
+            <div class="nav-section-title">Principal</div>
+            <a href="dashboard.php" class="nav-item">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                </span>
+                <span class="nav-item-text">Dashboard</span>
+                <span class="nav-item-tooltip">Dashboard</span>
+            </a>
+            <a href="truck_alerts.php" class="nav-item">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                </span>
+                <span class="nav-item-text">Sistema de Alertas</span>
+                <span class="nav-item-tooltip">Sistema de Alertas</span>
+            </a>
+            <a href="orden_trabajo.php" class="nav-item">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                </span>
+                <span class="nav-item-text">Órdenes de Trabajo</span>
+                <span class="nav-item-tooltip">Órdenes de Trabajo</span>
+            </a>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">Gestiones</div>
+            <a href="gestion_vehicular.php" class="nav-item active">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 18h-1.5a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5H18"></path><path d="M6 18H4.5a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5H6"></path><path d="M2 14h20"></path><path d="M22 11V7.414a2 2 0 0 0-.586-1.414l-1.414-1.414A2 2 0 0 0 18.586 4H5.414A2 2 0 0 0 4 4.586L2.586 6A2 2 0 0 0 2 7.414V11"></path><circle cx="6" cy="18" r="2"></circle><circle cx="18" cy="18" r="2"></circle></svg>
+                </span>
+                <span class="nav-item-text">Gestión Vehicular</span>
+                <span class="nav-item-tooltip">Gestión Vehicular</span>
+            </a>
+            <a href="regis_vehic.php" class="nav-item">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                </span>
+                <span class="nav-item-text">Registro Vehículos</span>
+                <span class="nav-item-tooltip">Registro Vehículos</span>
+            </a>
+            <a href="cond.php" class="nav-item">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </span>
+                <span class="nav-item-text">Conductores</span>
+                <span class="nav-item-tooltip">Conductores</span>
+            </a>
+            <a href="repue.php" class="nav-item">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+                </span>
+                <span class="nav-item-text">Repuestos</span>
+                <span class="nav-item-tooltip">Repuestos</span>
+            </a>
+            <a href="proveedor.php" class="nav-item">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                </span>
+                <span class="nav-item-text">Proveedores</span>
+                <span class="nav-item-tooltip">Proveedores</span>
+            </a>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">Registros</div>
+            <a href="salida_vehiculo.php" class="nav-item">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                </span>
+                <span class="nav-item-text">Salida Vehículos</span>
+                <span class="nav-item-tooltip">Salida Vehículos</span>
+            </a>
+            <a href="salida_repuesto.php" class="nav-item">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                </span>
+                <span class="nav-item-text">Salida Repuestos</span>
+                <span class="nav-item-tooltip">Salida Repuestos</span>
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">Configuración</div>
+            <a href="cat_vehiculo.php" class="nav-item">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                </span>
+                <span class="nav-item-text">Categorías</span>
+                <span class="nav-item-tooltip">Categorías</span>
+            </a>
+            <a href="crear_usuario.php" class="nav-item">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                </span>
+                <span class="nav-item-text">Usuarios</span>
+                <span class="nav-item-tooltip">Usuarios</span>
+            </a>
+            <a href="../logout.php" class="nav-item">
+                <span class="nav-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                </span>
+                <span class="nav-item-text">Cerrar Sesión</span>
+                <span class="nav-item-tooltip">Cerrar Sesión</span>
+            </a>
+        </div>
+    </nav>
+</aside>
+
+<!-- Sidebar Overlay (Mobile) -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebarMobile()"></div>
+
+    <div class="container-fluid py-4">
+        <div class="main-header">
+            <h1><i class="bi bi-gear-wide-connected me-2"></i>Gestión Vehicular</h1>
+            <p class="lead mb-0">Administra categorías, subcategorías, vehículos y conductores</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Categorías de Vehículos -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card module-card h-100">
+                    <div class="card-body">
+                        <div class="module-icon">
+                            <i class="bi bi-folder2-open"></i>
+                        </div>
+                        <h5>Categorías de Vehículos</h5>
+                        <p>Administra las categorías principales de vehículos de la flota</p>
+                        <a href="cat_vehiculo.php" class="btn btn-primary w-100">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Acceder
+                        </a>
+                    </div>
+                </div>
             </div>
-            <div class="d-flex gap-2 mt-3 mt-md-0">
-                <a href="dashboard.php" class="btn btn-outline-primary">
-                    <i class="fas fa-arrow-left"></i> Volver al Dashboard
-                </a>
+
+            <!-- Subcategorías de Vehículos -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card module-card h-100">
+                    <div class="card-body">
+                        <div class="module-icon">
+                            <i class="bi bi-diagram-3"></i>
+                        </div>
+                        <h5>Subcategorías de Vehículos</h5>
+                        <p>Gestiona las subcategorías y especificaciones de vehículos</p>
+                        <a href="subcat_vehiculo.php" class="btn btn-primary w-100">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Acceder
+                        </a>
+                    </div>
+                </div>
             </div>
+
+            <!-- Registro de Vehículos -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card module-card h-100">
+                    <div class="card-body">
+                        <div class="module-icon">
+                            <i class="bi bi-truck"></i>
+                        </div>
+                        <h5>Registro de Vehículos</h5>
+                        <p>Registra y administra todos los vehículos de la flota</p>
+                        <a href="regis_vehic.php" class="btn btn-primary w-100">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Acceder
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conductores -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card module-card h-100">
+                    <div class="card-body">
+                        <div class="module-icon">
+                            <i class="bi bi-person-badge"></i>
+                        </div>
+                        <h5>Conductores</h5>
+                        <p>Gestiona conductores y asignación de vehículos</p>
+                        <a href="cond.php" class="btn btn-primary w-100">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Acceder
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="dashboard.php" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left me-2"></i>Volver al Dashboard
+            </a>
         </div>
     </div>
-    <div class="card animate-slide-up shadow-corporate mb-4">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="bi bi-gear-wide-connected text-accent"></i> Módulos de Gestión</h5>
-        </div>
-        <div class="card-body">
-            <div class="row g-4 mb-2">
-                <!-- Categorías de Repuestos -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="card module-card h-100">
-                        <div class="card-body">
-                            <div class="module-icon">
-                                <i class="bi bi-collection"></i>
-                            </div>
-                            <h3 class="module-title">Categorías de Repuestos</h3>
-                            <p class="module-description">
-                                Organiza y clasifica los repuestos por categorías principales. 
-                                Gestiona la estructura jerárquica de tu inventario.
-                            </p>
-                            <a href="cat_repu.php" class="btn btn-primary w-100">
-                                <i class="bi bi-arrow-right-circle me-2"></i>
-                                Gestionar Categorías
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <!-- Subcategorías de Repuestos -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="card module-card h-100">
-                        <div class="card-body">
-                            <div class="module-icon">
-                                <i class="bi bi-diagram-3"></i>
-                            </div>
-                            <h3 class="module-title">Subcategorías</h3>
-                            <p class="module-description">
-                                Define subcategorías específicas para una clasificación detallada. 
-                                Mejora la organización y búsqueda de repuestos.
-                            </p>
-                            <a href="subcat_repu.php" class="btn btn-primary w-100">
-                                <i class="bi bi-arrow-right-circle me-2"></i>
-                                Gestionar Subcategorías
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <!-- Repuestos -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="card module-card h-100">
-                        <div class="card-body">
-                            <div class="module-icon">
-                                <i class="bi bi-gear-wide-connected"></i>
-                            </div>
-                            <h3 class="module-title">Inventario de Repuestos</h3>
-                            <p class="module-description">
-                                Administra el catálogo completo de repuestos. Registro, edición, 
-                                consulta y control de stock de todos los componentes.
-                            </p>
-                            <a href="repue.php" class="btn btn-primary w-100">
-                                <i class="bi bi-arrow-right-circle me-2"></i>
-                                Gestionar Inventario
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <!-- Proveedores -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="card module-card h-100">
-                        <div class="card-body">
-                            <div class="module-icon">
-                                <i class="bi bi-building"></i>
-                            </div>
-                            <h3 class="module-title">Red de Proveedores</h3>
-                            <p class="module-description">
-                                Gestiona tu red de proveedores. Información de contacto, 
-                                condiciones comerciales, tiempos de entrega y cobertura.
-                            </p>
-                            <a href="proveedor.php" class="btn btn-primary w-100">
-                                <i class="bi bi-arrow-right-circle me-2"></i>
-                                Gestionar Proveedores
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Animaciones suaves al cargar
-        document.addEventListener('DOMContentLoaded', function() {
-            const cards = document.querySelectorAll('.module-card');
-            cards.forEach((card, index) => {
-                setTimeout(() => {
-                    card.style.opacity = '0';
-                    card.style.transform = 'translateY(30px)';
-                    card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-                    
-                    requestAnimationFrame(() => {
-                        card.style.opacity = '1';
-                        card.style.transform = 'translateY(0)';
-                    });
-                }, index * 100);
-            });
-        });
-
-        // Efecto hover mejorado
-        document.querySelectorAll('.module-card').forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-10px) scale(1.02)';
-            });
-            
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0) scale(1)';
-            });
-        });
-
-        // Atajos de teclado para módulos de repuestos
-        document.addEventListener('keydown', function(e) {
-            if (e.altKey) {
-                switch(e.key) {
-                    case '1':
-                        e.preventDefault();
-                        window.location.href = 'cat_repu.php';
-                        break;
-                    case '2':
-                        e.preventDefault();
-                        window.location.href = 'subcat_repu.php';
-                        break;
-                    case '3':
-                        e.preventDefault();
-                        window.location.href = 'repue.php';
-                        break;
-                    case '4':
-                        e.preventDefault();
-                        window.location.href = 'proveedor.php';
-                        break;
+        // Sidebar functions
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('show-mobile');
+                const overlay = document.getElementById('sidebar-overlay');
+                if (overlay) {
+                    overlay.style.display = sidebar.classList.contains('show-mobile') ? 'block' : 'none';
                 }
+                document.body.style.overflow = sidebar.classList.contains('show-mobile') ? 'hidden' : '';
             }
-        });
+        }
 
-        // Mostrar tooltips para atajos
-        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
+        function closeSidebarMobile() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar) {
+                sidebar.classList.remove('show-mobile');
+            }
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+            document.body.style.overflow = '';
+        }
+
+        // Initialize sidebar on load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 1024) {
+                    closeSidebarMobile();
+                }
+            });
         });
     </script>
 </body>

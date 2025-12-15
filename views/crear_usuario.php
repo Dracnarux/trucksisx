@@ -18,12 +18,18 @@ if (!$rol_admin && !$rol_tecnico) {
 // Determinar si es vista de solo lectura/edición (técnicos)
 $solo_lectura_edicion = $rol_tecnico;
 
+
 require_once '../config/db.php';
 $db = new Database();
 $conn = $db->getConnection();
 $stmt = $conn->prepare("SELECT * FROM users ORDER BY id DESC");
 $stmt->execute();
 $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Comprobar si ya existe un administrador
+require_once '../models/User.php';
+$userModel = new User();
+$adminCount = $userModel->countAdministradores();
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -34,75 +40,64 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        body {
-            background: linear-gradient(120deg, #f8fafc 0%, #e3e6ed 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        :root{
+            --bg-primary: #0F172A;
+            --card-bg: #111827;
+            --card-radius: 12px;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --border: #1E293B;
+            --accent: #F97316;
+            --accent-amber: #F59E0B;
+            --danger: #EF4444;
+            --success: #10B981;
         }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-primary) 0%, rgba(17,24,39,0.95) 100%);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+        }
+
         .main-container {
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border-radius: var(--card-radius);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid var(--border);
             margin-top: 2rem;
             margin-bottom: 2rem;
+            overflow: hidden;
         }
+
         .header-section {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 20px 20px 0 0;
+              background: linear-gradient(135deg, var(--accent) 0%, var(--accent-amber) 100%);
+            border-radius: var(--card-radius) var(--card-radius) 0 0;
+            padding: 1.75rem 2rem;
+              color: #fff;
         }
-        .content-section {
-            padding: 2rem;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
-            border: none;
-            border-radius: 10px;
-            padding: 0.5rem 1.5rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(13, 110, 253, 0.4);
-        }
-        .table-container {
-            background: white;
-            border-radius: 15px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-        }
-        .modal-content {
-            border-radius: 20px;
-            border: none;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-        }
-        .modal-header {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
-            color: white;
-            border-radius: 20px 20px 0 0;
-        }
-        .form-control, .form-select {
-            border-radius: 10px;
-            border: 2px solid #e9ecef;
-            padding: 0.75rem;
-            transition: all 0.3s ease;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-        }
-        .btn-outline-secondary {
-            border-radius: 10px;
-            font-weight: 600;
-        }
-        .alert {
-            border-radius: 15px;
-            border: none;
-        }
+
+        .content-section { padding: 1.5rem; }
+
+        .btn-primary { background: var(--accent); color: #fff; border-radius: 8px; font-weight: 600; padding: 0.6rem 1rem; border: none; }
+        .btn-primary:hover { background: #E65100; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(249,115,22,0.2); }
+
+        .table-container { background: white; border-radius: 12px; padding: 1rem; box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+
+        .form-control, .form-select { border-radius: 8px; border: 2px solid #D1D5DB; padding: 0.65rem; transition: all 0.2s; color: #000; }
+        .form-control:focus, .form-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(249,115,22,0.08); outline: none; }
+
+        .modal-content { border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.12); color: black !important; }
+        .modal-header { background: white; color: black !important; border-bottom: 2px solid var(--accent); }
+        .modal-header .modal-title { color: black !important; }
+        .modal-body { color: black !important; }
+        .modal-footer { color: black !important; }
+
+        .table thead th { background: var(--accent); color: #fff; font-weight: 600; }
+        .table tbody td { color: #000; }
+
+        .alert { border-radius: 12px; border: none; }
     </style>
 </head>
 <body>
@@ -148,7 +143,7 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <i class="bi bi-person-plus"></i> Crear Usuario
                         </button>
                         <?php else: ?>
-                        <span class="badge bg-warning text-dark fs-6 py-2 px-3">
+                        <span class="badge fs-6 py-2 px-3" style="background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%); color: white;">
                             <i class="bi bi-info-circle"></i> Modo Solo Lectura/Edición
                         </span>
                         <?php endif; ?>
@@ -181,7 +176,7 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                            strpos(strtolower($u['correo']), $filtro) !== false;
                                 });
                             }
-                            
+
                             if (empty($usuarios_filtrados)):
                             ?>
                                 <tr>
@@ -268,7 +263,7 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 
     <!-- Modal para crear usuario -->
-    <div class="modal fade" id="modalCrearUsuario" tabindex="-1" aria-labelledby="modalCrearUsuarioLabel" aria-hidden="true">
+    <div class="modal fade" id="modalCrearUsuario" tabindex="-1" aria-labelledby="modalCrearUsuarioLabel" aria-modal="true" role="dialog">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -343,7 +338,9 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <option value="">Seleccionar rol...</option>
                                     <option value="conductor">Conductor</option>
                                     <option value="tecnico">Técnico</option>
-                                    <option value="admin">Administrador</option>
+                                    <?php if ($adminCount == 0): ?>
+                                        <option value="admin">Administrador</option>
+                                    <?php endif; ?>
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
@@ -383,7 +380,7 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="modal fade" id="modalVerUsuario" tabindex="-1" aria-labelledby="modalVerUsuarioLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header bg-info text-white">
+                <div class="modal-header">
                     <h5 class="modal-title" id="modalVerUsuarioLabel">
                         <i class="bi bi-eye"></i> Detalles del Usuario
                     </h5>
@@ -428,14 +425,14 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 
     <!-- Modal para editar usuario -->
-    <div class="modal fade" id="modalEditarUsuario" tabindex="-1" aria-labelledby="modalEditarUsuarioLabel" aria-hidden="true">
+    <div class="modal fade" id="modalEditarUsuario" tabindex="-1" aria-labelledby="modalEditarUsuarioLabel" aria-modal="true" role="dialog">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header bg-warning text-dark">
+                <div class="modal-header">
                     <h5 class="modal-title" id="modalEditarUsuarioLabel">
                         <i class="bi bi-pencil-square"></i> Editar Usuario
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
                     <form method="post" action="../controllers/UserController.php?action=update" id="formEditarUsuario">
@@ -499,7 +496,9 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <select class="form-select" id="editar_rol" name="rol" required>
                                     <option value="conductor">Conductor</option>
                                     <option value="tecnico">Técnico</option>
-                                    <option value="admin">Administrador</option>
+                                    <?php if ($adminCount == 0): ?>
+                                        <option value="admin">Administrador</option>
+                                    <?php endif; ?>
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
@@ -521,7 +520,7 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <i class="bi bi-x-circle"></i> Cancelar
                     </button>
-                    <button type="submit" form="formEditarUsuario" class="btn btn-warning">
+                    <button type="submit" form="formEditarUsuario" class="btn btn-primary">
                         <i class="bi bi-check-circle"></i> Guardar Cambios
                     </button>
                 </div>
@@ -530,7 +529,7 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 
     <!-- Modal para confirmar eliminación -->
-    <div class="modal fade" id="modalEliminarUsuario" tabindex="-1" aria-labelledby="modalEliminarUsuarioLabel" aria-hidden="true">
+    <div class="modal fade" id="modalEliminarUsuario" tabindex="-1" aria-labelledby="modalEliminarUsuarioLabel" aria-modal="true" role="dialog">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-danger text-white">
@@ -553,16 +552,25 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </div>
                     </div>
                     
-                    <p class="mt-3 text-muted">
+                    <!-- Área de verificación de dependencias -->
+                    <div id="dependencias_usuario" class="mt-3" style="display: none;">
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-circle"></i>
+                            <strong>No se puede eliminar:</strong>
+                            <div id="lista_dependencias" class="mt-2"></div>
+                        </div>
+                    </div>
+                    
+                    <p class="mt-3 text-muted" id="info_normal">
                         <i class="bi bi-info-circle"></i>
-                        Se eliminarán todos los datos asociados a este usuario.
+                        Verificando registros asociados...
                     </p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <i class="bi bi-x-circle"></i> Cancelar
                     </button>
-                    <a href="#" id="btn_confirmar_eliminar" class="btn btn-danger">
+                    <a href="#" id="btn_confirmar_eliminar" class="btn btn-danger" style="display: none;">
                         <i class="bi bi-trash"></i> Sí, Eliminar Usuario
                     </a>
                 </div>
@@ -611,12 +619,10 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
             // Verificar permisos para técnicos
             const esTecnico = <?= $rol_tecnico ? 'true' : 'false' ?>;
             const documentoUsuarioActual = '<?= $_SESSION['usuario']['num_documento'] ?? '' ?>';
-            
             if (esTecnico && usuario.num_documento !== documentoUsuarioActual) {
                 alert('❌ Solo puedes editar tu propio perfil.\n\nPuedes ver los datos de otros usuarios pero no modificarlos.');
                 return false;
             }
-            
             document.getElementById('editar_id').value = usuario.id;
             document.getElementById('editar_documento_readonly').value = usuario.num_documento;
             document.getElementById('editar_tipo_documento_readonly').value = usuario.tipo_documento;
@@ -626,7 +632,6 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
             document.getElementById('editar_correo').value = usuario.correo || '';
             document.getElementById('editar_rol').value = usuario.rol;
             document.getElementById('editar_contrasena').value = '';
-            
             // Si es técnico editando su propio perfil, agregar mensaje informativo
             if (esTecnico) {
                 const modalTitle = document.querySelector('#modalEditarUsuario .modal-title');
@@ -637,6 +642,16 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     modalTitle.appendChild(badge);
                 }
             }
+            // --- Solución accesibilidad: quitar aria-hidden si existe ---
+            const modal = document.getElementById('modalEditarUsuario');
+            if (modal.hasAttribute('aria-hidden')) {
+                modal.removeAttribute('aria-hidden');
+            }
+            // Mostrar el modal usando Bootstrap (si no se usa data-bs-toggle)
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                const modalInstance = bootstrap.Modal.getOrCreateInstance(modal);
+                modalInstance.show();
+            }
         }
         
         // Función para configurar modal de eliminación
@@ -644,6 +659,43 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
             document.getElementById('eliminar_id_usuario').textContent = id;
             document.getElementById('eliminar_nombre_usuario').textContent = nombreCompleto;
             document.getElementById('btn_confirmar_eliminar').href = '../controllers/UserController.php?action=delete&id=' + id;
+            
+            // Resetear estados del modal
+            document.getElementById('dependencias_usuario').style.display = 'none';
+            document.getElementById('btn_confirmar_eliminar').style.display = 'none';
+            document.getElementById('info_normal').innerHTML = '<i class="bi bi-hourglass-split"></i> Verificando registros asociados...';
+            
+            // Verificar dependencias con AJAX
+            fetch('../controllers/UserController.php?action=check_dependencies&id=' + id)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.dependencies && Object.keys(data.dependencies).length > 0) {
+                            // Tiene dependencias - no se puede eliminar
+                            let mensaje = '<ul class="mb-0">';
+                            if (data.dependencies.ord_trabj) {
+                                mensaje += '<li><strong>' + data.dependencies.ord_trabj + '</strong> orden(es) de trabajo asignada(s)</li>';
+                            }
+                            mensaje += '</ul><p class="mt-2 mb-0"><small>Debe reasignar o eliminar estos registros antes de eliminar el usuario.</small></p>';
+                            
+                            document.getElementById('lista_dependencias').innerHTML = mensaje;
+                            document.getElementById('dependencias_usuario').style.display = 'block';
+                            document.getElementById('info_normal').style.display = 'none';
+                        } else {
+                            // Sin dependencias - se puede eliminar
+                            document.getElementById('info_normal').innerHTML = '<i class="bi bi-check-circle text-success"></i> No hay registros asociados. Se puede eliminar el usuario de forma segura.';
+                            document.getElementById('btn_confirmar_eliminar').style.display = 'inline-block';
+                        }
+                    } else {
+                        document.getElementById('info_normal').innerHTML = '<i class="bi bi-exclamation-circle text-warning"></i> Error al verificar dependencias. Proceda con precaución.';
+                        document.getElementById('btn_confirmar_eliminar').style.display = 'inline-block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('info_normal').innerHTML = '<i class="bi bi-exclamation-circle text-warning"></i> Error al verificar dependencias. Proceda con precaución.';
+                    document.getElementById('btn_confirmar_eliminar').style.display = 'inline-block';
+                });
         }
         
         // Validaciones de formularios
@@ -672,6 +724,27 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         document.getElementById('modalEditarUsuario').addEventListener('hidden.bs.modal', function () {
             document.getElementById('formEditarUsuario').reset();
+        });
+        
+        // Prevenir aria-hidden en modales para accesibilidad
+        const modales = ['modalCrearUsuario', 'modalEditarUsuario', 'modalEliminarUsuario'];
+        modales.forEach(modalId => {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.type === 'attributes' && mutation.attributeName === 'aria-hidden') {
+                            if (modal.hasAttribute('aria-hidden')) {
+                                modal.removeAttribute('aria-hidden');
+                            }
+                        }
+                    });
+                });
+                observer.observe(modal, {
+                    attributes: true,
+                    attributeFilter: ['aria-hidden']
+                });
+            }
         });
         
         // Mostrar mensajes de éxito/error si existen en la URL
