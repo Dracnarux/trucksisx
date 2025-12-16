@@ -619,7 +619,7 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
             $vehiculosDisponibles[] = $vd;
         }
         // Filtros
-        $filtro_cargo = isset($_GET['filtro_cargo']) ? $_GET['filtro_cargo'] : '';
+        $filtro_conductor = isset($_GET['filtro_conductor']) ? $_GET['filtro_conductor'] : '';
         $filtro_vehic = isset($_GET['filtro_vehic']) ? $_GET['filtro_vehic'] : '';
         
         // Si es conductor, solo mostrar su propia información
@@ -679,7 +679,7 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
             <div class="card-body">
                 <form class="row" method="get" style="gap: 1rem;">
             <div class="col-md-4">
-                <input type="text" name="filtro_cargo" class="form-control" placeholder="Buscar por cargo" value="<?= htmlspecialchars($filtro_cargo) ?>">
+                <input type="text" name="filtro_conductor" class="form-control" placeholder="Buscar por conductor" value="<?= htmlspecialchars($filtro_conductor) ?>">
             </div>
             <div class="col-md-4">
                 <select name="filtro_vehic" class="form-select">

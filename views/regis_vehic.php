@@ -676,24 +676,37 @@ while ($subcat = $subcatQuery->fetch_assoc()) {
         while ($cat = $catQuery->fetch_assoc()) {
             $categorias[$cat['id']] = $cat['nombre'];
         }
-        $subcatQuery = $conn->query("SELECT s.id, s.nombre, c.nombre AS categoria FROM subcat_vehic s JOIN cat_vehic c ON s.cat_vehic_id = c.id ORDER BY s.nombre ASC");
+        $subcatQuery = $conn->query("SELECT s.id, s.nombre, s.cat_vehic_id, c.nombre AS categoria FROM subcat_vehic s JOIN cat_vehic c ON s.cat_vehic_id = c.id ORDER BY s.nombre ASC");
         $subcategorias = [];
         while ($subcat = $subcatQuery->fetch_assoc()) {
             $subcategorias[$subcat['id']] = [
                 'nombre' => $subcat['nombre'],
-                'categoria' => $subcat['categoria']
+                'categoria' => $subcat['categoria'],
+                'categoria_id' => $subcat['cat_vehic_id']
             ];
+        }
+        
+        // Obtener conductores disponibles
+        $condQuery = $conn->query("SELECT id, cargo FROM cond ORDER BY cargo ASC");
+        $conductores = [];
+        while ($cond = $condQuery->fetch_assoc()) {
+            $conductores[] = $cond;
         }
         // Filtros
         $filtro_placa = isset($_GET['filtro_placa']) ? $_GET['filtro_placa'] : '';
         $filtro_marca = isset($_GET['filtro_marca']) ? $_GET['filtro_marca'] : '';
         $filtro_cat = isset($_GET['filtro_cat']) ? $_GET['filtro_cat'] : '';
         $filtro_subcat = isset($_GET['filtro_subcat']) ? $_GET['filtro_subcat'] : '';
-        $sql = "SELECT v.*, s.nombre AS subcat_nombre, c.nombre AS cat_nombre FROM regis_vehic v JOIN subcat_vehic s ON v.subcat_vehic_id = s.id JOIN cat_vehic c ON s.cat_vehic_id = c.id WHERE v.placa LIKE ? AND v.marca_vehiculo LIKE ?";
+        $sql = "SELECT v.*, s.nombre AS subcat_nombre, cat.nombre AS cat_nombre, conductor.cargo AS conductor_nombre 
+                FROM regis_vehic v 
+                JOIN subcat_vehic s ON v.subcat_vehic_id = s.id 
+                JOIN cat_vehic cat ON s.cat_vehic_id = cat.id 
+                LEFT JOIN cond conductor ON v.cond_id = conductor.id 
+                WHERE v.placa LIKE ? AND v.marca_vehiculo LIKE ?";
         $params = ["%$filtro_placa%", "%$filtro_marca%"];
         $types = 'ss';
         if ($filtro_cat) {
-            $sql .= " AND c.id = ?";
+            $sql .= " AND cat.id = ?";
             $params[] = $filtro_cat;
             $types .= 'i';
         }

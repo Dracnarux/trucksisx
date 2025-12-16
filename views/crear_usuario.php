@@ -176,7 +176,6 @@ $adminCount = $userModel->countAdministradores();
                                            strpos(strtolower($u['correo']), $filtro) !== false;
                                 });
                             }
-
                             if (empty($usuarios_filtrados)):
                             ?>
                                 <tr>
