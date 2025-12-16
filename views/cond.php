@@ -28,11 +28,14 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
     require_once '../config/db.php';
     $conn = conectarDB();
     
-    $fields = ['cargo','horas_trabajadas','tareas_completadas','efeciencia','descripcion','regis_vehic_id'];
+    // Agregar user_id para asociar el conductor con el usuario
+    $fields = ['cargo','horas_trabajadas','tareas_completadas','efeciencia','descripcion','regis_vehic_id','user_id'];
     $values = [];
     foreach ($fields as $f) {
         if ($f === 'cargo') {
-            // Siempre guardar el id del usuario conductor
+            $values[] = $_POST['cargo'] ?? '';
+        } elseif ($f === 'user_id') {
+            // user_id es el mismo que cargo (id del usuario conductor)
             $values[] = $_POST['cargo'] ?? '';
         } else {
             $values[] = $_POST[$f] ?? '';
@@ -48,12 +51,12 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
         $prev_data = $stmt_prev->get_result()->fetch_assoc();
         $vehiculo_anterior = $prev_data ? $prev_data['regis_vehic_id'] : null;
         
-        // Actualizar conductor
-        $sql = "UPDATE cond SET cargo=?, horas_trabajadas=?, tareas_completadas=?, efeciencia=?, descripcion=?, regis_vehic_id=? WHERE id=?";
+        // Actualizar conductor (agregar user_id)
+        $sql = "UPDATE cond SET cargo=?, horas_trabajadas=?, tareas_completadas=?, efeciencia=?, descripcion=?, regis_vehic_id=?, user_id=? WHERE id=?";
         $stmt = $conn->prepare($sql);
         $values_update = $values;
         $values_update[] = $_POST['id'];
-        $stmt->bind_param('sssssii', ...$values_update);
+        $stmt->bind_param('sssssiiii', ...$values_update);
         $conductor_actualizado = $stmt->execute();
         
         if ($conductor_actualizado) {
@@ -94,9 +97,9 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
         
         echo json_encode(['success' => true, 'message' => 'Conductor actualizado correctamente']);
     } else {
-        $sql = "INSERT INTO cond (cargo, horas_trabajadas, tareas_completadas, efeciencia, descripcion, regis_vehic_id) VALUES (?,?,?,?,?,?)";
+        $sql = "INSERT INTO cond (cargo, horas_trabajadas, tareas_completadas, efeciencia, descripcion, regis_vehic_id, user_id) VALUES (?,?,?,?,?,?,?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param('sssssi', ...$values);
+        $stmt->bind_param('ssssssi', ...$values);
         $stmt->execute();
         $nuevo_conductor_id = $conn->insert_id;
         $conductor_cargo = $_POST['cargo'];
@@ -719,10 +722,14 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
                                 <td>
                                     <?php
                                     $nombreCompleto = trim(($row['nombre'] ?? '') . ' ' . ($row['apellido'] ?? ''));
-                                    echo htmlspecialchars($nombreCompleto);
+                                    if ($nombreCompleto !== '' && $row['nombre'] !== null) {
+                                        echo htmlspecialchars($nombreCompleto);
+                                    } else {
+                                        echo '<span class="text-danger">Sin usuario asociado</span>';
+                                    }
                                     ?>
                                 </td>
-                                <td><?= htmlspecialchars($row['cargo']) ?></td>
+                                <td>Conductor</td>
                                 <td><?= htmlspecialchars($row['horas_trabajadas']) ?></td>
                                 <td><?= htmlspecialchars($row['tareas_completadas']) ?></td>
                                 <td><?= htmlspecialchars($row['efeciencia']) ?></td>
@@ -773,7 +780,7 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
                                     $userModel = new User();
                                     $conductoresUsuarios = $userModel->getConductores();
                                     foreach ($conductoresUsuarios as $conductor) {
-                                        $nombreCompleto = htmlspecialchars($conductor['nombre'] . ' ' . $conductor['apellido']);
+                                        $nombreCompleto = htmlspecialchars(trim($conductor['nombre'] . ' ' . $conductor['apellido']));
                                         echo '<option value="' . htmlspecialchars($conductor['id']) . '" data-fullname="' . $nombreCompleto . '">' . $nombreCompleto . '</option>';
                                     }
                                     ?>
@@ -977,7 +984,27 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Modal functions
+        // Autocompletar nombre y cargo conductor
+        document.getElementById('conductor_search').addEventListener('input', function() {
+            const search = this.value.toLowerCase();
+            const dropdown = document.getElementById('conductor_dropdown');
+            let found = false;
+            Array.from(dropdown.options).forEach(opt => {
+                if (opt.textContent.toLowerCase().includes(search)) {
+                    opt.style.display = '';
+                    found = true;
+                } else {
+                    opt.style.display = 'none';
+                }
+            });
+            dropdown.style.display = found && search.length > 0 ? 'block' : 'none';
+        });
+        document.getElementById('conductor_dropdown').addEventListener('change', function() {
+            const selected = this.options[this.selectedIndex];
+            document.getElementById('conductor_search').value = selected.getAttribute('data-fullname');
+            document.getElementById('cargo').value = selected.getAttribute('data-fullname');
+            this.style.display = 'none';
+        });
         function openModal() {
             document.getElementById('conductorModal').classList.add('active');
             document.getElementById('modalTitle').textContent = 'Agregar Conductor';
@@ -1001,14 +1028,10 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
                     document.getElementById('cargo').value = data.cargo;
                     // Buscar el nombre completo del conductor en el dropdown por id
                     const conductorDropdown = document.getElementById('conductor_dropdown');
-                    if (conductorDropdown) {
-                        const allOptions = Array.from(conductorDropdown.options);
-                        const matchingOption = allOptions.find(opt => opt.value == data.cargo);
-                        if (matchingOption) {
-                            document.getElementById('conductor_search').value = matchingOption.getAttribute('data-fullname');
-                        } else {
-                            document.getElementById('conductor_search').value = '';
-                        }
+                    const allOptions = Array.from(conductorDropdown.options);
+                    const matchingOption = allOptions.find(opt => opt.value == data.cargo);
+                    if (matchingOption) {
+                        document.getElementById('conductor_search').value = matchingOption.getAttribute('data-fullname');
                     } else {
                         document.getElementById('conductor_search').value = '';
                     }
