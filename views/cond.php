@@ -621,6 +621,7 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
         // Filtros
         $filtro_conductor = isset($_GET['filtro_conductor']) ? $_GET['filtro_conductor'] : '';
         $filtro_vehic = isset($_GET['filtro_vehic']) ? $_GET['filtro_vehic'] : '';
+        $filtro_cargo = isset($_GET['filtro_cargo']) ? $_GET['filtro_cargo'] : '';
         
         // Si es conductor, solo mostrar su propia información
         if ($rol_conductor) {
@@ -989,20 +990,28 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
             const search = this.value.toLowerCase();
             const dropdown = document.getElementById('conductor_dropdown');
             let found = false;
-            Array.from(dropdown.options).forEach(opt => {
-                if (opt.textContent.toLowerCase().includes(search)) {
-                    opt.style.display = '';
-                    found = true;
-                } else {
-                    opt.style.display = 'none';
-                }
-            });
-            dropdown.style.display = found && search.length > 0 ? 'block' : 'none';
+            if (dropdown && dropdown.options) {
+                Array.from(dropdown.options).forEach(opt => {
+                    if (opt.textContent.toLowerCase().includes(search)) {
+                        opt.style.display = '';
+                        found = true;
+                    } else {
+                        opt.style.display = 'none';
+                    }
+                });
+                dropdown.style.display = found && search.length > 0 ? 'block' : 'none';
+            }
         });
         document.getElementById('conductor_dropdown').addEventListener('change', function() {
-            const selected = this.options[this.selectedIndex];
-            document.getElementById('conductor_search').value = selected.getAttribute('data-fullname');
-            document.getElementById('cargo').value = selected.getAttribute('data-fullname');
+            if (this && this.options) {
+                const selected = this.options[this.selectedIndex];
+                const conductorSearch = document.getElementById('conductor_search');
+                const cargoInput = document.getElementById('cargo');
+                if (selected && conductorSearch && cargoInput) {
+                    conductorSearch.value = selected.getAttribute('data-fullname');
+                    cargoInput.value = selected.getAttribute('data-fullname');
+                }
+            }
             this.style.display = 'none';
         });
         function openModal() {
@@ -1012,8 +1021,7 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
             document.getElementById('conductor_id').value = '';
             document.getElementById('conductor_search').value = '';
             document.getElementById('conductor_dropdown').style.display = 'none';
-            document.getElementById('vehiculo_search').value = '';
-            document.getElementById('vehiculo_dropdown').style.display = 'none';
+            // Eliminadas referencias a vehiculo_search y vehiculo_dropdown porque no existen en el HTML
         }
         
         function closeModal() {
@@ -1028,8 +1036,11 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
                     document.getElementById('cargo').value = data.cargo;
                     // Buscar el nombre completo del conductor en el dropdown por id
                     const conductorDropdown = document.getElementById('conductor_dropdown');
-                    const allOptions = Array.from(conductorDropdown.options);
-                    const matchingOption = allOptions.find(opt => opt.value == data.cargo);
+                    let matchingOption = null;
+                    if (conductorDropdown && conductorDropdown.options) {
+                        const allOptions = Array.from(conductorDropdown.options);
+                        matchingOption = allOptions.find(opt => opt.value == data.cargo);
+                    }
                     if (matchingOption) {
                         document.getElementById('conductor_search').value = matchingOption.getAttribute('data-fullname');
                     } else {
@@ -1092,19 +1103,19 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
         const conductorDropdown = document.getElementById('conductor_dropdown');
         const conductorHiddenInput = document.getElementById('cargo');
         const allConductorOptions = Array.from(conductorDropdown.options);
+            // Proteger si conductorDropdown es null
+            const safeAllConductorOptions = (conductorDropdown && conductorDropdown.options) ? Array.from(conductorDropdown.options) : [];
         
         conductorSearchInput.addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
+            if (!conductorDropdown || !conductorDropdown.options) return;
             conductorDropdown.innerHTML = '';
-            
-            const filteredOptions = allConductorOptions.filter(option => 
+            const filteredOptions = safeAllConductorOptions.filter(option => 
                 option.getAttribute('data-fullname').toLowerCase().includes(searchTerm)
             );
-            
             filteredOptions.forEach(option => {
                 conductorDropdown.appendChild(option.cloneNode(true));
             });
-            
             if (searchTerm && filteredOptions.length > 0) {
                 conductorDropdown.style.display = 'block';
             } else {
@@ -1113,17 +1124,19 @@ if (!$rol_conductor && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aj
         });
         
         conductorSearchInput.addEventListener('focus', function() {
-            if (conductorDropdown.options.length > 0) {
+            if (conductorDropdown && conductorDropdown.options && conductorDropdown.options.length > 0) {
                 conductorDropdown.style.display = 'block';
             }
         });
         
         conductorDropdown.addEventListener('click', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            if (selectedOption) {
-                conductorHiddenInput.value = selectedOption.value;
-                conductorSearchInput.value = selectedOption.getAttribute('data-fullname');
-                this.style.display = 'none';
+            if (this && this.options) {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption && conductorHiddenInput && conductorSearchInput) {
+                    conductorHiddenInput.value = selectedOption.value;
+                    conductorSearchInput.value = selectedOption.getAttribute('data-fullname');
+                    this.style.display = 'none';
+                }
             }
         });
         
