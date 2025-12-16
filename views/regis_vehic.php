@@ -697,6 +697,21 @@ while ($subcat = $subcatQuery->fetch_assoc()) {
         $filtro_marca = isset($_GET['filtro_marca']) ? $_GET['filtro_marca'] : '';
         $filtro_cat = isset($_GET['filtro_cat']) ? $_GET['filtro_cat'] : '';
         $filtro_subcat = isset($_GET['filtro_subcat']) ? $_GET['filtro_subcat'] : '';
+        
+        // Si es conductor, obtener su vehículo asignado
+        $vehiculo_asignado_id = null;
+        if ($rol_conductor) {
+            $user_id = $_SESSION['usuario']['id'];
+            $stmt_cond = $conn->prepare("SELECT regis_vehic_id FROM cond WHERE user_id = ? LIMIT 1");
+            $stmt_cond->bind_param('i', $user_id);
+            $stmt_cond->execute();
+            $result_cond = $stmt_cond->get_result();
+            if ($result_cond->num_rows > 0) {
+                $row_cond = $result_cond->fetch_assoc();
+                $vehiculo_asignado_id = $row_cond['regis_vehic_id'];
+            }
+        }
+        
         $sql = "SELECT v.*, s.nombre AS subcat_nombre, cat.nombre AS cat_nombre, conductor.cargo AS conductor_nombre 
                 FROM regis_vehic v 
                 JOIN subcat_vehic s ON v.subcat_vehic_id = s.id 
@@ -705,6 +720,19 @@ while ($subcat = $subcatQuery->fetch_assoc()) {
                 WHERE v.placa LIKE ? AND v.marca_vehiculo LIKE ?";
         $params = ["%$filtro_placa%", "%$filtro_marca%"];
         $types = 'ss';
+        
+        // Si es conductor, filtrar solo su vehículo
+        if ($rol_conductor) {
+            if ($vehiculo_asignado_id) {
+                $sql .= " AND v.id = ?";
+                $params[] = $vehiculo_asignado_id;
+                $types .= 'i';
+            } else {
+                // Sin vehículo asignado, mostrar tabla vacía
+                $sql .= " AND 1 = 0";
+            }
+        }
+        
         if ($filtro_cat) {
             $sql .= " AND cat.id = ?";
             $params[] = $filtro_cat;
@@ -721,6 +749,14 @@ while ($subcat = $subcatQuery->fetch_assoc()) {
         $stmt->execute();
         $vehiculos = $stmt->get_result();
         ?>
+        
+        <?php if ($rol_conductor): ?>
+        <div class="alert alert-info mb-4">
+            <i class="bi bi-info-circle"></i> <strong>Vista de Conductor:</strong> Aquí puedes ver únicamente tu vehículo asignado.
+        </div>
+        <?php endif; ?>
+        
+        <?php if (!$rol_conductor): ?>
         <form class="row mb-4" method="get">
             <div class="col-md-3">
                 <input type="text" name="filtro_placa" class="form-control" placeholder="Buscar por placa" value="<?= htmlspecialchars($filtro_placa) ?>">
@@ -749,6 +785,8 @@ while ($subcat = $subcatQuery->fetch_assoc()) {
                 <a href="regis_vehic.php" class="btn btn-secondary"><i class="bi bi-x-circle"></i> Limpiar</a>
             </div>
         </form>
+        <?php endif; ?>
+        
         <div class="card">
             <div class="card-body p-0 table-responsive">
                 <div style="overflow-x:auto;">

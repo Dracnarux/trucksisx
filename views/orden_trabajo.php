@@ -12,10 +12,30 @@ $usuario_nombre = $_SESSION['usuario']['nombre'] ?? 'Usuario';
 require_once '../config/db.php';
 $conn = conectarDB();
 
+// Si es conductor, obtener su cond_id
+$cond_id_usuario = null;
+if ($rol_conductor) {
+    $user_id = $_SESSION['usuario']['id'];
+    $stmt_cond = $conn->prepare("SELECT id FROM cond WHERE user_id = ? LIMIT 1");
+    $stmt_cond->bind_param('i', $user_id);
+    $stmt_cond->execute();
+    $result_cond = $stmt_cond->get_result();
+    if ($result_cond->num_rows > 0) {
+        $row_cond = $result_cond->fetch_assoc();
+        $cond_id_usuario = $row_cond['id'];
+    }
+}
+
 $estado = $_GET['estado'] ?? '';
 $prioridad = $_GET['prioridad'] ?? '';
 $nombre_trabajo = $_GET['nombre_trabajo'] ?? '';
 $condicion = [];
+
+// Si es conductor, filtrar solo sus órdenes
+if ($rol_conductor && $cond_id_usuario) {
+    $condicion[] = "cond_id = " . intval($cond_id_usuario);
+}
+
 if ($estado) $condicion[] = "estado = '" . $conn->real_escape_string($estado) . "'";
 if ($prioridad) $condicion[] = "prioridad = '" . $conn->real_escape_string($prioridad) . "'";
 if ($nombre_trabajo) $condicion[] = "nombre_trabajo LIKE '%" . $conn->real_escape_string($nombre_trabajo) . "%'";

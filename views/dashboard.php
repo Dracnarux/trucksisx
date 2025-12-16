@@ -8,6 +8,7 @@ if (!isset($_SESSION['usuario'])) {
 }
 
 $usuario = $_SESSION['usuario'];
+$rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol'] === 'conductor';
 
 // Obtener estadísticas
 try {
@@ -15,49 +16,131 @@ try {
     $database = new Database();
     $db = $database->getConnection();
     
+    // Si es conductor, obtener su ID de conductor
+    $cond_id = null;
+    $vehiculo_asignado_id = null;
+    if ($rol_conductor) {
+        $stmt = $db->prepare("SELECT id, regis_vehic_id FROM cond WHERE user_id = :user_id LIMIT 1");
+        $stmt->execute([':user_id' => $usuario['id']]);
+        $conductor_data = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($conductor_data) {
+            $cond_id = $conductor_data['id'];
+            $vehiculo_asignado_id = $conductor_data['regis_vehic_id'];
+        }
+    }
+    
     // Stats básicas
-    $stmt = $db->query("SELECT COUNT(*) as total FROM regis_vehic");
-    $vehiculos = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-    
-    $stmt = $db->query("SELECT COUNT(*) as total FROM alert WHERE estado = 'activa'");
-    $alertas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-    
-    $stmt = $db->query("SELECT COUNT(*) as total FROM ord_trabj WHERE estado IN ('pendiente', 'en_proceso')");
-    $ordenes = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-    
-    $stmt = $db->query("SELECT COUNT(*) as total FROM cond");
-    $conductores = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    if ($rol_conductor) {
+        // Conductor solo ve su vehículo asignado
+        if ($vehiculo_asignado_id) {
+            $stmt = $db->prepare("SELECT COUNT(*) as total FROM regis_vehic WHERE id = :vehiculo_id");
+            $stmt->execute([':vehiculo_id' => $vehiculo_asignado_id]);
+            $vehiculos = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+        } else {
+            $vehiculos = 0;
+        }
+        
+        // Solo alertas de su vehículo
+        if ($vehiculo_asignado_id) {
+            $stmt = $db->prepare("SELECT COUNT(*) as total FROM alert WHERE estado = 'activa' AND regis_vehic_id = :vehiculo_id");
+            $stmt->execute([':vehiculo_id' => $vehiculo_asignado_id]);
+            $alertas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+        } else {
+            $alertas = 0;
+        }
+        
+        // Solo sus órdenes de trabajo
+        if ($cond_id) {
+            $stmt = $db->prepare("SELECT COUNT(*) as total FROM ord_trabj WHERE estado IN ('pendiente', 'en_proceso') AND cond_id = :cond_id");
+            $stmt->execute([':cond_id' => $cond_id]);
+            $ordenes = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+        } else {
+            $ordenes = 0;
+        }
+        
+        // Solo ve su propio perfil
+        $conductores = 1;
+    } else {
+        // Admin y técnico ven todo
+        $stmt = $db->query("SELECT COUNT(*) as total FROM regis_vehic");
+        $vehiculos = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+        
+        $stmt = $db->query("SELECT COUNT(*) as total FROM alert WHERE estado = 'activa'");
+        $alertas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+        
+        $stmt = $db->query("SELECT COUNT(*) as total FROM ord_trabj WHERE estado IN ('pendiente', 'en_proceso')");
+        $ordenes = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+        
+        $stmt = $db->query("SELECT COUNT(*) as total FROM cond");
+        $conductores = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    }
     
     // Datos para gráfico de tendencia (últimos 12 meses de órdenes)
-    $stmt = $db->query("
-        SELECT 
-            DATE_FORMAT(fecha_ingreso, '%Y-%m') as mes,
-            COUNT(*) as total
-        FROM ord_trabj 
-        WHERE fecha_ingreso >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
-        GROUP BY mes
-        ORDER BY mes ASC
-    ");
-    $tendencia_ordenes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if ($rol_conductor && $cond_id) {
+        $stmt = $db->prepare("
+            SELECT 
+                DATE_FORMAT(fecha_creacion, '%Y-%m') as mes,
+                COUNT(*) as total
+            FROM ord_trabj 
+            WHERE fecha_creacion >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+            AND cond_id = :cond_id
+            GROUP BY mes
+            ORDER BY mes ASC
+        ");
+        $stmt->execute([':cond_id' => $cond_id]);
+        $tendencia_ordenes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } else {
+        $stmt = $db->query("
+            SELECT 
+                DATE_FORMAT(fecha_creacion, '%Y-%m') as mes,
+                COUNT(*) as total
+            FROM ord_trabj 
+            WHERE fecha_creacion >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+            GROUP BY mes
+            ORDER BY mes ASC
+        ");
+        $tendencia_ordenes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
     
     // Top 5 tipos de alertas (por tipo_alerta y posición)
-    $stmt = $db->query("
-        SELECT 
-            CONCAT(tipo_alerta, 
-                CASE 
-                    WHEN posicion_llanta IS NOT NULL 
-                    THEN CONCAT(' - ', REPLACE(posicion_llanta, '_', ' '))
-                    ELSE ''
-                END
-            ) as tipo_falla,
-            COUNT(*) as total 
-        FROM alert 
-        WHERE estado = 'activa'
-        GROUP BY tipo_alerta, posicion_llanta
-        ORDER BY total DESC 
-        LIMIT 5
-    ");
-    $top_alertas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if ($rol_conductor && $vehiculo_asignado_id) {
+        $stmt = $db->prepare("
+            SELECT 
+                CONCAT(tipo_alerta, 
+                    CASE 
+                        WHEN posicion_llanta IS NOT NULL 
+                        THEN CONCAT(' - ', REPLACE(posicion_llanta, '_', ' '))
+                        ELSE ''
+                    END
+                ) as tipo_falla,
+                COUNT(*) as total 
+            FROM alert 
+            WHERE estado = 'activa' AND regis_vehic_id = :vehiculo_id
+            GROUP BY tipo_alerta, posicion_llanta
+            ORDER BY total DESC 
+            LIMIT 5
+        ");
+        $stmt->execute([':vehiculo_id' => $vehiculo_asignado_id]);
+        $top_alertas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } else {
+        $stmt = $db->query("
+            SELECT 
+                CONCAT(tipo_alerta, 
+                    CASE 
+                        WHEN posicion_llanta IS NOT NULL 
+                        THEN CONCAT(' - ', REPLACE(posicion_llanta, '_', ' '))
+                        ELSE ''
+                    END
+                ) as tipo_falla,
+                COUNT(*) as total 
+            FROM alert 
+            WHERE estado = 'activa'
+            GROUP BY tipo_alerta, posicion_llanta
+            ORDER BY total DESC 
+            LIMIT 5
+        ");
+        $top_alertas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
     
     // Calcular variaciones (simuladas ya que las tablas no tienen campos de fecha consistentes)
     // En producción, estas deberían calcularse con fechas reales
@@ -67,24 +150,50 @@ try {
     $var_conductores = $conductores > 0 ? 2.3 : 0;
     
     // Distribución de estados de órdenes (para donut chart)
-    $stmt = $db->query("
-        SELECT 
-            estado,
-            COUNT(*) as total
-        FROM ord_trabj
-        GROUP BY estado
-        ORDER BY total DESC
-    ");
-    $estados_ordenes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if ($rol_conductor && $cond_id) {
+        $stmt = $db->prepare("
+            SELECT 
+                estado,
+                COUNT(*) as total
+            FROM ord_trabj
+            WHERE cond_id = :cond_id
+            GROUP BY estado
+            ORDER BY total DESC
+        ");
+        $stmt->execute([':cond_id' => $cond_id]);
+        $estados_ordenes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } else {
+        $stmt = $db->query("
+            SELECT 
+                estado,
+                COUNT(*) as total
+            FROM ord_trabj
+            GROUP BY estado
+            ORDER BY total DESC
+        ");
+        $estados_ordenes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
     
     // Calcular eficiencia operativa (órdenes completadas vs total)
-    $stmt = $db->query("
-        SELECT 
-            (SELECT COUNT(*) FROM ord_trabj WHERE estado = 'completada') as completadas,
-            COUNT(*) as total
-        FROM ord_trabj
-    ");
-    $eficiencia = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($rol_conductor && $cond_id) {
+        $stmt = $db->prepare("
+            SELECT 
+                (SELECT COUNT(*) FROM ord_trabj WHERE estado = 'completada' AND cond_id = :cond_id1) as completadas,
+                COUNT(*) as total
+            FROM ord_trabj
+            WHERE cond_id = :cond_id2
+        ");
+        $stmt->execute([':cond_id1' => $cond_id, ':cond_id2' => $cond_id]);
+        $eficiencia = $stmt->fetch(PDO::FETCH_ASSOC);
+    } else {
+        $stmt = $db->query("
+            SELECT 
+                (SELECT COUNT(*) FROM ord_trabj WHERE estado = 'completada') as completadas,
+                COUNT(*) as total
+            FROM ord_trabj
+        ");
+        $eficiencia = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
     $porcentaje_eficiencia = $eficiencia['total'] > 0 ? round(($eficiencia['completadas'] / $eficiencia['total']) * 100) : 0;
     
     // Si no hay datos, usar datos de ejemplo
@@ -1937,6 +2046,7 @@ try {
                     <h2 class="modules-title">Gestiones Rápidas</h2>
                 </div>
                 <div class="modules-grid">
+                    <!-- Sistema de Alertas: Todos los roles -->
                     <a href="truck_alerts.php" class="module-card">
                         <div class="module-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
@@ -1946,6 +2056,8 @@ try {
                         <span class="module-btn">Acceder</span>
                     </a>
                     
+                    <?php if (!$rol_conductor): ?>
+                    <!-- Salida de Repuestos: Solo admin y técnico -->
                     <a href="salida_repuesto.php" class="module-card">
                         <div class="module-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
@@ -1955,6 +2067,7 @@ try {
                         <span class="module-btn">Registrar</span>
                     </a>
                     
+                    <!-- Salida de Vehículo: Solo admin y técnico -->
                     <a href="salida_vehiculo.php" class="module-card">
                         <div class="module-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
@@ -1963,7 +2076,9 @@ try {
                         <div class="module-desc">Registra salida de vehículos.</div>
                         <span class="module-btn">Registrar</span>
                     </a>
+                    <?php endif; ?>
                     
+                    <!-- Órdenes de Trabajo: Todos los roles -->
                     <a href="orden_trabajo.php" class="module-card">
                         <div class="module-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="9" y1="15" x2="15" y2="15"></line></svg>
@@ -1973,15 +2088,18 @@ try {
                         <span class="module-btn">Ver Órdenes</span>
                     </a>
                     
+                    <!-- Gestión Vehicular: Todos los roles (cada uno ve lo que le corresponde) -->
                     <a href="gestion_vehicular.php" class="module-card">
                         <div class="module-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 18h-1.5a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5H18"></path><path d="M6 18H4.5a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5H6"></path><path d="M2 14h20"></path><path d="M22 11V7.414a2 2 0 0 0-.586-1.414l-1.414-1.414A2 2 0 0 0 18.586 4H5.414A2 2 0 0 0 4 4.586L2.586 6A2 2 0 0 0 2 7.414V11"></path><circle cx="6" cy="18" r="2"></circle><circle cx="18" cy="18" r="2"></circle></svg>
                         </div>
-                        <div class="module-title">Gestión Vehicular</div>
-                        <div class="module-desc">Categorías, vehículos y conductores</div>
+                        <div class="module-title"><?= $rol_conductor ? 'Mi Vehículo y Perfil' : 'Gestión Vehicular' ?></div>
+                        <div class="module-desc"><?= $rol_conductor ? 'Ver mi vehículo y perfil' : 'Categorías, vehículos y conductores' ?></div>
                         <span class="module-btn secondary">Acceder</span>
                     </a>
                     
+                    <?php if (!$rol_conductor): ?>
+                    <!-- Gestión de Repuestos: Solo admin y técnico -->
                     <a href="gestiones.php" class="module-card">
                         <div class="module-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
@@ -1991,6 +2109,7 @@ try {
                         <span class="module-btn secondary">Abrir</span>
                     </a>
                     
+                    <!-- Usuarios: Solo admin y técnico -->
                     <a href="crear_usuario.php" class="module-card">
                         <div class="module-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
@@ -2000,6 +2119,7 @@ try {
                         <span class="module-btn">Gestionar</span>
                     </a>
                     
+                    <!-- Reportes: Solo admin y técnico -->
                     <a href="reportes/index.php" class="module-card">
                         <div class="module-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3v18"></path><path d="M20 3v12"></path><path d="M2 3v6"></path></svg>
@@ -2008,6 +2128,7 @@ try {
                         <div class="module-desc">Generar reportes</div>
                         <span class="module-btn">Ver</span>
                     </a>
+                    <?php endif; ?>
                 </div>
             </div>
 

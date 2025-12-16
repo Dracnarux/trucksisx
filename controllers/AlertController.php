@@ -118,7 +118,30 @@ class AlertController {
 
     // Obtener todas las alertas
     public function getAll() {
-        $alerts = $this->alert->getAll();
+        // Si es conductor, filtrar solo alertas de su vehículo
+        session_start();
+        $rol_conductor = isset($_SESSION['usuario']['rol']) && $_SESSION['usuario']['rol'] === 'conductor';
+        
+        if ($rol_conductor) {
+            $user_id = $_SESSION['usuario']['id'];
+            require_once __DIR__ . '/../config/db.php';
+            $database = new Database();
+            $db = $database->getConnection();
+            
+            // Obtener el vehículo asignado al conductor
+            $stmt = $db->prepare("SELECT regis_vehic_id FROM cond WHERE user_id = :user_id LIMIT 1");
+            $stmt->execute([':user_id' => $user_id]);
+            $conductor_data = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($conductor_data && $conductor_data['regis_vehic_id']) {
+                $alerts = $this->alert->getByVehicle($conductor_data['regis_vehic_id']);
+            } else {
+                $alerts = []; // Sin vehículo asignado, no hay alertas
+            }
+        } else {
+            $alerts = $this->alert->getAll();
+        }
+        
         echo json_encode(['success' => true, 'data' => $alerts]);
     }
 
